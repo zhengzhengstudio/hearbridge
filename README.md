@@ -9,6 +9,7 @@ HearBridge is a lightweight H5 communication assistant prototype for deaf and ha
 - Live caption panel using the browser `SpeechRecognition` API when available.
 - Typed speech and large text display for moments when speech recognition is unreliable.
 - Phrase cards for hospital visits, transit, work, shopping, slower speech requests, and emergencies.
+- No-key local mode with manual caption capture, recording samples, and a local hotword list for future personalization.
 - Local reminder list with optional vibration test on supported devices.
 - Privacy-first prototype: audio stays local by default; optional server transcription can be enabled with a backend API key.
 - Standalone Express static server for PM2, Docker, or simple Node.js hosting.
@@ -64,7 +65,7 @@ pm2 save
 
 ## Browser Notes
 
-Live captions depend on browser support for `window.SpeechRecognition` or `window.webkitSpeechRecognition`. Some mobile browsers return `network` when their online speech service is unreachable. In that case, HearBridge shows a recording fallback: users can either transcribe the recording through the backend or save it as a local training sample.
+Live captions depend on browser support for `window.SpeechRecognition` or `window.webkitSpeechRecognition`. Some mobile browsers return `network` when their online speech service is unreachable. In that case, HearBridge shows a recording fallback. Without an API key, users can still save recording samples, manually add captions, and build a local hotword list for names, medicines, addresses, and project terms.
 
 Vibration depends on the browser and device support for `navigator.vibrate`.
 

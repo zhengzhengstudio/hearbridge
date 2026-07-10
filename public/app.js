@@ -75,9 +75,12 @@
         listening: false,
         recording: false,
         recordingMode: 'sample',
+        asrConfigured: false,
+        asrChecked: false,
         transcript: [],
         recordings: [],
-        reminders: loadReminders()
+        reminders: loadReminders(),
+        hotwords: loadHotwords()
     };
 
     const els = {
@@ -87,6 +90,11 @@
         captionDisplay: document.getElementById('captionDisplay'),
         recordFallback: document.getElementById('recordFallback'),
         recordFallbackText: document.getElementById('recordFallbackText'),
+        asrState: document.getElementById('asrState'),
+        manualCaption: document.getElementById('manualCaption'),
+        addManualCaption: document.getElementById('addManualCaption'),
+        saveHotword: document.getElementById('saveHotword'),
+        hotwordGrid: document.getElementById('hotwordGrid'),
         startTranscribeRecord: document.getElementById('startTranscribeRecord'),
         startRecord: document.getElementById('startRecord'),
         stopRecord: document.getElementById('stopRecord'),
@@ -123,8 +131,10 @@
         applyRole('self', false);
         renderPhrases();
         renderReminders();
+        renderHotwords();
         bindEvents();
         if (supportsRecognition) setupRecognition();
+        checkServerStatus();
     }
 
     function renderCapabilities() {
@@ -140,6 +150,8 @@
             els.startTranscribeRecord.disabled = true;
             els.startRecord.disabled = true;
             els.recordFallbackText.textContent = '当前浏览器不支持网页录音；仍可使用打字、常用语和大字卡片。';
+        } else {
+            setAsrMode(false, '本地模式');
         }
 
         els.vibrationStatus.textContent = supportsVibration
@@ -166,11 +178,17 @@
         els.startTranscribeRecord.addEventListener('click', () => startLocalRecording('transcribe'));
         els.startRecord.addEventListener('click', () => startLocalRecording('sample'));
         els.stopRecord.addEventListener('click', stopLocalRecording);
+        els.addManualCaption.addEventListener('click', addManualCaption);
+        els.saveHotword.addEventListener('click', saveManualHotword);
         els.roleAction.addEventListener('click', prepareRoleDraft);
         els.sayText.addEventListener('input', updateSayCount);
 
         els.reminderText.addEventListener('keydown', event => {
             if (event.key === 'Enter') addReminder();
+        });
+
+        els.manualCaption.addEventListener('keydown', event => {
+            if (event.key === 'Enter') addManualCaption();
         });
 
         document.querySelectorAll('[data-role]').forEach(button => {
@@ -283,9 +301,15 @@
         if (errorCode === 'network') {
             const message = '实时识别服务网络失败：这通常是浏览器的在线转写服务连不上，不是麦克风坏了。';
             els.recognitionStatus.textContent = `${message} 已开启本地录音备用。`;
-            showRecordingFallback('识别服务连不上时，可以先录本地样本；样本只保存在当前页面内，不会上传。');
-            addTranscript('识别服务网络失败。请改用本地录音、打字或常用语卡片继续沟通。', '系统提示');
-            toast('识别失败：network。已切换到本地录音备用。');
+            showRecordingFallback(state.asrConfigured
+                ? '浏览器识别连不上，可以改用“录音转文字”或手动补字幕。'
+                : '无 API key 模式：请用“只保存样本”、手动补字幕和本地热词训练继续沟通。');
+            addTranscript(state.asrConfigured
+                ? '浏览器识别网络失败。可以改用录音转文字、打字或常用语卡片继续沟通。'
+                : '识别服务网络失败。当前为无 API key 本地模式，请改用手动字幕、只保存样本或常用语卡片。', '系统提示');
+            toast(state.asrConfigured
+                ? '识别失败：network。可改用录音转文字。'
+                : '识别失败：network。已切换本地模式。');
             return;
         }
 
@@ -308,11 +332,17 @@
     function showRecordingFallback(message) {
         els.recordFallback.hidden = false;
         if (message) els.recordFallbackText.textContent = message;
+        renderHotwords();
         renderRecordings();
     }
 
     async function startLocalRecording(mode) {
         if (!supportsLocalRecording || state.recording) return;
+        if (mode === 'transcribe' && !state.asrConfigured) {
+            showRecordingFallback('没有 API key 时不能云端转写；请先“只保存样本”，或让对方帮忙打字补一句字幕。');
+            toast('无 API key，已为你保留本地训练入口。');
+            return;
+        }
 
         try {
             state.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -363,7 +393,7 @@
         state.recorder = null;
         state.audioChunks = [];
         stopMediaStream();
-        els.startTranscribeRecord.disabled = !supportsLocalRecording;
+        els.startTranscribeRecord.disabled = !supportsLocalRecording || !state.asrConfigured;
         els.startRecord.disabled = !supportsLocalRecording;
         els.stopRecord.disabled = true;
         els.micState.textContent = '未开启';
@@ -442,10 +472,81 @@
         } catch (error) {
             toast('转写请求失败，请检查网络或改用打字。');
         } finally {
-            els.startTranscribeRecord.disabled = !supportsLocalRecording;
+            els.startTranscribeRecord.disabled = !supportsLocalRecording || !state.asrConfigured;
             els.startRecord.disabled = !supportsLocalRecording;
-            els.recordFallbackText.textContent = '识别服务连不上时，可以先录本地样本；样本只保存在当前页面内，不会上传。';
+            els.recordFallbackText.textContent = state.asrConfigured
+                ? '识别服务连不上时，可以录音转文字；也可以只保存样本。'
+                : '无 API key 模式：样本只保存在当前页面内，可配合手动字幕和热词训练继续使用。';
         }
+    }
+
+    async function checkServerStatus() {
+        try {
+            const response = await fetch('/api/status', { cache: 'no-store' });
+            const status = await response.json();
+            setAsrMode(status.asr === 'configured', status.asr === 'configured' ? '可转写' : '本地模式');
+        } catch (error) {
+            setAsrMode(false, '本地模式');
+        } finally {
+            state.asrChecked = true;
+        }
+    }
+
+    function setAsrMode(isConfigured, label) {
+        state.asrConfigured = Boolean(isConfigured);
+        els.asrState.textContent = label || (state.asrConfigured ? '可转写' : '本地模式');
+        els.asrState.classList.toggle('ready', state.asrConfigured);
+        els.startTranscribeRecord.disabled = !supportsLocalRecording || !state.asrConfigured;
+        els.startTranscribeRecord.textContent = state.asrConfigured ? '录音转文字' : '无 API：本地训练';
+        if (!state.asrConfigured) {
+            els.recordFallbackText.textContent = '无 API key 模式：录音不会上传；可保存样本、手动补字幕、沉淀热词，后续接入本地或云端识别。';
+        }
+    }
+
+    function addManualCaption() {
+        const text = els.manualCaption.value.trim();
+        if (!text) {
+            toast('请输入一句要加入字幕的内容。');
+            return;
+        }
+        addTranscript(text, '手动补充');
+        showLarge(text);
+        els.manualCaption.value = '';
+        toast('已加入字幕和大字卡。');
+    }
+
+    function saveManualHotword() {
+        const text = els.manualCaption.value.trim() || els.sayText.value.trim();
+        if (!text) {
+            toast('先输入一个姓名、药名、地点或常用短句。');
+            return;
+        }
+        addHotword(text);
+    }
+
+    function addHotword(text) {
+        const value = text.trim().slice(0, 40);
+        if (!value) return;
+        state.hotwords = [value, ...state.hotwords.filter(item => item !== value)].slice(0, 12);
+        saveHotwords();
+        renderHotwords();
+        toast('已加入本地训练词库。');
+    }
+
+    function renderHotwords() {
+        if (!state.hotwords.length) {
+            els.hotwordGrid.innerHTML = '<span class="empty-hotword">还没有热词</span>';
+            return;
+        }
+        els.hotwordGrid.innerHTML = state.hotwords.map(item => `
+            <button class="hotword-chip" type="button" data-hotword="${escapeHtml(item)}">${escapeHtml(item)}</button>
+        `).join('');
+        els.hotwordGrid.querySelectorAll('[data-hotword]').forEach(button => {
+            button.addEventListener('click', () => {
+                els.manualCaption.value = button.dataset.hotword;
+                toast('已填入，可加入字幕或继续编辑。');
+            });
+        });
     }
 
     function addTranscript(text, source) {
@@ -619,6 +720,20 @@
 
     function saveReminders() {
         localStorage.setItem('hearbridge_reminders_v1', JSON.stringify(state.reminders));
+    }
+
+    function loadHotwords() {
+        try {
+            const raw = localStorage.getItem('hearbridge_hotwords_v1');
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed.filter(Boolean).slice(0, 12) : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function saveHotwords() {
+        localStorage.setItem('hearbridge_hotwords_v1', JSON.stringify(state.hotwords));
     }
 
     let toastTimer = null;

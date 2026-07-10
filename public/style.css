@@ -495,6 +495,73 @@ input:focus-visible {
     font-size: 14px;
 }
 
+.fallback-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: start;
+}
+
+.mini-status {
+    padding: 6px 9px;
+    border-radius: 6px;
+    background: rgba(199, 96, 74, 0.12);
+    color: var(--warm);
+    font-size: 12px;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.mini-status.ready {
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+}
+
+.manual-capture {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.hotword-box {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid rgba(35, 112, 94, 0.12);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.68);
+}
+
+.hotword-box strong {
+    font-size: 14px;
+}
+
+.hotword-grid {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.hotword-chip,
+.empty-hotword {
+    min-height: 30px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(35, 112, 94, 0.18);
+    background: #fff;
+    color: var(--primary-dark);
+    font-size: 13px;
+}
+
+.hotword-chip {
+    cursor: pointer;
+}
+
+.empty-hotword {
+    color: var(--muted);
+}
+
 .toolbar {
     display: flex;
     gap: 10px;
@@ -859,6 +926,8 @@ input {
     }
 
     .role-guide,
+    .fallback-heading,
+    .manual-capture,
     .hero-actions button,
     .toolbar.split,
     .caption-hints,

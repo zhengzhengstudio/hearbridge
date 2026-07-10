@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = Number(process.env.HEAR_PORT || process.env.PORT || 8118);
@@ -8,14 +9,18 @@ const HEAR_ROOT = process.env.HEAR_ROOT || path.resolve(__dirname, 'public');
 const OPENAI_TRANSCRIBE_MODEL = process.env.OPENAI_TRANSCRIBE_MODEL || 'gpt-4o-mini-transcribe';
 const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
 
+// 通行证密码，未配置则关闭登录保护
+const HEAR_PASS = process.env.HEAR_PASS || '';
+
 console.log(`🌉 HearBridge Server initializing...`);
 console.log(`📁 HEAR_ROOT: ${HEAR_ROOT}`);
+console.log(`🔐 Login enabled: ${HEAR_PASS ? 'yes' : 'no'}`);
 console.log(`📁 Files exist: ${fs.existsSync(HEAR_ROOT)}`);
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -27,7 +32,57 @@ app.use((req, res, next) => {
     next();
 });
 
-app.post('/api/transcribe', express.raw({
+app.use(express.json());
+
+/**
+ * 生成一次性 nonce，用于前端对口令做简单混淆。
+ * 这并不是安全加固，只是避免明文口令被浏览器插件直接读到。
+ */
+app.get('/api/login/nonce', (req, res) => {
+    res.json({
+        enabled: Boolean(HEAR_PASS),
+        nonce: crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex')
+    });
+});
+
+app.post('/api/login', (req, res) => {
+    if (!HEAR_PASS) {
+        res.json({ ok: true, token: signToken('guest') });
+        return;
+    }
+
+    const { token } = req.body || {};
+    if (!token || typeof token !== 'string') {
+        res.status(400).json({ ok: false, error: 'missing_token' });
+        return;
+    }
+
+    // 前端传的是 HMAC-SHA256(HEAR_PASS, nonce)，这里做一次简单时间常量比较
+    const expected = crypto.createHmac('sha256', HEAR_PASS).update(token.split('.')[0] || '').digest('hex');
+    const provided = token.split('.')[1] || '';
+
+    if (!timingSafeEqualHex(expected, provided)) {
+        res.status(401).json({ ok: false, error: 'invalid_pass' });
+        return;
+    }
+
+    res.json({ ok: true, token: signToken('user') });
+});
+
+app.get('/api/status', (req, res) => {
+    res.json({
+        status: 'ok',
+        product: 'HearBridge',
+        port: PORT,
+        root: HEAR_ROOT,
+        exists: fs.existsSync(HEAR_ROOT),
+        asr: process.env.OPENAI_API_KEY ? 'configured' : 'not_configured',
+        asrModel: OPENAI_TRANSCRIBE_MODEL,
+        login: Boolean(HEAR_PASS)
+    });
+});
+
+app.post('/api/transcribe', authorize, express.raw({
     type: ['audio/webm', 'audio/mp4', 'audio/mpeg', 'audio/wav', 'application/octet-stream'],
     limit: MAX_AUDIO_BYTES
 }), async (req, res) => {
@@ -59,7 +114,7 @@ app.post('/api/transcribe', express.raw({
     }
 });
 
-app.use(express.static(HEAR_ROOT, {
+app.use(authorize, express.static(HEAR_ROOT, {
     index: ['index.html'],
     extensions: ['html', 'htm'],
     setHeaders(res, filePath) {
@@ -71,18 +126,6 @@ app.use(express.static(HEAR_ROOT, {
         res.setHeader('Cache-Control', 'public, max-age=3600');
     }
 }));
-
-app.get('/api/status', (req, res) => {
-    res.json({
-        status: 'ok',
-        product: 'HearBridge',
-        port: PORT,
-        root: HEAR_ROOT,
-        exists: fs.existsSync(HEAR_ROOT),
-        asr: process.env.OPENAI_API_KEY ? 'configured' : 'not_configured',
-        asrModel: OPENAI_TRANSCRIBE_MODEL
-    });
-});
 
 app.use((req, res) => {
     const indexPath = path.join(HEAR_ROOT, 'index.html');
@@ -97,6 +140,59 @@ app.listen(PORT, () => {
     console.log(`🌉 HearBridge Server running on port ${PORT}`);
     console.log(`📁 Serving files from: ${HEAR_ROOT}`);
 });
+
+function signToken(role) {
+    const issuedAt = Math.floor(Date.now() / 1000);
+    const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'HearBridge' })).toString('base64url');
+    const payload = Buffer.from(JSON.stringify({ role, iat: issuedAt, exp: issuedAt + 60 * 60 * 24 })).toString('base64url');
+    return `${header}.${payload}.`;
+}
+
+function verifyToken(token) {
+    if (!token || typeof token !== 'string') return false;
+    const parts = token.split('.');
+    if (parts.length !== 3 || parts[2] !== '') return false;
+
+    try {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
+        return payload && typeof payload.exp === 'number' && payload.exp > Math.floor(Date.now() / 1000);
+    } catch (error) {
+        return false;
+    }
+}
+
+function authorize(req, res, next) {
+    if (!HEAR_PASS) {
+        next();
+        return;
+    }
+
+    // 放行登录相关接口和静态资源根目录（由前端登录层处理）
+    const publicPaths = ['/api/login', '/api/login/nonce', '/api/status'];
+    if (publicPaths.includes(req.path)) {
+        next();
+        return;
+    }
+
+    const auth = req.headers.authorization || '';
+    const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+
+    if (verifyToken(token)) {
+        next();
+        return;
+    }
+
+    res.status(401).json({ error: 'login_required', message: '请先登录。' });
+}
+
+function timingSafeEqualHex(a, b) {
+    if (a.length !== b.length) return false;
+    let diff = 0;
+    for (let i = 0; i < a.length; i += 1) {
+        diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    }
+    return diff === 0;
+}
 
 async function transcribeAudio(audioBuffer, mimeType) {
     if (typeof fetch !== 'function' || typeof FormData !== 'function' || typeof Blob !== 'function') {

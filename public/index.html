@@ -6,7 +6,7 @@
     <meta name="description" content="声桥 HearBridge 是一个帮助听障人士面对面沟通、打字发声和管理提醒的 H5 工具。">
     <title>声桥 HearBridge - 听障沟通助手</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="style.css?v=20260710d">
+    <link rel="stylesheet" href="style.css?v=20260710e">
 </head>
 <body>
     <header class="topbar">
@@ -29,7 +29,7 @@
             <a href="#say">我想说</a>
             <a href="#reminders">震动提醒</a>
         </nav>
-        <p class="privacy-note">本版默认本地处理，不上传录音</p>
+        <p class="privacy-note">无 API 也可用：本地样本、热词和大字沟通</p>
     </header>
 
     <main>
@@ -111,9 +111,22 @@
                 </div>
 
                 <div class="fallback-panel" id="recordFallback" hidden>
-                    <div>
-                        <strong>本地录音备用</strong>
-                        <p id="recordFallbackText">如果实时识别连不上，可以先录一段本地样本，之后用于个人热词、错词和本地 AI 训练。</p>
+                    <div class="fallback-heading">
+                        <div>
+                            <strong>本地录音备用</strong>
+                            <p id="recordFallbackText">如果实时识别连不上，可以先录一段本地样本，之后用于个人热词、错词和本地 AI 训练。</p>
+                        </div>
+                        <span class="mini-status" id="asrState">检测中</span>
+                    </div>
+                    <div class="manual-capture">
+                        <input id="manualCaption" type="text" maxlength="120" placeholder="对方可帮忙打字，或你自己补一句关键内容">
+                        <button class="button" id="addManualCaption" type="button">加入字幕</button>
+                        <button class="button button-ghost" id="saveHotword" type="button">存为热词</button>
+                    </div>
+                    <div class="hotword-box" id="hotwordBox">
+                        <strong>本地训练词库</strong>
+                        <p>保存姓名、药名、地址、公司项目名等高频词，之后接入本地小模型或云端识别时可作为热词。</p>
+                        <div class="hotword-grid" id="hotwordGrid"></div>
                     </div>
                     <div class="toolbar compact-toolbar" role="group" aria-label="本地录音控制">
                         <button class="button button-primary" id="startTranscribeRecord" type="button">录音转文字</button>
@@ -240,6 +253,6 @@
         <span>声桥 HearBridge 是沟通辅助原型，不替代医疗设备。</span>
     </footer>
 
-    <script src="app.js?v=20260710d" defer></script>
+    <script src="app.js?v=20260710e" defer></script>
 </body>
 </html>
