@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>声桥 HearBridge - 沟通通行证</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="style.css?v=20260710f">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="./"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 20c4-8 18-8 22 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M8 20v4M16 16v8M24 20v4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M11 11c2.8-2.4 7.2-2.4 10 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M8 8c4.4-4 11.6-4 16 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span><span><strong>声桥</strong><small>HearBridge</small></span></a>
+        <nav class="nav" aria-label="主要功能">
+            <a href="./">沟通</a><a href="challenge.html">闯关</a><a href="training.html">训练</a><a class="active" href="passport.html">通行证</a><a href="reminders.html">提醒</a>
+        </nav>
+        <p class="privacy-note">给对方看的第一句话</p>
+    </header>
+    <main class="app-page">
+        <section class="page-hero">
+            <div>
+                <h1>先亮通行证，再开始沟通。</h1>
+                <p>把身份说明、沟通偏好、紧急联系人整理成一张大字卡。医院、地铁、商店、工作场景都能直接给对方看。</p>
+            </div>
+            <div class="hero-stat"><strong>3秒</strong><span>让对方知道怎么帮你，而不是反复解释。</span></div>
+        </section>
+        <section class="app-grid">
+            <div class="passport-preview" id="passportPreview">
+                <div>
+                    <h2 id="passportHeadline">我是听障人士</h2>
+                    <p id="passportMessage">请用文字和我沟通，或放慢语速，每次只说一句。</p>
+                </div>
+                <div class="passport-line"><span>紧急联系人</span><strong id="passportContact">未填写</strong></div>
+                <div class="passport-line"><span>重要提醒</span><strong id="passportNote">请写下时间、地点、金额和药量。</strong></div>
+            </div>
+            <aside class="passport-stack">
+                <article class="passport-card">
+                    <h2>编辑通行证</h2>
+                    <p>信息只保存在本机。</p>
+                    <div class="answer-box">
+                        <input id="headlineInput" maxlength="40" placeholder="标题，例如：我是听障人士">
+                        <textarea id="messageInput" rows="4" maxlength="160" placeholder="沟通说明"></textarea>
+                        <input id="contactInput" maxlength="60" placeholder="紧急联系人或电话">
+                        <input id="noteInput" maxlength="80" placeholder="重要提醒">
+                        <div class="toolbar split">
+                            <button class="button button-primary" id="savePassport">保存</button>
+                            <button class="button" id="resetPassport">恢复默认</button>
+                        </div>
+                    </div>
+                </article>
+            </aside>
+        </section>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="passport.js?v=20260710f" defer></script>
+</body>
+</html>

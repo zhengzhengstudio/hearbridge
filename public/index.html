@@ -6,7 +6,7 @@
     <meta name="description" content="声桥 HearBridge 是一个帮助听障人士面对面沟通、打字发声和管理提醒的 H5 工具。">
     <title>声桥 HearBridge - 听障沟通助手</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="style.css?v=20260710e">
+    <link rel="stylesheet" href="style.css?v=20260710f">
 </head>
 <body>
     <header class="topbar">
@@ -25,9 +25,11 @@
             </span>
         </a>
         <nav class="nav" aria-label="主要功能">
-            <a href="#caption">实时字幕</a>
-            <a href="#say">我想说</a>
-            <a href="#reminders">震动提醒</a>
+            <a class="active" href="./">沟通</a>
+            <a href="challenge.html">闯关</a>
+            <a href="training.html">训练</a>
+            <a href="passport.html">通行证</a>
+            <a href="reminders.html">提醒</a>
         </nav>
         <p class="privacy-note">无 API 也可用：本地样本、热词和大字沟通</p>
     </header>
@@ -40,8 +42,27 @@
             </div>
             <div class="hero-actions" aria-label="快速入口">
                 <button class="primary-action" data-focus-target="#caption">开始看字幕</button>
-                <button class="quiet-action" data-focus-target="#say">我要打字说</button>
+                <a class="quiet-action" href="challenge.html">开始闯关</a>
             </div>
+        </section>
+
+        <section class="module-dock" aria-label="声桥模块">
+            <a class="module-tile active" href="./">
+                <strong>沟通台</strong>
+                <span>字幕、打字、大字卡片</span>
+            </a>
+            <a class="module-tile" href="challenge.html">
+                <strong>闯关训练</strong>
+                <span>医院、通勤、工作场景</span>
+            </a>
+            <a class="module-tile" href="training.html">
+                <strong>本地训练</strong>
+                <span>热词、错词、录音样本</span>
+            </a>
+            <a class="module-tile" href="passport.html">
+                <strong>沟通通行证</strong>
+                <span>给对方看的身份说明</span>
+            </a>
         </section>
 
         <section class="role-section" aria-label="按角色选择沟通方式">
@@ -253,6 +274,6 @@
         <span>声桥 HearBridge 是沟通辅助原型，不替代医疗设备。</span>
     </footer>
 
-    <script src="app.js?v=20260710e" defer></script>
+    <script src="app.js?v=20260710f" defer></script>
 </body>
 </html>

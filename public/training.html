@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>声桥 HearBridge - 本地训练</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="style.css?v=20260710f">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="./"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 20c4-8 18-8 22 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M8 20v4M16 16v8M24 20v4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M11 11c2.8-2.4 7.2-2.4 10 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M8 8c4.4-4 11.6-4 16 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span><span><strong>声桥</strong><small>HearBridge</small></span></a>
+        <nav class="nav" aria-label="主要功能">
+            <a href="./">沟通</a><a href="challenge.html">闯关</a><a class="active" href="training.html">训练</a><a href="passport.html">通行证</a><a href="reminders.html">提醒</a>
+        </nav>
+        <p class="privacy-note">本地训练，不需要 API key</p>
+    </header>
+    <main class="app-page">
+        <section class="page-hero">
+            <div>
+                <h1>先训练你的词，再训练未来的模型。</h1>
+                <p>把姓名、药名、地址、常错词和关卡样本沉淀在本机。现在它帮助你更快打字，未来可以作为本地小模型或云端识别的热词上下文。</p>
+            </div>
+            <div class="hero-stat"><strong id="trainingScore">0</strong><span>训练资产数：热词、样本、错词修正都会计入。</span></div>
+        </section>
+        <section class="app-grid">
+            <div class="training-stack">
+                <article class="training-card">
+                    <h2>添加热词</h2>
+                    <p>适合保存人名、医院科室、药名、项目名、常去地点。</p>
+                    <div class="manual-capture">
+                        <input id="hotwordInput" type="text" maxlength="40" placeholder="例如：布洛芬、复诊、3号线">
+                        <button class="button button-primary" id="addHotword">保存热词</button>
+                    </div>
+                    <div class="hotword-grid" id="hotwordGrid"></div>
+                </article>
+                <article class="training-card">
+                    <h2>错词修正</h2>
+                    <p>把“识别错了什么”和“正确应该是什么”记下来，未来作为个性化校正规则。</p>
+                    <div class="manual-capture">
+                        <input id="wrongWord" type="text" maxlength="40" placeholder="错词">
+                        <input id="rightWord" type="text" maxlength="40" placeholder="正确词">
+                        <button class="button" id="addCorrection">保存</button>
+                    </div>
+                    <ul class="sample-list" id="correctionList"></ul>
+                </article>
+            </div>
+            <aside class="training-card">
+                <h2>训练样本</h2>
+                <p>来自闯关、录音打点和手动字幕。当前先保存在本机。</p>
+                <ul class="sample-list" id="sampleList"></ul>
+                <div class="toolbar">
+                    <button class="button button-ghost" id="clearTraining">清空训练数据</button>
+                </div>
+            </aside>
+        </section>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="training.js?v=20260710f" defer></script>
+</body>
+</html>

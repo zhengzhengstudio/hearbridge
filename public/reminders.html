@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>声桥 HearBridge - 提醒</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="style.css?v=20260710f">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="./"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 20c4-8 18-8 22 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M8 20v4M16 16v8M24 20v4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M11 11c2.8-2.4 7.2-2.4 10 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M8 8c4.4-4 11.6-4 16 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span><span><strong>声桥</strong><small>HearBridge</small></span></a>
+        <nav class="nav" aria-label="主要功能">
+            <a href="./">沟通</a><a href="challenge.html">闯关</a><a href="training.html">训练</a><a href="passport.html">通行证</a><a class="active" href="reminders.html">提醒</a>
+        </nav>
+        <p class="privacy-note">本机提醒与震动测试</p>
+    </header>
+    <main class="app-page">
+        <section class="page-hero">
+            <div>
+                <h1>把重要的事，变成看得见的提醒。</h1>
+                <p>吃药、复诊、出门、开会，先用声桥记录文字提醒。网页震动适合临时提示，正式闹钟仍建议配合系统提醒。</p>
+            </div>
+            <div class="hero-stat"><strong id="reminderCount">0</strong><span>本机提醒数量。</span></div>
+        </section>
+        <section class="app-grid">
+            <article class="training-card">
+                <h2>新增提醒</h2>
+                <p id="vibrationStatus">检测震动能力中...</p>
+                <div class="manual-capture">
+                    <input id="reminderText" maxlength="48" placeholder="例如：20:30 吃药">
+                    <button class="button button-primary" id="addReminder">保存提醒</button>
+                    <button class="button" id="testVibrate">测试震动</button>
+                </div>
+            </article>
+            <aside class="training-card">
+                <h2>提醒列表</h2>
+                <ul class="reminder-list" id="reminderList"></ul>
+                <div class="toolbar">
+                    <button class="button button-ghost" id="clearReminders">清空提醒</button>
+                </div>
+            </aside>
+        </section>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="reminders.js?v=20260710f" defer></script>
+</body>
+</html>

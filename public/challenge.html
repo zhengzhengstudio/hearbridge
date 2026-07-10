@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>声桥 HearBridge - 闯关训练</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="style.css?v=20260710f">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="./" aria-label="声桥 HearBridge 首页">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32"><path d="M5 20c4-8 18-8 22 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M8 20v4M16 16v8M24 20v4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M11 11c2.8-2.4 7.2-2.4 10 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M8 8c4.4-4 11.6-4 16 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+            </span>
+            <span><strong>声桥</strong><small>HearBridge</small></span>
+        </a>
+        <nav class="nav" aria-label="主要功能">
+            <a href="./">沟通</a>
+            <a class="active" href="challenge.html">闯关</a>
+            <a href="training.html">训练</a>
+            <a href="passport.html">通行证</a>
+            <a href="reminders.html">提醒</a>
+        </nav>
+        <p class="privacy-note">闯关数据保存在本机</p>
+    </header>
+
+    <main class="app-page">
+        <section class="page-hero">
+            <div>
+                <h1>把真实沟通，练成一关一关。</h1>
+                <p>医院、地铁、工作、购物、紧急求助，每一关都能打字、录音、保存热词。没有 API key 也能积累本地训练数据。</p>
+            </div>
+            <div class="hero-stat">
+                <strong id="xpValue">0</strong>
+                <span>本地训练经验。完成关卡、保存热词、记录样本都会增长。</span>
+            </div>
+        </section>
+
+        <section class="app-grid">
+            <div class="challenge-map" id="levelList" aria-label="闯关地图"></div>
+            <aside class="panel play-panel" aria-label="当前关卡">
+                <div class="panel-heading compact">
+                    <div>
+                        <h2 id="levelTitle">选择一关开始</h2>
+                        <p id="levelGoal">练习一句清楚、短、可展示的沟通表达。</p>
+                    </div>
+                </div>
+                <div class="scenario-box">
+                    <small id="scenarioRole">场景</small>
+                    <p id="scenarioText">请选择左侧关卡。</p>
+                </div>
+                <div class="answer-box">
+                    <textarea id="answerText" rows="5" maxlength="220" placeholder="写下你想给对方看的话。"></textarea>
+                    <div class="toolbar split">
+                        <button class="button button-primary" id="completeLevel">完成本关</button>
+                        <button class="button" id="saveChallengeSample">录音/样本打点</button>
+                    </div>
+                    <button class="button button-ghost" id="useSuggested">使用推荐表达</button>
+                </div>
+            </aside>
+        </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="challenge.js?v=20260710f" defer></script>
+</body>
+</html>

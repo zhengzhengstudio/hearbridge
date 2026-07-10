@@ -6,10 +6,12 @@ HearBridge is a lightweight H5 communication assistant prototype for deaf and ha
 
 ## Features
 
+- Multi-page H5 experience: communication desk, challenge training, local training, communication passport, and reminders.
 - Live caption panel using the browser `SpeechRecognition` API when available.
 - Typed speech and large text display for moments when speech recognition is unreliable.
 - Phrase cards for hospital visits, transit, work, shopping, slower speech requests, and emergencies.
-- No-key local mode with manual caption capture, recording samples, and a local hotword list for future personalization.
+- Challenge levels for hospital, transit, work, shopping, and emergency scenes, with local XP and sample saving.
+- No-key local mode with manual caption capture, recording samples, hotwords, and correction pairs for future personalization.
 - Local reminder list with optional vibration test on supported devices.
 - Privacy-first prototype: audio stays local by default; optional server transcription can be enabled with a backend API key.
 - Standalone Express static server for PM2, Docker, or simple Node.js hosting.
@@ -54,8 +56,16 @@ pm2 save
 .
 ├── public/
 │   ├── index.html
+│   ├── challenge.html
+│   ├── training.html
+│   ├── passport.html
+│   ├── reminders.html
 │   ├── style.css
 │   ├── app.js
+│   ├── challenge.js
+│   ├── training.js
+│   ├── passport.js
+│   ├── reminders.js
 │   └── favicon.svg
 ├── server.js
 ├── package.json
