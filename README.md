@@ -10,7 +10,7 @@ HearBridge is a lightweight H5 communication assistant prototype for deaf and ha
 - Typed speech and large text display for moments when speech recognition is unreliable.
 - Phrase cards for hospital visits, transit, work, shopping, slower speech requests, and emergencies.
 - Local reminder list with optional vibration test on supported devices.
-- Privacy-first prototype: no audio upload, no account system, no backend persistence.
+- Privacy-first prototype: audio stays local by default; optional server transcription can be enabled with a backend API key.
 - Standalone Express static server for PM2, Docker, or simple Node.js hosting.
 
 ## Quick Start
@@ -38,6 +38,8 @@ Serve a custom static root:
 HEAR_ROOT=/path/to/public HEAR_PORT=8118 npm start
 ```
 
+Optional server-side transcription can be enabled by setting `OPENAI_API_KEY` in the Node.js server environment. When configured, the “录音转文字” fallback uploads the current recording to `/api/transcribe` and returns a caption. The key is read only by the Node.js server and is never exposed to the H5 frontend. If the key is missing, HearBridge keeps the recording as a local training sample and tells the user that cloud transcription is not configured.
+
 ## PM2
 
 ```bash
@@ -62,7 +64,7 @@ pm2 save
 
 ## Browser Notes
 
-Live captions depend on browser support for `window.SpeechRecognition` or `window.webkitSpeechRecognition`. If the API is unavailable, HearBridge still supports typed speech, phrase cards, large text display, and local reminders.
+Live captions depend on browser support for `window.SpeechRecognition` or `window.webkitSpeechRecognition`. Some mobile browsers return `network` when their online speech service is unreachable. In that case, HearBridge shows a recording fallback: users can either transcribe the recording through the backend or save it as a local training sample.
 
 Vibration depends on the browser and device support for `navigator.vibrate`.
 

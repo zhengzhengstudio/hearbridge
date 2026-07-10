@@ -74,6 +74,7 @@
         audioChunks: [],
         listening: false,
         recording: false,
+        recordingMode: 'sample',
         transcript: [],
         recordings: [],
         reminders: loadReminders()
@@ -86,6 +87,7 @@
         captionDisplay: document.getElementById('captionDisplay'),
         recordFallback: document.getElementById('recordFallback'),
         recordFallbackText: document.getElementById('recordFallbackText'),
+        startTranscribeRecord: document.getElementById('startTranscribeRecord'),
         startRecord: document.getElementById('startRecord'),
         stopRecord: document.getElementById('stopRecord'),
         recordingList: document.getElementById('recordingList'),
@@ -135,6 +137,7 @@
         }
 
         if (!supportsLocalRecording) {
+            els.startTranscribeRecord.disabled = true;
             els.startRecord.disabled = true;
             els.recordFallbackText.textContent = '当前浏览器不支持网页录音；仍可使用打字、常用语和大字卡片。';
         }
@@ -160,7 +163,8 @@
         els.addReminder.addEventListener('click', addReminder);
         els.testVibrate.addEventListener('click', () => vibrate([180, 80, 180, 80, 260]));
         els.clearReminders.addEventListener('click', clearReminders);
-        els.startRecord.addEventListener('click', startLocalRecording);
+        els.startTranscribeRecord.addEventListener('click', () => startLocalRecording('transcribe'));
+        els.startRecord.addEventListener('click', () => startLocalRecording('sample'));
         els.stopRecord.addEventListener('click', stopLocalRecording);
         els.roleAction.addEventListener('click', prepareRoleDraft);
         els.sayText.addEventListener('input', updateSayCount);
@@ -307,12 +311,13 @@
         renderRecordings();
     }
 
-    async function startLocalRecording() {
+    async function startLocalRecording(mode) {
         if (!supportsLocalRecording || state.recording) return;
 
         try {
             state.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
             state.audioChunks = [];
+            state.recordingMode = mode === 'transcribe' ? 'transcribe' : 'sample';
             state.recorder = new MediaRecorder(state.mediaStream);
 
             state.recorder.addEventListener('dataavailable', event => {
@@ -322,11 +327,14 @@
             state.recorder.addEventListener('stop', saveLocalRecording);
             state.recorder.start();
             state.recording = true;
+            els.startTranscribeRecord.disabled = true;
             els.startRecord.disabled = true;
             els.stopRecord.disabled = false;
             els.micState.textContent = '录音中';
             els.micState.classList.add('listening');
-            toast('正在本地录音。说完后点“停止录音”。');
+            toast(state.recordingMode === 'transcribe'
+                ? '正在录音。停止后会上传到服务端转文字。'
+                : '正在本地录音。说完后点“停止录音”。');
         } catch (error) {
             toast('无法打开麦克风。请检查浏览器权限。');
         }
@@ -337,10 +345,11 @@
         state.recorder.stop();
     }
 
-    function saveLocalRecording() {
+    async function saveLocalRecording() {
         const blob = new Blob(state.audioChunks, { type: state.recorder?.mimeType || 'audio/webm' });
         const url = URL.createObjectURL(blob);
         const createdAt = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        const mode = state.recordingMode;
 
         state.recordings.unshift({
             id: Date.now().toString(36),
@@ -350,15 +359,23 @@
         });
         state.recordings = state.recordings.slice(0, 5);
         state.recording = false;
+        state.recordingMode = 'sample';
         state.recorder = null;
         state.audioChunks = [];
         stopMediaStream();
+        els.startTranscribeRecord.disabled = !supportsLocalRecording;
         els.startRecord.disabled = !supportsLocalRecording;
         els.stopRecord.disabled = true;
         els.micState.textContent = '未开启';
         els.micState.classList.remove('listening');
-        addTranscript('已保存一段本地录音样本，可用于之后整理个人热词和错词。', '本地录音');
         renderRecordings();
+
+        if (mode === 'transcribe') {
+            await transcribeRecording(blob);
+            return;
+        }
+
+        addTranscript('已保存一段本地录音样本，可用于之后整理个人热词和错词。', '本地录音');
         toast('录音样本已保存在当前页面。');
     }
 
@@ -380,6 +397,55 @@
                 <audio controls src="${recording.url}"></audio>
             </li>
         `).join('');
+    }
+
+    async function transcribeRecording(blob) {
+        if (!blob.size) {
+            toast('录音太短，没有可转写内容。');
+            return;
+        }
+
+        els.startTranscribeRecord.disabled = true;
+        els.startRecord.disabled = true;
+        els.recordFallbackText.textContent = '正在上传录音并转文字；录音只用于本次转写，不在声桥服务器保存。';
+        toast('正在转文字...');
+
+        try {
+            const response = await fetch('/api/transcribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': blob.type || 'audio/webm'
+                },
+                body: blob
+            });
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                if (payload.error === 'asr_not_configured') {
+                    addTranscript('云端转写还没有配置。录音样本已保留，可继续使用打字或常用语。', '系统提示');
+                    toast('云端转写未配置，录音样本已保留。');
+                    return;
+                }
+                toast(payload.message || '转写失败，请稍后重试。');
+                return;
+            }
+
+            const text = String(payload.text || '').trim();
+            if (!text) {
+                toast('没有识别到清晰文字，请靠近说话者重录。');
+                return;
+            }
+
+            addTranscript(text, '云端转写');
+            showLarge(text);
+            toast('已转成文字。');
+        } catch (error) {
+            toast('转写请求失败，请检查网络或改用打字。');
+        } finally {
+            els.startTranscribeRecord.disabled = !supportsLocalRecording;
+            els.startRecord.disabled = !supportsLocalRecording;
+            els.recordFallbackText.textContent = '识别服务连不上时，可以先录本地样本；样本只保存在当前页面内，不会上传。';
+        }
     }
 
     function addTranscript(text, source) {
