@@ -37,6 +37,33 @@
         }
     ];
 
+    const roles = {
+        self: {
+            label: '当前角色：听障本人',
+            summary: '先打开字幕；识别不准时，切到打字或短句卡片给对方看。',
+            tip: '建议一句话只说一个重点。',
+            display: '我听不清，请用文字和我沟通，或者说慢一点。',
+            draft: '我听不清，请您把重点写下来，或者说慢一点。',
+            hints: ['医院口罩场景：建议靠近收音并请医生用短句。', '方言/多人场景：识别失败时切换到打字卡片。']
+        },
+        partner: {
+            label: '当前角色：沟通对象',
+            summary: '你可以把要说的话打出来，按“发送并朗读”，再让对方确认是否理解。',
+            tip: '请使用短句，每次只讲一个信息。',
+            display: '我们慢一点说，每次一句。你可以随时让我写下来。',
+            draft: '我们慢一点说，每次一句。你可以随时让我写下来。',
+            hints: ['对方可能能听见声音，但不一定听懂内容。', '重要信息请写下来：时间、地点、金额、药量。']
+        },
+        care: {
+            label: '当前角色：照护提醒',
+            summary: '先把吃药、出门、开会等高频事项放进本地提醒，再测试震动是否有效。',
+            tip: '提醒文字尽量具体，例如“20:30 吃降压药”。',
+            display: '请看这里：下一件事是提醒事项，请确认时间和内容。',
+            draft: '请看这里：下一件事是提醒事项，请确认时间和内容。',
+            hints: ['网页震动适合测试和临时提示，正式提醒仍建议配合系统闹钟。', '照护沟通里，时间和动作最好写成明确文字。']
+        }
+    };
+
     const state = {
         recognition: null,
         listening: false,
@@ -64,6 +91,13 @@
         testVibrate: document.getElementById('testVibrate'),
         clearReminders: document.getElementById('clearReminders'),
         reminderList: document.getElementById('reminderList'),
+        roleLabel: document.getElementById('roleLabel'),
+        roleSummary: document.getElementById('roleSummary'),
+        roleAction: document.getElementById('roleAction'),
+        captionHintPrimary: document.getElementById('captionHintPrimary'),
+        captionHintSecondary: document.getElementById('captionHintSecondary'),
+        composeTip: document.getElementById('composeTip'),
+        sayCount: document.getElementById('sayCount'),
         toast: document.getElementById('toast')
     };
 
@@ -71,6 +105,7 @@
 
     function init() {
         renderCapabilities();
+        applyRole('self', false);
         renderPhrases();
         renderReminders();
         bindEvents();
@@ -106,9 +141,15 @@
         els.addReminder.addEventListener('click', addReminder);
         els.testVibrate.addEventListener('click', () => vibrate([180, 80, 180, 80, 260]));
         els.clearReminders.addEventListener('click', clearReminders);
+        els.roleAction.addEventListener('click', prepareRoleDraft);
+        els.sayText.addEventListener('input', updateSayCount);
 
         els.reminderText.addEventListener('keydown', event => {
             if (event.key === 'Enter') addReminder();
+        });
+
+        document.querySelectorAll('[data-role]').forEach(button => {
+            button.addEventListener('click', () => applyRole(button.dataset.role, true));
         });
 
         document.querySelectorAll('[data-focus-target]').forEach(button => {
@@ -117,6 +158,42 @@
                 if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
         });
+    }
+
+    function applyRole(roleKey, shouldScroll) {
+        const role = roles[roleKey] || roles.self;
+        document.querySelectorAll('[data-role]').forEach(button => {
+            const isActive = button.dataset.role === roleKey;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+        });
+
+        els.roleLabel.textContent = role.label;
+        els.roleSummary.textContent = role.summary;
+        els.composeTip.textContent = role.tip;
+        els.captionHintPrimary.textContent = role.hints[0];
+        els.captionHintSecondary.textContent = role.hints[1];
+        els.displayText.textContent = role.display;
+        if (!els.sayText.value.trim()) {
+            els.sayText.value = role.draft;
+            updateSayCount();
+        }
+        if (shouldScroll) {
+            toast(role.summary);
+            document.querySelector('.workspace').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    function prepareRoleDraft() {
+        const active = document.querySelector('[data-role].active');
+        const role = roles[active?.dataset.role] || roles.self;
+        els.sayText.value = role.draft;
+        updateSayCount();
+        showLarge(role.display);
+    }
+
+    function updateSayCount() {
+        els.sayCount.textContent = String(els.sayText.value.length);
     }
 
     function setupRecognition() {

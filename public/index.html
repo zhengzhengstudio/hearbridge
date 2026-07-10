@@ -6,7 +6,7 @@
     <meta name="description" content="声桥 HearBridge 是一个帮助听障人士面对面沟通、打字发声和管理提醒的 H5 工具。">
     <title>声桥 HearBridge - 听障沟通助手</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="style.css?v=20260709">
+    <link rel="stylesheet" href="style.css?v=20260710">
 </head>
 <body>
     <header class="topbar">
@@ -26,7 +26,7 @@
         </a>
         <nav class="nav" aria-label="主要功能">
             <a href="#caption">实时字幕</a>
-            <a href="#phrases">常用语</a>
+            <a href="#say">我想说</a>
             <a href="#reminders">震动提醒</a>
         </nav>
         <p class="privacy-note">本版默认本地处理，不上传录音</p>
@@ -35,13 +35,65 @@
     <main>
         <section class="hero">
             <div class="hero-copy">
-                <h1>把听不清的对话，变成能看见、能表达、能继续的沟通。</h1>
-                <p>根据听障人士访谈整理：面对面讲话、医院口罩、方言识别、开会延迟、手机震动提醒，都是每天会遇到的真实问题。</p>
+                <h1>分角色进入，让沟通先顺起来。</h1>
+                <p>实时字幕、打字说话、常用短语卡片、震动提醒，先把最容易卡住的几分钟变顺。</p>
             </div>
             <div class="hero-actions" aria-label="快速入口">
                 <button class="primary-action" data-focus-target="#caption">开始看字幕</button>
                 <button class="quiet-action" data-focus-target="#say">我要打字说</button>
             </div>
+        </section>
+
+        <section class="role-section" aria-label="按角色选择沟通方式">
+            <button class="role-card active" type="button" data-role="self" aria-pressed="true">
+                <span class="role-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M5 21c1.5-4 4-6 7-6s5.5 2 7 6"/>
+                    </svg>
+                </span>
+                <span>
+                    <strong>听障本人</strong>
+                    <small>看字幕、打字给对方、保存重点</small>
+                </span>
+                <span class="role-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="role-card" type="button" data-role="partner" aria-pressed="false">
+                <span class="role-icon blue" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M5 6.5h14a2.5 2.5 0 0 1 2.5 2.5v5.4a2.5 2.5 0 0 1-2.5 2.5h-6.4L7.5 21v-4.1H5A2.5 2.5 0 0 1 2.5 14.4V9A2.5 2.5 0 0 1 5 6.5Z"/>
+                        <path d="M7.5 11h9"/>
+                        <path d="M7.5 14h5.5"/>
+                    </svg>
+                </span>
+                <span>
+                    <strong>沟通对象</strong>
+                    <small>放慢语速、短句表达、文字确认</small>
+                </span>
+                <span class="role-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="role-card" type="button" data-role="care" aria-pressed="false">
+                <span class="role-icon warm" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M18 10a6 6 0 0 0-12 0c0 7-2.5 7-2.5 8h17S18 17 18 10Z"/>
+                        <path d="M9.5 21a3 3 0 0 0 5 0"/>
+                        <path d="M12 2v2"/>
+                    </svg>
+                </span>
+                <span>
+                    <strong>照护提醒</strong>
+                    <small>吃药、出门、开会、本地震动</small>
+                </span>
+                <span class="role-arrow" aria-hidden="true">→</span>
+            </button>
+        </section>
+
+        <section class="role-guide" aria-live="polite">
+            <div>
+                <span id="roleLabel">当前角色：听障本人</span>
+                <p id="roleSummary">先打开字幕；识别不准时，切到打字或短句卡片给对方看。</p>
+            </div>
+            <button class="button button-primary" id="roleAction">按这个角色准备一句话</button>
         </section>
 
         <section class="workspace" aria-label="声桥工具台">
@@ -60,7 +112,12 @@
 
                 <div class="toolbar" role="group" aria-label="字幕控制">
                     <button class="button button-primary" id="startCaption">
-                        <span aria-hidden="true">●</span>
+                        <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 14a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v4a4 4 0 0 0 4 4Z"/>
+                            <path d="M5 10a7 7 0 0 0 14 0"/>
+                            <path d="M12 17v4"/>
+                            <path d="M8.5 21h7"/>
+                        </svg>
                         开始收音
                     </button>
                     <button class="button" id="stopCaption" disabled>停止</button>
@@ -69,8 +126,8 @@
                 </div>
 
                 <div class="caption-hints">
-                    <span>医院口罩场景：建议靠近收音并请医生用短句。</span>
-                    <span>方言/多人场景：识别失败时切换到打字卡片。</span>
+                    <span id="captionHintPrimary">医院口罩场景：建议靠近收音并请医生用短句。</span>
+                    <span id="captionHintSecondary">方言/多人场景：识别失败时切换到打字卡片。</span>
                 </div>
             </article>
 
@@ -82,9 +139,13 @@
                             <p>复杂事项先打字，再给对方看或朗读。</p>
                         </div>
                     </div>
-                    <textarea id="sayText" rows="5" placeholder="例如：我听不清，请您把重点写下来，或者说慢一点。"></textarea>
+                    <textarea id="sayText" rows="5" maxlength="300" placeholder="例如：我听不清，请您把重点写下来，或者说慢一点。"></textarea>
+                    <div class="compose-meta">
+                        <span id="composeTip">建议一句话只说一个重点。</span>
+                        <span><b id="sayCount">0</b>/300</span>
+                    </div>
                     <div class="toolbar split">
-                        <button class="button button-primary" id="speakText">朗读</button>
+                        <button class="button button-primary" id="speakText">发送并朗读</button>
                         <button class="button" id="showText">放大显示</button>
                     </div>
                 </article>
@@ -127,6 +188,12 @@
             <button class="button button-ghost" id="speakDisplay">朗读这句话</button>
         </section>
 
+        <section class="tips-strip" aria-label="沟通小贴士">
+            <span>小贴士：面对面时保持光线充足，让对方能看到表情和屏幕。</span>
+            <a href="#caption">回到字幕</a>
+            <a href="#say">编辑大字卡</a>
+        </section>
+
         <section class="insights" aria-label="访谈洞察">
             <div class="section-heading">
                 <h2>这次访谈告诉我们的事</h2>
@@ -160,6 +227,6 @@
         <span>声桥 HearBridge 是沟通辅助原型，不替代医疗设备。</span>
     </footer>
 
-    <script src="app.js?v=20260709" defer></script>
+    <script src="app.js?v=20260710" defer></script>
 </body>
 </html>

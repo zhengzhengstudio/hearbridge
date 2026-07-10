@@ -1,5 +1,5 @@
 :root {
-    --bg: #f4f8f5;
+    --bg: #f7faf8;
     --paper: #ffffff;
     --paper-soft: #eef6f1;
     --ink: #16211d;
@@ -10,6 +10,8 @@
     --primary-soft: #dff0e9;
     --warm: #c7604a;
     --warm-soft: #f8e5de;
+    --blue: #256fbd;
+    --blue-soft: #e8f1fb;
     --shadow: 0 18px 40px rgba(28, 54, 45, 0.09);
     --radius: 8px;
     --max: 1180px;
@@ -148,7 +150,7 @@ main {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 28px;
     align-items: end;
-    padding: 38px 0 24px;
+    padding: 34px 0 22px;
 }
 
 .hero h1 {
@@ -163,8 +165,8 @@ main {
     max-width: 760px;
     margin: 18px 0 0;
     color: var(--muted);
-    font-size: clamp(16px, 2vw, 20px);
-    line-height: 1.75;
+    font-size: clamp(16px, 2vw, 19px);
+    line-height: 1.7;
 }
 
 .hero-actions {
@@ -215,6 +217,130 @@ main {
     border-color: var(--warm);
 }
 
+.button-icon {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.role-section {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.role-card {
+    min-height: 112px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.86);
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+    box-shadow: 0 10px 28px rgba(28, 54, 45, 0.06);
+}
+
+.role-card:hover,
+.role-card:focus-visible {
+    transform: translateY(-1px);
+    outline: none;
+    border-color: rgba(35, 112, 94, 0.4);
+    box-shadow: 0 16px 34px rgba(28, 54, 45, 0.1);
+}
+
+.role-card.active {
+    border-color: rgba(35, 112, 94, 0.72);
+    background: linear-gradient(135deg, rgba(223, 240, 233, 0.82), rgba(255, 255, 255, 0.94));
+}
+
+.role-icon {
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.role-icon svg {
+    width: 30px;
+    height: 30px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.role-icon.blue {
+    background: var(--blue);
+}
+
+.role-icon.warm {
+    background: var(--warm);
+}
+
+.role-card strong,
+.role-card small {
+    display: block;
+}
+
+.role-card strong {
+    font-size: 21px;
+    line-height: 1.2;
+}
+
+.role-card small {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.role-arrow {
+    color: var(--primary);
+    font-size: 30px;
+    line-height: 1;
+}
+
+.role-guide {
+    min-height: 78px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: center;
+    margin-bottom: 18px;
+    padding: 16px 18px;
+    border: 1px solid rgba(35, 112, 94, 0.18);
+    border-radius: var(--radius);
+    background: rgba(223, 240, 233, 0.58);
+}
+
+.role-guide span {
+    display: block;
+    color: var(--primary-dark);
+    font-size: 14px;
+    font-weight: 850;
+}
+
+.role-guide p {
+    margin: 5px 0 0;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
 .primary-action:hover,
 .quiet-action:hover,
 .button:hover {
@@ -238,7 +364,7 @@ input:focus-visible {
 
 .workspace {
     display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.75fr);
+    grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.8fr);
     gap: 18px;
     align-items: start;
 }
@@ -300,7 +426,7 @@ input:focus-visible {
 }
 
 .caption-display {
-    min-height: clamp(248px, 36vw, 430px);
+    min-height: clamp(248px, 34vw, 390px);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -391,6 +517,15 @@ textarea {
     line-height: 1.7;
 }
 
+.compose-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
 input {
     min-height: 42px;
     padding: 0 12px;
@@ -410,6 +545,14 @@ input {
     background: #fff;
     text-align: left;
     cursor: pointer;
+    transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.phrase-card:hover,
+.phrase-card:focus-visible {
+    transform: translateY(-1px);
+    border-color: rgba(35, 112, 94, 0.42);
+    outline: none;
 }
 
 .phrase-card strong {
@@ -474,6 +617,30 @@ input {
     gap: 20px;
     background: var(--primary-dark);
     color: #fff;
+}
+
+.tips-strip {
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-top: 18px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-size: 14px;
+}
+
+.tips-strip span {
+    font-weight: 750;
+}
+
+.tips-strip a {
+    flex: 0 0 auto;
+    color: var(--muted);
 }
 
 .large-card-label {
@@ -574,6 +741,7 @@ input {
     }
 
     .workspace,
+    .role-section,
     .section-heading {
         grid-template-columns: 1fr;
     }
@@ -613,9 +781,31 @@ input {
         grid-template-columns: 1fr;
     }
 
+    .role-card {
+        min-height: 96px;
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .role-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .role-icon svg {
+        width: 25px;
+        height: 25px;
+    }
+
+    .role-card strong {
+        font-size: 18px;
+    }
+
+    .role-guide,
     .hero-actions button,
     .toolbar.split,
     .caption-hints,
+    .tips-strip,
     .large-card,
     .footer {
         display: grid;
