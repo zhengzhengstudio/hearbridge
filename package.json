@@ -1,0 +1,26 @@
+{
+  "name": "hearbridge",
+  "version": "0.1.0",
+  "description": "A lightweight H5 communication assistant prototype for deaf and hard-of-hearing people.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check public/app.js"
+  },
+  "keywords": [
+    "accessibility",
+    "deaf",
+    "hard-of-hearing",
+    "captions",
+    "h5",
+    "assistive-technology"
+  ],
+  "author": "ZhengZheng Studio",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

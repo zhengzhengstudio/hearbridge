@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="声桥 HearBridge 是一个帮助听障人士面对面沟通、打字发声和管理提醒的 H5 工具。">
+    <title>声桥 HearBridge - 听障沟通助手</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="style.css?v=20260709">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="./" aria-label="声桥 HearBridge 首页">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32">
+                    <path d="M5 20c4-8 18-8 22 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+                    <path d="M8 20v4M16 16v8M24 20v4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+                    <path d="M11 11c2.8-2.4 7.2-2.4 10 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+                    <path d="M8 8c4.4-4 11.6-4 16 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span>
+                <strong>声桥</strong>
+                <small>HearBridge</small>
+            </span>
+        </a>
+        <nav class="nav" aria-label="主要功能">
+            <a href="#caption">实时字幕</a>
+            <a href="#phrases">常用语</a>
+            <a href="#reminders">震动提醒</a>
+        </nav>
+        <p class="privacy-note">本版默认本地处理，不上传录音</p>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-copy">
+                <h1>把听不清的对话，变成能看见、能表达、能继续的沟通。</h1>
+                <p>根据听障人士访谈整理：面对面讲话、医院口罩、方言识别、开会延迟、手机震动提醒，都是每天会遇到的真实问题。</p>
+            </div>
+            <div class="hero-actions" aria-label="快速入口">
+                <button class="primary-action" data-focus-target="#caption">开始看字幕</button>
+                <button class="quiet-action" data-focus-target="#say">我要打字说</button>
+            </div>
+        </section>
+
+        <section class="workspace" aria-label="声桥工具台">
+            <article class="caption-panel panel" id="caption">
+                <div class="panel-heading">
+                    <div>
+                        <h2>实时字幕</h2>
+                        <p id="recognitionStatus">检查浏览器语音识别能力中...</p>
+                    </div>
+                    <span class="status-chip" id="micState">未开启</span>
+                </div>
+
+                <div class="caption-display" id="captionDisplay" aria-live="polite" aria-label="实时字幕显示区">
+                    <p class="placeholder">点击“开始收音”后，对方讲话会尽量转成这里的大字字幕。识别不准时，可以请对方放慢、重复，或切到打字沟通。</p>
+                </div>
+
+                <div class="toolbar" role="group" aria-label="字幕控制">
+                    <button class="button button-primary" id="startCaption">
+                        <span aria-hidden="true">●</span>
+                        开始收音
+                    </button>
+                    <button class="button" id="stopCaption" disabled>停止</button>
+                    <button class="button" id="copyCaption">复制字幕</button>
+                    <button class="button button-ghost" id="clearCaption">清空</button>
+                </div>
+
+                <div class="caption-hints">
+                    <span>医院口罩场景：建议靠近收音并请医生用短句。</span>
+                    <span>方言/多人场景：识别失败时切换到打字卡片。</span>
+                </div>
+            </article>
+
+            <aside class="side-stack" aria-label="表达和提醒工具">
+                <article class="panel compose-panel" id="say">
+                    <div class="panel-heading compact">
+                        <div>
+                            <h2>我想说</h2>
+                            <p>复杂事项先打字，再给对方看或朗读。</p>
+                        </div>
+                    </div>
+                    <textarea id="sayText" rows="5" placeholder="例如：我听不清，请您把重点写下来，或者说慢一点。"></textarea>
+                    <div class="toolbar split">
+                        <button class="button button-primary" id="speakText">朗读</button>
+                        <button class="button" id="showText">放大显示</button>
+                    </div>
+                </article>
+
+                <article class="panel phrase-panel" id="phrases">
+                    <div class="panel-heading compact">
+                        <div>
+                            <h2>常用语卡片</h2>
+                            <p>给医院、通勤、工作和紧急场景准备。</p>
+                        </div>
+                    </div>
+                    <div class="phrase-grid" id="phraseGrid"></div>
+                </article>
+
+                <article class="panel reminder-panel" id="reminders">
+                    <div class="panel-heading compact">
+                        <div>
+                            <h2>震动提醒</h2>
+                            <p id="vibrationStatus">检测设备震动能力中...</p>
+                        </div>
+                    </div>
+                    <div class="reminder-form">
+                        <input id="reminderText" type="text" maxlength="40" placeholder="提醒内容，如：8点吃药">
+                        <button class="button" id="addReminder">添加</button>
+                    </div>
+                    <div class="toolbar split">
+                        <button class="button button-warm" id="testVibrate">测试震动</button>
+                        <button class="button button-ghost" id="clearReminders">清空提醒</button>
+                    </div>
+                    <ul class="reminder-list" id="reminderList" aria-label="本地提醒列表"></ul>
+                </article>
+            </aside>
+        </section>
+
+        <section class="large-card" id="displayCard" aria-live="polite">
+            <div>
+                <span class="large-card-label">给对方看的大字卡片</span>
+                <p id="displayText">我听不清，请用文字和我沟通，或者说慢一点。</p>
+            </div>
+            <button class="button button-ghost" id="speakDisplay">朗读这句话</button>
+        </section>
+
+        <section class="insights" aria-label="访谈洞察">
+            <div class="section-heading">
+                <h2>这次访谈告诉我们的事</h2>
+                <p>声桥先解决今天能在 H5 里演示的沟通动作，同时保留未来“字幕眼镜 + 助听 + 手机/手表联动”的方向。</p>
+            </div>
+            <div class="insight-grid">
+                <article>
+                    <h3>不是听不到，是听不懂</h3>
+                    <p>助听器能帮助感知声音，但语义理解仍需要字幕、文字或重复确认。</p>
+                </article>
+                <article>
+                    <h3>医院和口罩会放大困难</h3>
+                    <p>唇读、语音转写和打字效率都会下降，所以需要更快的短句卡片。</p>
+                </article>
+                <article>
+                    <h3>复杂工作更适合文字</h3>
+                    <p>面对复杂任务，打字比口头更清楚，也能减少误解和反复确认。</p>
+                </article>
+                <article>
+                    <h3>未来应该更无感</h3>
+                    <p>理想工具应低调、一体化、续航更长，并与手机和手表提醒联动。</p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <footer class="footer">
+        <span>© 2026 ZhengZheng Studio</span>
+        <span>声桥 HearBridge 是沟通辅助原型，不替代医疗设备。</span>
+    </footer>
+
+    <script src="app.js?v=20260709" defer></script>
+</body>
+</html>
