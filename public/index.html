@@ -6,7 +6,7 @@
     <meta name="description" content="声桥 HearBridge 是一个帮助听障人士面对面沟通、打字发声和管理提醒的 H5 工具。">
     <title>声桥 HearBridge - 听障沟通助手</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="style.css?v=20260710">
+    <link rel="stylesheet" href="style.css?v=20260710c">
 </head>
 <body>
     <header class="topbar">
@@ -108,6 +108,18 @@
 
                 <div class="caption-display" id="captionDisplay" aria-live="polite" aria-label="实时字幕显示区">
                     <p class="placeholder">点击“开始收音”后，对方讲话会尽量转成这里的大字字幕。识别不准时，可以请对方放慢、重复，或切到打字沟通。</p>
+                </div>
+
+                <div class="fallback-panel" id="recordFallback" hidden>
+                    <div>
+                        <strong>本地录音备用</strong>
+                        <p id="recordFallbackText">如果实时识别连不上，可以先录一段本地样本，之后用于个人热词、错词和本地 AI 训练。</p>
+                    </div>
+                    <div class="toolbar compact-toolbar" role="group" aria-label="本地录音控制">
+                        <button class="button" id="startRecord" type="button">录一段样本</button>
+                        <button class="button button-warm" id="stopRecord" type="button" disabled>停止录音</button>
+                    </div>
+                    <ul class="recording-list" id="recordingList" aria-label="本地录音样本列表"></ul>
                 </div>
 
                 <div class="toolbar" role="group" aria-label="字幕控制">
@@ -227,6 +239,6 @@
         <span>声桥 HearBridge 是沟通辅助原型，不替代医疗设备。</span>
     </footer>
 
-    <script src="app.js?v=20260710" defer></script>
+    <script src="app.js?v=20260710c" defer></script>
 </body>
 </html>

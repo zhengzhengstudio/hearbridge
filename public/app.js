@@ -3,6 +3,9 @@
     const supportsRecognition = Boolean(SpeechRecognition);
     const supportsSpeech = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
     const supportsVibration = 'vibrate' in navigator;
+    const supportsLocalRecording = Boolean(
+        navigator.mediaDevices?.getUserMedia && window.MediaRecorder
+    );
 
     const phrases = [
         {
@@ -66,8 +69,13 @@
 
     const state = {
         recognition: null,
+        recorder: null,
+        mediaStream: null,
+        audioChunks: [],
         listening: false,
+        recording: false,
         transcript: [],
+        recordings: [],
         reminders: loadReminders()
     };
 
@@ -76,6 +84,11 @@
         vibrationStatus: document.getElementById('vibrationStatus'),
         micState: document.getElementById('micState'),
         captionDisplay: document.getElementById('captionDisplay'),
+        recordFallback: document.getElementById('recordFallback'),
+        recordFallbackText: document.getElementById('recordFallbackText'),
+        startRecord: document.getElementById('startRecord'),
+        stopRecord: document.getElementById('stopRecord'),
+        recordingList: document.getElementById('recordingList'),
         startCaption: document.getElementById('startCaption'),
         stopCaption: document.getElementById('stopCaption'),
         copyCaption: document.getElementById('copyCaption'),
@@ -116,8 +129,14 @@
         if (supportsRecognition) {
             els.recognitionStatus.textContent = '当前浏览器支持语音识别。识别质量会受方言、口罩、距离和网络影响。';
         } else {
-            els.recognitionStatus.textContent = '当前浏览器不支持实时语音识别；仍可使用打字发声、常用语和提醒。';
+            els.recognitionStatus.textContent = '当前浏览器不支持实时语音识别；可以使用打字发声、常用语、本地录音和提醒。';
             els.startCaption.disabled = true;
+            showRecordingFallback('当前浏览器没有实时字幕能力，可以先用本地录音保存训练样本。');
+        }
+
+        if (!supportsLocalRecording) {
+            els.startRecord.disabled = true;
+            els.recordFallbackText.textContent = '当前浏览器不支持网页录音；仍可使用打字、常用语和大字卡片。';
         }
 
         els.vibrationStatus.textContent = supportsVibration
@@ -141,6 +160,8 @@
         els.addReminder.addEventListener('click', addReminder);
         els.testVibrate.addEventListener('click', () => vibrate([180, 80, 180, 80, 260]));
         els.clearReminders.addEventListener('click', clearReminders);
+        els.startRecord.addEventListener('click', startLocalRecording);
+        els.stopRecord.addEventListener('click', stopLocalRecording);
         els.roleAction.addEventListener('click', prepareRoleDraft);
         els.sayText.addEventListener('input', updateSayCount);
 
@@ -227,7 +248,7 @@
         };
 
         state.recognition.onerror = event => {
-            toast(`语音识别暂时不可用：${event.error || '未知错误'}`);
+            handleRecognitionError(event.error);
             setMicState(false);
         };
 
@@ -254,11 +275,111 @@
         toast('已停止收音。');
     }
 
+    function handleRecognitionError(errorCode) {
+        if (errorCode === 'network') {
+            const message = '实时识别服务网络失败：这通常是浏览器的在线转写服务连不上，不是麦克风坏了。';
+            els.recognitionStatus.textContent = `${message} 已开启本地录音备用。`;
+            showRecordingFallback('识别服务连不上时，可以先录本地样本；样本只保存在当前页面内，不会上传。');
+            addTranscript('识别服务网络失败。请改用本地录音、打字或常用语卡片继续沟通。', '系统提示');
+            toast('识别失败：network。已切换到本地录音备用。');
+            return;
+        }
+
+        if (errorCode === 'not-allowed' || errorCode === 'service-not-allowed') {
+            els.recognitionStatus.textContent = '麦克风权限被拒绝。请允许浏览器使用麦克风，或改用打字和常用语。';
+            toast('麦克风权限未开启。');
+            return;
+        }
+
+        toast(`语音识别暂时不可用：${errorCode || '未知错误'}`);
+    }
+
     function setMicState(isListening) {
         els.stopCaption.disabled = !isListening;
         els.startCaption.disabled = isListening || !supportsRecognition;
         els.micState.textContent = isListening ? '收音中' : '未开启';
         els.micState.classList.toggle('listening', isListening);
+    }
+
+    function showRecordingFallback(message) {
+        els.recordFallback.hidden = false;
+        if (message) els.recordFallbackText.textContent = message;
+        renderRecordings();
+    }
+
+    async function startLocalRecording() {
+        if (!supportsLocalRecording || state.recording) return;
+
+        try {
+            state.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            state.audioChunks = [];
+            state.recorder = new MediaRecorder(state.mediaStream);
+
+            state.recorder.addEventListener('dataavailable', event => {
+                if (event.data.size > 0) state.audioChunks.push(event.data);
+            });
+
+            state.recorder.addEventListener('stop', saveLocalRecording);
+            state.recorder.start();
+            state.recording = true;
+            els.startRecord.disabled = true;
+            els.stopRecord.disabled = false;
+            els.micState.textContent = '录音中';
+            els.micState.classList.add('listening');
+            toast('正在本地录音。说完后点“停止录音”。');
+        } catch (error) {
+            toast('无法打开麦克风。请检查浏览器权限。');
+        }
+    }
+
+    function stopLocalRecording() {
+        if (!state.recorder || !state.recording) return;
+        state.recorder.stop();
+    }
+
+    function saveLocalRecording() {
+        const blob = new Blob(state.audioChunks, { type: state.recorder?.mimeType || 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        const createdAt = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+
+        state.recordings.unshift({
+            id: Date.now().toString(36),
+            url,
+            createdAt,
+            size: blob.size
+        });
+        state.recordings = state.recordings.slice(0, 5);
+        state.recording = false;
+        state.recorder = null;
+        state.audioChunks = [];
+        stopMediaStream();
+        els.startRecord.disabled = !supportsLocalRecording;
+        els.stopRecord.disabled = true;
+        els.micState.textContent = '未开启';
+        els.micState.classList.remove('listening');
+        addTranscript('已保存一段本地录音样本，可用于之后整理个人热词和错词。', '本地录音');
+        renderRecordings();
+        toast('录音样本已保存在当前页面。');
+    }
+
+    function stopMediaStream() {
+        if (!state.mediaStream) return;
+        state.mediaStream.getTracks().forEach(track => track.stop());
+        state.mediaStream = null;
+    }
+
+    function renderRecordings() {
+        if (!state.recordings.length) {
+            els.recordingList.innerHTML = '<li>还没有录音样本。遇到 network 时，可以先录一段保留训练材料。</li>';
+            return;
+        }
+
+        els.recordingList.innerHTML = state.recordings.map((recording, index) => `
+            <li>
+                <span>样本 ${state.recordings.length - index} · ${escapeHtml(recording.createdAt)} · ${formatBytes(recording.size)}</span>
+                <audio controls src="${recording.url}"></audio>
+            </li>
+        `).join('');
     }
 
     function addTranscript(text, source) {
@@ -449,5 +570,10 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    function formatBytes(value) {
+        if (!Number.isFinite(value) || value <= 0) return '0 KB';
+        return `${Math.max(1, Math.round(value / 1024))} KB`;
     }
 })();
