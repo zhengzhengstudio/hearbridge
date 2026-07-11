@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="声桥 HearBridge 项目介绍 PPT 预览与下载。">
+    <title>声桥 HearBridge - 项目介绍 PPT</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f7f6f0;
+            --paper: #ffffff;
+            --ink: #1f2933;
+            --muted: #5b6472;
+            --line: #d8d5ca;
+            --teal: #0f766e;
+            --blue: #2563eb;
+            --coral: #ea580c;
+            --gold: #d99a16;
+            --shadow: 0 18px 50px rgba(31, 41, 51, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            letter-spacing: 0;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .page {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 28px 0 56px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 58px;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 20px;
+        }
+
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--paper);
+            color: var(--teal);
+        }
+
+        .brand-mark svg {
+            width: 25px;
+            height: 25px;
+            stroke: currentColor;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 2.3;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 18px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--paper);
+            color: var(--ink);
+            font-size: 15px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .button.primary {
+            border-color: var(--teal);
+            background: var(--teal);
+            color: #ffffff;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 340px;
+            gap: 48px;
+            align-items: end;
+            margin-bottom: 48px;
+        }
+
+        .eyebrow {
+            margin: 0 0 18px;
+            color: var(--teal);
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        h1 {
+            margin: 0;
+            max-width: 760px;
+            font-size: clamp(42px, 6vw, 76px);
+            line-height: 1.02;
+            letter-spacing: 0;
+        }
+
+        .one-line {
+            margin: 26px 0 0;
+            max-width: 780px;
+            color: var(--muted);
+            font-size: clamp(21px, 3vw, 30px);
+            line-height: 1.45;
+        }
+
+        .summary {
+            padding: 26px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: var(--paper);
+            box-shadow: var(--shadow);
+        }
+
+        .summary strong {
+            display: block;
+            color: var(--teal);
+            font-size: 16px;
+            margin-bottom: 18px;
+        }
+
+        .summary p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 18px;
+            line-height: 1.7;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 24px;
+            margin: 36px 0 18px;
+        }
+
+        .section-head h2 {
+            margin: 0;
+            font-size: clamp(28px, 4vw, 42px);
+            line-height: 1.12;
+        }
+
+        .section-head p {
+            margin: 0;
+            max-width: 420px;
+            color: var(--muted);
+            font-size: 17px;
+            line-height: 1.6;
+        }
+
+        .slides {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .slide-card {
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--paper);
+            box-shadow: 0 8px 24px rgba(31, 41, 51, 0.06);
+        }
+
+        .slide-card:first-child {
+            grid-column: 1 / -1;
+        }
+
+        .slide-card img {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #ebe8dd;
+        }
+
+        .slide-caption {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 14px 16px;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .slide-caption strong {
+            color: var(--ink);
+            font-size: 15px;
+        }
+
+        .download-panel {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-top: 26px;
+            padding: 22px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: var(--paper);
+        }
+
+        .download-panel p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .download-panel strong {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--ink);
+            font-size: 19px;
+        }
+
+        @media (max-width: 820px) {
+            .page {
+                width: min(100% - 24px, 1120px);
+                padding-top: 18px;
+            }
+
+            .topbar,
+            .section-head,
+            .download-panel {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .top-actions {
+                justify-content: stretch;
+            }
+
+            .button {
+                flex: 1;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 26px;
+                margin-bottom: 34px;
+            }
+
+            .slides {
+                grid-template-columns: 1fr;
+            }
+
+            .slide-card:first-child {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header class="topbar" aria-label="声桥项目介绍">
+            <a class="brand" href="./" aria-label="回到声桥首页">
+                <span class="brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 32 32">
+                        <path d="M5 20c4-8 18-8 22 0"></path>
+                        <path d="M8 20v4M16 16v8M24 20v4"></path>
+                        <path d="M11 11c2.8-2.4 7.2-2.4 10 0"></path>
+                        <path d="M8 8c4.4-4 11.6-4 16 0"></path>
+                    </svg>
+                </span>
+                <span>声桥 HearBridge</span>
+            </a>
+            <nav class="top-actions" aria-label="页面操作">
+                <a class="button" href="./">回到工具</a>
+                <a class="button primary" href="assets/hearbridge-intro.pptx" download>下载 PPT</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero">
+                <div>
+                    <p class="eyebrow">项目一句话介绍</p>
+                    <h1>让现场沟通先顺起来</h1>
+                    <p class="one-line">声桥 HearBridge 是一款帮助听障人士在真实生活场景中用文字、大字卡片和闯关训练更顺畅沟通的多端辅助工具。</p>
+                </div>
+                <aside class="summary" aria-label="说明">
+                    <strong>Explain</strong>
+                    <p>这个页面只保留项目说明、PPT 预览和下载。复杂的沟通台、闯关、训练数据继续放在各自页面，避免介绍页变成大杂烩。</p>
+                </aside>
+            </section>
+
+            <section aria-labelledby="preview-title">
+                <div class="section-head">
+                    <h2 id="preview-title">PPT 预览</h2>
+                    <p>共 7 页：从访谈痛点、产品原则、闯关训练，到全端下载和开源路线，一次讲清楚声桥为什么做、怎么用、怎么继续做。</p>
+                </div>
+
+                <div class="slides">
+                    <figure class="slide-card">
+                        <img src="assets/ppt-preview/slide-01.png" alt="第 1 页：声桥 HearBridge 项目一句话介绍">
+                        <figcaption class="slide-caption"><strong>01 项目定位</strong><span>一句话讲清声桥</span></figcaption>
+                    </figure>
+                    <figure class="slide-card">
+                        <img src="assets/ppt-preview/slide-02.png" alt="第 2 页：听障用户现场确认痛点">
+                        <figcaption class="slide-caption"><strong>02 问题定义</strong><span>现场确认困难</span></figcaption>
+                    </figure>
+                    <figure class="slide-card">
+                        <img src="assets/ppt-preview/slide-03.png" alt="第 3 页：声桥产品原则">
+                        <figcaption class="slide-caption"><strong>03 产品原则</strong><span>把确认变简单</span></figcaption>
+                    </figure>
+                    <figure class="slide-card">
+                        <img src="assets/ppt-preview/slide-04.png" alt="第 4 页：声桥用户体验入口">
+                        <figcaption class="slide-caption"><strong>04 用户体验</strong><span>三步进入沟通</span></figcaption>
+                    </figure>
+                    <figure class="slide-card">
+                        <img src="assets/ppt-preview/slide-05.png" alt="第 5 页：闯关与训练">
+                        <figcaption class="slide-caption"><strong>05 闯关训练</strong><span>练习变成样本</span></figcaption>
+                    </figure>
+                    <figure class="slide-card">
+                        <img src="assets/ppt-preview/slide-06.png" alt="第 6 页：声桥全端落地">
+                        <figcaption class="slide-caption"><strong>06 全端落地</strong><span>Web 与 App 同步</span></figcaption>
+                    </figure>
+                    <figure class="slide-card">
+                        <img src="assets/ppt-preview/slide-07.png" alt="第 7 页：声桥开源路线">
+                        <figcaption class="slide-caption"><strong>07 开源路线</strong><span>继续训练真实场景</span></figcaption>
+                    </figure>
+                </div>
+
+                <div class="download-panel">
+                    <p><strong>下载可编辑 PPT</strong>文件为 PowerPoint 格式，可直接用于路演、汇报或继续修改。</p>
+                    <a class="button primary" href="assets/hearbridge-intro.pptx" download>下载 HearBridge PPT</a>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

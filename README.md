@@ -1,6 +1,6 @@
 # HearBridge / 声桥
 
-HearBridge is a lightweight H5 communication assistant prototype for deaf and hard-of-hearing people. It focuses on everyday face-to-face communication: live captions, typed speech, large text cards, reusable phrase cards, and vibration reminders.
+HearBridge is a multi-platform assistive communication tool that helps deaf and hard-of-hearing people use text, large cards, and challenge training to communicate more smoothly in real-life situations.
 
 声桥是一个面向听障人士的 H5 沟通辅助原型，来自一次真实访谈后的快速产品化尝试。它优先解决面对面沟通、医院口罩场景、工作文字确认、常用语表达和手机震动提醒这些高频需求。
 
@@ -15,6 +15,8 @@ HearBridge is a lightweight H5 communication assistant prototype for deaf and ha
 - Local reminder list with optional vibration test on supported devices.
 - Privacy-first prototype: audio stays local by default; optional server transcription can be enabled with a backend API key.
 - Standalone Express static server for PM2, Docker, or simple Node.js hosting.
+- Project intro page with PPT preview and editable PowerPoint download at `public/ppt.html`.
+- Process document at `public/PROCESS.md`; every project change should update it.
 
 ## Quick Start
 
@@ -60,6 +62,9 @@ pm2 save
 │   ├── training.html
 │   ├── passport.html
 │   ├── reminders.html
+│   ├── ppt.html
+│   ├── PROCESS.md
+│   ├── assets/
 │   ├── style.css
 │   ├── app.js
 │   ├── challenge.js
