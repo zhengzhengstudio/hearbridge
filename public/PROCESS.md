@@ -76,6 +76,7 @@
 
 | 日期 | 改动 | 关键文件 | 验证 | 状态 |
 | --- | --- | --- | --- | --- |
+| 2026-07-11 | 修复声桥专用同步漏传 `assets/` 的问题，确保 PPT、预览图、后续图标和音效资源会随 `--hear --web` 递归上传。 | `sync_to_termux.js`, `PROCESS.md` | 发现线上 PPT 链接返回 HTML 后定位到同步目录跳过 assets，已改为声桥同步显式 `includeAssets`。 | 完成 |
 | 2026-07-11 | 新增过程文档，把伙伴的 Duolingo 风格、音效和“小听”机器人计划归档为声桥多页面改造规则，并要求每次修改都更新本文档。 | `PROCESS.md` | 已确认文档落在声桥站点目录，后续会随 `--hear --web` 同步。 | 完成 |
 | 2026-07-11 | 新增项目说明 PPT 页，解决 Explain 不清晰和页面太杂的问题。 | `ppt.html`, `assets/hearbridge-intro.pptx`, `assets/ppt-preview/*` | `ppt.html`、PPT 下载、预览图均返回 200；桌面和 390px 手机宽度无横向溢出。 | 完成 |
 | 2026-07-11 | 首页收敛为三模式沟通工作台，不再把访谈说明、闯关、训练、通行证全部堆在首屏。 | `index.html`, `style.css`, `app.js` | 线上 `hear.zhengzhengstudio.cn` 可打开，`/api/status` 显示 `exists:true`。 | 完成 |
