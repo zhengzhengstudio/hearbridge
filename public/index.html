@@ -6,9 +6,9 @@
     <meta name="description" content="声桥 HearBridge 是一个帮助听障人士面对面沟通、打字发声和管理提醒的 H5 工具。">
     <title>声桥 HearBridge - 听障沟通助手</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="style.css?v=20260711a">
+    <link rel="stylesheet" href="style.css?v=20260711b">
 </head>
-<body>
+<body class="home-layout">
     <header class="topbar">
         <a class="brand" href="./" aria-label="声桥 HearBridge 首页">
             <span class="brand-mark" aria-hidden="true">
@@ -25,48 +25,69 @@
             </span>
         </a>
         <nav class="nav" aria-label="主要功能">
-            <a class="active" href="./">沟通</a>
-            <a href="challenge.html">闯关训练</a>
-            <a href="training.html">训练数据</a>
-            <a href="passport.html">通行证</a>
-            <a href="reminders.html">提醒</a>
+            <a class="active" href="./">今日</a>
+            <a href="#caption">沟通</a>
+            <a href="challenge.html">闯关</a>
+            <a href="training.html">训练库</a>
+            <a href="passport.html">我的</a>
         </nav>
         <p class="privacy-note">数据保存在后端 Termux</p>
     </header>
 
     <main>
-        <section class="hero hero-compact">
-            <div class="hero-copy">
-                <h1>声桥 HearBridge</h1>
-                <p>一个给听障人士现场沟通用的工作台：先把话写清楚、放大给对方看；需要练习时再进入闯关和训练。</p>
+        <section class="home-shell" aria-label="声桥今日入口">
+            <div class="home-lead">
+                <span class="product-tag">声桥 HearBridge</span>
+                <h1>今天先把一次真实沟通练顺。</h1>
+                <p>保留你要的沟通台、闯关、训练库、通行证和提醒，但把入口收成一条主线：先练习，遇到现场就切到沟通，结束后沉淀训练数据。</p>
+                <div class="home-actions" aria-label="今日主要操作">
+                    <a class="primary-action" href="challenge.html">开始今日闯关</a>
+                    <a class="quiet-action" href="#caption">打开沟通台</a>
+                    <a class="quiet-action" href="training.html">看训练库</a>
+                </div>
             </div>
-            <div class="hero-actions" aria-label="快速入口">
-                <a class="primary-action" href="#caption">开始沟通</a>
-                <a class="quiet-action" href="challenge.html">去闯关训练</a>
-            </div>
+
+            <aside class="today-card" aria-label="今日训练计划">
+                <div class="today-card-head">
+                    <span>今日主线</span>
+                    <strong>练习 → 沟通 → 训练</strong>
+                </div>
+                <ol class="today-steps">
+                    <li><span>1</span><p><strong>选一个场景</strong><small>医院、通勤、工作、服务或紧急求助。</small></p></li>
+                    <li><span>2</span><p><strong>打字或录音</strong><small>把表达变成可复用的语句和样本。</small></p></li>
+                    <li><span>3</span><p><strong>保存到训练库</strong><small>热词、错词和样本用于本地 AI 调优。</small></p></li>
+                </ol>
+            </aside>
         </section>
 
-        <section class="module-dock" aria-label="声桥模块">
-            <a class="module-tile" href="challenge.html">
-                <strong>闯关训练</strong>
-                <span>AI 对话、评分、录音复练</span>
+        <section class="home-hub" aria-label="声桥功能分区">
+            <a class="hub-item primary" href="challenge.html">
+                <span>今日练习</span>
+                <strong>闯关、评分、复盘</strong>
             </a>
-            <a class="module-tile active" href="./">
-                <strong>沟通台</strong>
-                <span>字幕、打字、大字卡片</span>
+            <a class="hub-item" href="#caption">
+                <span>现场沟通</span>
+                <strong>字幕、打字、大字卡</strong>
             </a>
-            <a class="module-tile" href="training.html">
-                <strong>训练数据</strong>
-                <span>热词、错词、样本</span>
+            <a class="hub-item" href="training.html">
+                <span>训练库</span>
+                <strong>热词、错词、样本</strong>
             </a>
-            <a class="module-tile" href="passport.html">
-                <strong>通行证</strong>
-                <span>听障卡 / 登录入口</span>
+            <a class="hub-item" href="passport.html">
+                <span>我的</span>
+                <strong>通行证、提醒、介绍</strong>
             </a>
-            <a class="module-tile" href="reminders.html">
-                <strong>提醒</strong>
-                <span>震动、备忘、提醒</span>
-            </a>
+        </section>
+
+        <section class="section-intro" aria-label="沟通工作台说明">
+            <div>
+                <h2>沟通工作台</h2>
+                <p>现场要快，所以这里不讲复杂功能：先选角色，再用字幕、打字、大字卡片和常用语完成沟通。</p>
+            </div>
+            <div class="section-links">
+                <a href="reminders.html">提醒</a>
+                <a href="ppt.html">PPT 介绍</a>
+            </div>
         </section>
 
         <section class="role-section" aria-label="按角色选择沟通方式">
@@ -282,8 +303,15 @@
         <span>声桥 HearBridge 是沟通辅助原型，不替代医疗设备。</span>
     </footer>
 
-    <script src="auth.js?v=20260711a" defer></script>
-    <script src="app.js?v=20260711a" defer></script>
-    <script src="migration.js?v=20260711a" defer></script>
+    <nav class="bottom-nav" aria-label="移动端主导航">
+        <a class="active" href="./">今日</a>
+        <a href="#caption">沟通</a>
+        <a href="challenge.html">闯关</a>
+        <a href="training.html">训练库</a>
+    </nav>
+
+    <script src="auth.js?v=20260711b" defer></script>
+    <script src="app.js?v=20260711b" defer></script>
+    <script src="migration.js?v=20260711b" defer></script>
 </body>
 </html>

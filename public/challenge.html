@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>声桥 HearBridge - 闯关训练</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="style.css?v=20260711a">
+    <link rel="stylesheet" href="style.css?v=20260711b">
 </head>
 <body>
     <header class="topbar">
@@ -21,11 +21,11 @@
             <span><strong>声桥</strong><small>HearBridge</small></span>
         </a>
         <nav class="nav" aria-label="主要功能">
-            <a href="./">沟通</a>
-            <a class="active" href="challenge.html">闯关训练</a>
-            <a href="training.html">训练数据</a>
-            <a href="passport.html">通行证</a>
-            <a href="reminders.html">提醒</a>
+            <a href="./">今日</a>
+            <a href="./#caption">沟通</a>
+            <a class="active" href="challenge.html">闯关</a>
+            <a href="training.html">训练库</a>
+            <a href="passport.html">我的</a>
         </nav>
         <p class="privacy-note">数据保存在后端 Termux</p>
     </header>
@@ -131,7 +131,14 @@
     </main>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="auth.js?v=20260711a" defer></script>
-    <script src="challenge.js?v=20260711a" defer></script>
+    <nav class="bottom-nav" aria-label="移动端主导航">
+        <a href="./">今日</a>
+        <a href="./#caption">沟通</a>
+        <a class="active" href="challenge.html">闯关</a>
+        <a href="training.html">训练库</a>
+    </nav>
+
+    <script src="auth.js?v=20260711b" defer></script>
+    <script src="challenge.js?v=20260711b" defer></script>
 </body>
 </html>
