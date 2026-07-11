@@ -76,6 +76,7 @@
 
 | 日期 | 改动 | 关键文件 | 验证 | 状态 |
 | --- | --- | --- | --- | --- |
+| 2026-07-11 | 按“今日主线 / 功能分区 / 沟通工作台 / 大字展示 / 资料与项目文档”重新分隔首页，把含糊的“我的”改成“资料”，并把 `ppt.html`、PPT 下载和 `PROCESS.md` 放到底部资料区；声桥专用同步补充公开下载中心 changelog。 | `index.html`, `challenge.html`, `training.html`, `passport.html`, `reminders.html`, `style.css`, `sync_to_termux.js`, `website/api/data/changelogs.json`, `website/zhengzhengstudio.cn/api/changelogs.json` | `node --check` 通过；桌面 1365px、手机 390px 首页和 PPT 页无横向溢出；底部资料区四个按钮可见。 | 完成 |
 | 2026-07-11 | 在保留沟通台、闯关、训练库、通行证、提醒和 PPT 的前提下，重排首页为“今日主线 / 功能分区 / 沟通工作台”，并统一顶部与移动端底部主导航。 | `index.html`, `challenge.html`, `training.html`, `passport.html`, `reminders.html`, `style.css` | 桌面 1365px 与手机 390px 首页、闯关页均无横向溢出；移动端隐藏顶部 nav，仅保留底部主导航。 | 完成 |
 | 2026-07-11 | 修复声桥专用同步漏传 `assets/` 的问题，确保 PPT、预览图、后续图标和音效资源会随 `--hear --web` 递归上传。 | `sync_to_termux.js`, `PROCESS.md` | 发现线上 PPT 链接返回 HTML 后定位到同步目录跳过 assets，已改为声桥同步显式 `includeAssets`。 | 完成 |
 | 2026-07-11 | 新增过程文档，把伙伴的 Duolingo 风格、音效和“小听”机器人计划归档为声桥多页面改造规则，并要求每次修改都更新本文档。 | `PROCESS.md` | 已确认文档落在声桥站点目录，后续会随 `--hear --web` 同步。 | 完成 |

@@ -6,7 +6,7 @@
     <meta name="description" content="声桥 HearBridge 是一个帮助听障人士面对面沟通、打字发声和管理提醒的 H5 工具。">
     <title>声桥 HearBridge - 听障沟通助手</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="style.css?v=20260711b">
+    <link rel="stylesheet" href="style.css?v=20260711d">
 </head>
 <body class="home-layout">
     <header class="topbar">
@@ -29,7 +29,7 @@
             <a href="#caption">沟通</a>
             <a href="challenge.html">闯关</a>
             <a href="training.html">训练库</a>
-            <a href="passport.html">我的</a>
+            <a href="#materials">资料</a>
         </nav>
         <p class="privacy-note">数据保存在后端 Termux</p>
     </header>
@@ -60,6 +60,14 @@
             </aside>
         </section>
 
+        <section class="section-intro hub-intro" aria-label="功能分区说明">
+            <div>
+                <span class="section-index">02</span>
+                <h2>功能分区</h2>
+                <p>把今天要做的事拆成四块：先练、现场用、沉淀训练数据，再把通行证和项目材料留在资料区。</p>
+            </div>
+        </section>
+
         <section class="home-hub" aria-label="声桥功能分区">
             <a class="hub-item primary" href="challenge.html">
                 <span>今日练习</span>
@@ -74,19 +82,20 @@
                 <strong>热词、错词、样本</strong>
             </a>
             <a class="hub-item" href="passport.html">
-                <span>我的</span>
+                <span>资料</span>
                 <strong>通行证、提醒、介绍</strong>
             </a>
         </section>
 
         <section class="section-intro" aria-label="沟通工作台说明">
             <div>
+                <span class="section-index">03</span>
                 <h2>沟通工作台</h2>
                 <p>现场要快，所以这里不讲复杂功能：先选角色，再用字幕、打字、大字卡片和常用语完成沟通。</p>
             </div>
             <div class="section-links">
                 <a href="reminders.html">提醒</a>
-                <a href="ppt.html">PPT 介绍</a>
+                <a href="passport.html">通行证</a>
             </div>
         </section>
 
@@ -251,6 +260,13 @@
                 </article>
             </aside>
         </section>
+
+        <section class="section-intro display-intro" aria-label="大字展示说明">
+            <div>
+                <span class="section-index">04</span>
+                <h2>大字展示</h2>
+                <p>这一块只负责给对方看清楚。它和上面的字幕、打字工作台分开，现场使用时不会混在一起。</p>
+            </div>
         </section>
 
         <section class="large-card" id="displayCard" aria-live="polite">
@@ -292,6 +308,20 @@
                 </article>
             </div>
         </details>
+
+        <section class="materials-section" id="materials" aria-label="项目材料和过程文档">
+            <div>
+                <span class="section-index">05</span>
+                <h2>资料与项目文档</h2>
+                <p>这里放对外介绍和过程记录：PPT 用来讲清楚声桥是什么，MD 记录每次改动为什么做、做了什么、怎么验证。</p>
+            </div>
+            <div class="resource-actions">
+                <a class="primary-action" href="ppt.html">打开 ppt.html</a>
+                <a class="quiet-action" href="assets/hearbridge-intro.pptx" download>下载 PPT</a>
+                <a class="quiet-action" href="PROCESS.md">查看过程文档 MD</a>
+                <a class="quiet-action" href="passport.html">沟通通行证</a>
+            </div>
+        </section>
     </main>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -308,10 +338,11 @@
         <a href="#caption">沟通</a>
         <a href="challenge.html">闯关</a>
         <a href="training.html">训练库</a>
+        <a href="#materials">资料</a>
     </nav>
 
-    <script src="auth.js?v=20260711b" defer></script>
-    <script src="app.js?v=20260711b" defer></script>
-    <script src="migration.js?v=20260711b" defer></script>
+    <script src="auth.js?v=20260711d" defer></script>
+    <script src="app.js?v=20260711d" defer></script>
+    <script src="migration.js?v=20260711d" defer></script>
 </body>
 </html>
