@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="声桥 HearBridge">
+  <defs>
+    <linearGradient id="bg" x1="92" y1="58" x2="420" y2="454" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E8F8F1"/>
+      <stop offset="1" stop-color="#BFEAD9"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="128" y1="126" x2="384" y2="400" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#23705E"/>
+      <stop offset="1" stop-color="#174D42"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#F7FAF8"/>
+  <rect x="38" y="38" width="436" height="436" rx="92" fill="url(#bg)"/>
+  <circle cx="256" cy="276" r="126" fill="#FFFFFF" opacity=".72"/>
+  <path d="M116 308c42-86 238-86 280 0" fill="none" stroke="url(#mark)" stroke-width="34" stroke-linecap="round"/>
+  <path d="M166 312v64M256 244v132M346 312v64" fill="none" stroke="url(#mark)" stroke-width="34" stroke-linecap="round"/>
+  <path d="M190 196c38-34 94-34 132 0" fill="none" stroke="url(#mark)" stroke-width="34" stroke-linecap="round"/>
+  <path d="M150 142c60-58 152-58 212 0" fill="none" stroke="url(#mark)" stroke-width="34" stroke-linecap="round"/>
+</svg>

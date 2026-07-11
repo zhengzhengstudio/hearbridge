@@ -5,20 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="声桥 HearBridge 是一个帮助听障人士面对面沟通、打字发声和管理提醒的 H5 工具。">
     <title>声桥 HearBridge - 听障沟通助手</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="style.css?v=20260711d">
+    <link rel="icon" href="assets/hearbridge-app-icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="style.css?v=20260711g">
+    <link rel="stylesheet" href="hear-ui.css?v=20260711g">
 </head>
 <body class="home-layout">
     <header class="topbar">
         <a class="brand" href="./" aria-label="声桥 HearBridge 首页">
-            <span class="brand-mark" aria-hidden="true">
-                <svg viewBox="0 0 32 32">
-                    <path d="M5 20c4-8 18-8 22 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
-                    <path d="M8 20v4M16 16v8M24 20v4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
-                    <path d="M11 11c2.8-2.4 7.2-2.4 10 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
-                    <path d="M8 8c4.4-4 11.6-4 16 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
-                </svg>
-            </span>
+            <span class="brand-mark" aria-hidden="true"><img src="assets/hearbridge-app-icon.svg" alt=""></span>
             <span>
                 <strong>声桥</strong>
                 <small>HearBridge</small>
@@ -161,14 +155,35 @@
                     <span class="status-chip" id="micState">未开启</span>
                 </div>
 
+                <div class="voice-console" aria-label="语音控制">
+                    <div>
+                        <strong>语音入口</strong>
+                        <span id="voiceModeNote">无 API key 也可以先录音，保存为本地训练样本。</span>
+                    </div>
+                    <div class="toolbar voice-toolbar" role="group" aria-label="语音和录音控制">
+                        <button class="button button-primary" id="startCaption">
+                            <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 14a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v4a4 4 0 0 0 4 4Z"/>
+                                <path d="M5 10a7 7 0 0 0 14 0"/>
+                                <path d="M12 17v4"/>
+                                <path d="M8.5 21h7"/>
+                            </svg>
+                            开始收音
+                        </button>
+                        <button class="button" id="startTranscribeRecord" type="button">保存语音样本</button>
+                        <button class="button button-warm" id="stopRecord" type="button" disabled>停止录音</button>
+                        <button class="button button-ghost" id="stopCaption" disabled>停止收音</button>
+                    </div>
+                </div>
+
                 <div class="caption-display" id="captionDisplay" aria-live="polite" aria-label="实时字幕显示区">
                     <p class="placeholder">点击“开始收音”后，对方讲话会尽量转成这里的大字字幕。识别不准时，可以请对方放慢、重复，或切到打字沟通。</p>
                 </div>
 
-                <div class="fallback-panel" id="recordFallback" hidden>
+                <div class="fallback-panel" id="recordFallback">
                     <div class="fallback-heading">
                         <div>
-                            <strong>本地录音备用</strong>
+                            <strong>本地语音训练</strong>
                             <p id="recordFallbackText">如果实时识别连不上，可以先录一段本地样本，之后用于个人热词、错词和本地 AI 训练。</p>
                         </div>
                         <span class="mini-status" id="asrState">检测中</span>
@@ -183,25 +198,10 @@
                         <p>保存姓名、药名、地址、公司项目名等高频词，之后接入本地小模型或云端识别时可作为热词。</p>
                         <div class="hotword-grid" id="hotwordGrid"></div>
                     </div>
-                    <div class="toolbar compact-toolbar" role="group" aria-label="本地录音控制">
-                        <button class="button button-primary" id="startTranscribeRecord" type="button">录音转文字</button>
-                        <button class="button" id="startRecord" type="button">只保存样本</button>
-                        <button class="button button-warm" id="stopRecord" type="button" disabled>停止录音</button>
-                    </div>
                     <ul class="recording-list" id="recordingList" aria-label="本地录音样本列表"></ul>
                 </div>
 
-                <div class="toolbar" role="group" aria-label="字幕控制">
-                    <button class="button button-primary" id="startCaption">
-                        <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M12 14a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v4a4 4 0 0 0 4 4Z"/>
-                            <path d="M5 10a7 7 0 0 0 14 0"/>
-                            <path d="M12 17v4"/>
-                            <path d="M8.5 21h7"/>
-                        </svg>
-                        开始收音
-                    </button>
-                    <button class="button" id="stopCaption" disabled>停止</button>
+                <div class="toolbar caption-tools" role="group" aria-label="字幕控制">
                     <button class="button" id="copyCaption">复制字幕</button>
                     <button class="button button-ghost" id="clearCaption">清空</button>
                 </div>
@@ -341,8 +341,8 @@
         <a href="#materials">资料</a>
     </nav>
 
-    <script src="auth.js?v=20260711d" defer></script>
-    <script src="app.js?v=20260711d" defer></script>
-    <script src="migration.js?v=20260711d" defer></script>
+    <script src="auth.js?v=20260711g" defer></script>
+    <script src="app.js?v=20260711g" defer></script>
+    <script src="migration.js?v=20260711g" defer></script>
 </body>
 </html>

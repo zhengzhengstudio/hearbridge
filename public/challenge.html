@@ -4,28 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>声桥 HearBridge - 闯关训练</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="style.css?v=20260711d">
+    <link rel="icon" href="assets/hearbridge-app-icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="style.css?v=20260711g">
+    <link rel="stylesheet" href="hear-ui.css?v=20260711g">
 </head>
 <body>
     <header class="topbar">
         <a class="brand" href="./" aria-label="声桥 HearBridge 首页">
-            <span class="brand-mark" aria-hidden="true">
-                <svg viewBox="0 0 32 32">
-                    <path d="M5 20c4-8 18-8 22 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
-                    <path d="M8 20v4M16 16v8M24 20v4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
-                    <path d="M11 11c2.8-2.4 7.2-2.4 10 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
-                    <path d="M8 8c4.4-4 11.6-4 16 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
-                </svg>
-            </span>
+            <span class="brand-mark" aria-hidden="true"><img src="assets/hearbridge-app-icon.svg" alt=""></span>
             <span><strong>声桥</strong><small>HearBridge</small></span>
         </a>
         <nav class="nav" aria-label="主要功能">
-            <a href="./">今日</a>
-            <a href="./#caption">沟通</a>
-            <a class="active" href="challenge.html">闯关</a>
-            <a href="training.html">训练库</a>
-            <a href="./#materials">资料</a>
+            <a href="./">沟通</a>
+            <a class="active" href="challenge.html">闯关训练</a>
+            <a href="training.html">训练数据</a>
+            <a href="passport.html">通行证</a>
+            <a href="reminders.html">提醒</a>
         </nav>
         <p class="privacy-note">数据保存在后端 Termux</p>
     </header>
@@ -33,12 +27,22 @@
     <main class="app-page">
         <section class="page-hero" id="introSection">
             <div>
-                <h1>闯关训练：把真实沟通练成肌肉记忆。</h1>
-                <p>面对医院、地铁、工作、购物、紧急求助五大场景，和 AI 对话。目标是：先说明听障，再请求文字，最后拿到关键信息。</p>
+                <h1>闯关训练</h1>
+                <p>用 AI 对话或标准答案两种模式，把医院、地铁、工作等真实沟通场景练成肌肉记忆。</p>
             </div>
-            <div class="hero-stat">
-                <strong id="xpValue">0</strong>
-                <span>训练经验。通关、录音、保存样本都会增长。</span>
+            <div class="hero-stat-row">
+                <div class="hero-stat">
+                    <strong id="xpValue">0</strong>
+                    <span>经验</span>
+                </div>
+                <div class="hero-stat">
+                    <strong id="streakValue">0</strong>
+                    <span>连胜</span>
+                </div>
+                <div class="hero-stat">
+                    <strong id="collectedValue">0</strong>
+                    <span>已收集</span>
+                </div>
             </div>
         </section>
 
@@ -51,20 +55,26 @@
                         <p id="levelGoal"></p>
                     </div>
                 </div>
-                <div class="scenario-box">
+                <div class="scenario-box" id="scenarioBox">
                     <small id="scenarioRole">场景</small>
-                    <p id="scenarioText">从左侧选择一个场景，再选练习或挑战模式。</p>
+                    <p id="scenarioText">从左侧选择一个场景，再选模式开始。</p>
                 </div>
+                <div class="suggested-bar" id="suggestedBar"></div>
                 <div class="mode-selector" id="modeSelector">
                     <button class="mode-card" type="button" data-mode="practice">
                         <strong>练习模式</strong>
-                        <span>无限提示，随时重试，适合熟悉表达。</span>
+                        <span>无限提示，随时重试，熟悉表达。</span>
                     </button>
                     <button class="mode-card" type="button" data-mode="challenge">
                         <strong>挑战模式</strong>
-                        <span>限制轮数，必须拿到关键信息才通关。</span>
+                        <span>限制轮数，必须拿到关键信息。</span>
                     </button>
                 </div>
+                <div class="play-mode-tabs" id="playModeTabs" hidden>
+                    <button class="play-mode-tab active" type="button" data-play="ai">AI 自由对话</button>
+                    <button class="play-mode-tab" type="button" data-play="answer">标准答案</button>
+                </div>
+                <button class="button button-primary" id="startMission" type="button">开始训练</button>
             </aside>
         </section>
 
@@ -89,20 +99,31 @@
                 <p class="chat-placeholder">AI 沟通对象会在这里说话。</p>
             </div>
 
-            <div class="feedback-bar" id="feedback" hidden></div>
-
-            <div class="answer-box">
+            <div class="answer-box" id="answerBox">
                 <textarea id="answerText" rows="3" maxlength="220" placeholder="写下你想给对方看的话，按回车发送。"></textarea>
-                <div class="toolbar split">
+                <div class="toolbar split" id="aiActions">
                     <button class="button button-primary" id="completeLevel" type="button">发送</button>
                     <button class="button" id="recordAnswer" type="button">按住录音</button>
                 </div>
-                <div class="toolbar split">
+                <div class="toolbar split" id="quickActions">
                     <button class="button button-ghost" id="useSuggested" type="button">推荐表达</button>
                     <button class="button" id="hintButton" type="button">提示</button>
                     <button class="button" id="giveUpButton" type="button">结束本轮</button>
                 </div>
             </div>
+
+            <div class="answer-box" id="answerModeBox" hidden>
+                <p id="answerQuestion"></p>
+                <div class="hint-box" id="answerHint"></div>
+                <div class="answer-options" id="answerOptions"></div>
+                <input id="answerInput" type="text" maxlength="120" placeholder="输入你的表达，或直接点上方推荐词">
+                <div class="toolbar split">
+                    <button class="button button-primary" id="submitAnswer" type="button">提交答案</button>
+                    <button class="button" id="recordAnswerMode" type="button">按住录音</button>
+                </div>
+            </div>
+
+            <div class="feedback-bar" id="feedback" hidden></div>
         </section>
 
         <section class="panel result-panel" id="resultSection" hidden>
@@ -122,6 +143,10 @@
                     <span>完成度</span>
                 </div>
             </div>
+            <div class="card-reward" id="cardReward" hidden>
+                <strong>已收集常用语</strong>
+                <p id="cardRewardText"></p>
+            </div>
             <div class="review-list" id="reviewList"></div>
             <div class="toolbar split">
                 <button class="button button-primary" id="replayLevel" type="button">再玩一次</button>
@@ -131,15 +156,24 @@
     </main>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="robot-mascot" id="robotMascot" aria-label="AI 小助手">
+        <div class="robot-bubble" id="robotBubble"></div>
+        <div class="robot-body" aria-hidden="true">
+            <div class="robot-antenna"></div>
+            <div class="robot-eyes"><div class="robot-eye"></div><div class="robot-eye"></div></div>
+            <div class="robot-mouth"></div>
+        </div>
+    </div>
+
     <nav class="bottom-nav" aria-label="移动端主导航">
-        <a href="./">今日</a>
-        <a href="./#caption">沟通</a>
-        <a class="active" href="challenge.html">闯关</a>
-        <a href="training.html">训练库</a>
-        <a href="./#materials">资料</a>
+        <a href="./">沟通</a>
+        <a class="active" href="challenge.html">闯关训练</a>
+        <a href="training.html">训练数据</a>
+        <a href="passport.html">通行证</a>
+        <a href="reminders.html">提醒</a>
     </nav>
 
-    <script src="auth.js?v=20260711d" defer></script>
-    <script src="challenge.js?v=20260711d" defer></script>
+    <script src="auth.js?v=20260711g" defer></script>
+    <script src="challenge.js?v=20260711g" defer></script>
 </body>
 </html>

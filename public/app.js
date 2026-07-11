@@ -96,8 +96,8 @@
         saveHotword: document.getElementById('saveHotword'),
         hotwordGrid: document.getElementById('hotwordGrid'),
         startTranscribeRecord: document.getElementById('startTranscribeRecord'),
-        startRecord: document.getElementById('startRecord'),
         stopRecord: document.getElementById('stopRecord'),
+        voiceModeNote: document.getElementById('voiceModeNote'),
         recordingList: document.getElementById('recordingList'),
         startCaption: document.getElementById('startCaption'),
         stopCaption: document.getElementById('stopCaption'),
@@ -163,7 +163,6 @@
 
         if (!supportsLocalRecording) {
             els.startTranscribeRecord.disabled = true;
-            els.startRecord.disabled = true;
             els.recordFallbackText.textContent = '当前浏览器不支持网页录音；仍可使用打字、常用语和大字卡片。';
         } else {
             setAsrMode(false, '本地模式');
@@ -190,8 +189,7 @@
         els.addReminder.addEventListener('click', addReminder);
         els.testVibrate.addEventListener('click', () => vibrate([180, 80, 180, 80, 260]));
         els.clearReminders.addEventListener('click', clearReminders);
-        els.startTranscribeRecord.addEventListener('click', () => startLocalRecording('transcribe'));
-        els.startRecord.addEventListener('click', () => startLocalRecording('sample'));
+        els.startTranscribeRecord.addEventListener('click', () => startLocalRecording(state.asrConfigured ? 'transcribe' : 'sample'));
         els.stopRecord.addEventListener('click', stopLocalRecording);
         els.addManualCaption.addEventListener('click', addManualCaption);
         els.saveHotword.addEventListener('click', saveManualHotword);
@@ -347,9 +345,9 @@
     async function startLocalRecording(mode) {
         if (!supportsLocalRecording || state.recording) return;
         if (mode === 'transcribe' && !state.asrConfigured) {
-            showRecordingFallback('没有 API key 时不能云端转写；请先“只保存样本”，或让对方帮忙打字补一句字幕。');
-            toast('无 API key，已为你保留本地训练入口。');
-            return;
+            mode = 'sample';
+            showRecordingFallback('没有 API key 时不会上传转写；本次会保存为本地语音样本，用于之后整理热词、错词和训练数据。');
+            toast('无 API key，改为保存本地语音样本。');
         }
 
         try {
@@ -366,7 +364,6 @@
             state.recorder.start();
             state.recording = true;
             els.startTranscribeRecord.disabled = true;
-            els.startRecord.disabled = true;
             els.stopRecord.disabled = false;
             els.micState.textContent = '录音中';
             els.micState.classList.add('listening');
@@ -402,8 +399,7 @@
         state.recorder = null;
         state.audioChunks = [];
         stopMediaStream();
-        els.startTranscribeRecord.disabled = !supportsLocalRecording || !state.asrConfigured;
-        els.startRecord.disabled = !supportsLocalRecording;
+        els.startTranscribeRecord.disabled = !supportsLocalRecording;
         els.stopRecord.disabled = true;
         els.micState.textContent = '未开启';
         els.micState.classList.remove('listening');
@@ -446,7 +442,6 @@
         }
 
         els.startTranscribeRecord.disabled = true;
-        els.startRecord.disabled = true;
         els.recordFallbackText.textContent = '正在上传录音并转文字；录音只用于本次转写，不在声桥服务器保存。';
         toast('正在转文字...');
 
@@ -482,8 +477,7 @@
         } catch (error) {
             toast('转写请求失败，请检查网络或改用打字。');
         } finally {
-            els.startTranscribeRecord.disabled = !supportsLocalRecording || !state.asrConfigured;
-            els.startRecord.disabled = !supportsLocalRecording;
+            els.startTranscribeRecord.disabled = !supportsLocalRecording;
             els.recordFallbackText.textContent = state.asrConfigured
                 ? '识别服务连不上时，可以录音转文字；也可以只保存样本。'
                 : '无 API key 模式：样本只保存在当前页面内，可配合手动字幕和热词训练继续使用。';
@@ -506,8 +500,11 @@
         state.asrConfigured = Boolean(isConfigured);
         els.asrState.textContent = label || (state.asrConfigured ? '可转写' : '本地模式');
         els.asrState.classList.toggle('ready', state.asrConfigured);
-        els.startTranscribeRecord.disabled = !supportsLocalRecording || !state.asrConfigured;
-        els.startTranscribeRecord.textContent = state.asrConfigured ? '录音转文字' : '无 API：本地训练';
+        els.startTranscribeRecord.disabled = !supportsLocalRecording;
+        els.startTranscribeRecord.textContent = state.asrConfigured ? '录音转文字' : '保存语音样本';
+        els.voiceModeNote.textContent = state.asrConfigured
+            ? '可以实时收音，也可以录一段上传转文字。'
+            : '没有 API key 时，先保存语音样本，再配合手动字幕和热词训练。';
         if (!state.asrConfigured) {
             els.recordFallbackText.textContent = '无 API key 模式：录音不会上传；可保存样本、手动补字幕、沉淀热词，后续接入本地或云端识别。';
         }
@@ -610,30 +607,13 @@
         toast('字幕已清空。');
     }
 
-    function speak(text) {
-        if (!text) {
-            toast('请先输入或选择一句话。');
-            return;
-        }
-
-        // 优先尝试云端 TTS，音质更好
-        speakCloudTts(text).catch(error => {
-            console.warn('[HearBridge] 云端朗读失败，回退本地:', error.message);
-            speakLocal(text);
-        });
-        toast('正在朗读给对方听。');
-    }
-
     async function speakCloudTts(text) {
-        const res = await fetch('/api/tts', {
+        const res = await HearAuth.apiFetch('/api/tts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: text.slice(0, 500), voice: 'shimmer', speed: '0.95' })
         });
-        if (!res.ok) {
-            const payload = await res.json().catch(() => ({}));
-            throw new Error(payload.message || '云端朗读失败');
-        }
+        if (!res.ok) throw new Error('cloud-tts-failed');
         const blob = await res.blob();
         const audio = new Audio(URL.createObjectURL(blob));
         audio.play();
@@ -653,6 +633,24 @@
         const preferred = voices.find(v => v.lang === 'zh-CN' && /Zhiyu|Ting-Ting|Mei-Jia|Yaoyao|yating|hsiaochen|hsiaoyao|yunxi|yunjian|xiaoxiao/i.test(v.name));
         if (preferred) utterance.voice = preferred;
         window.speechSynthesis.speak(utterance);
+    }
+
+    function speak(text) {
+        if (!text) {
+            toast('请先输入或选择一句话。');
+            return;
+        }
+        speakLocal(text);
+        toast('正在朗读给对方听。');
+    }
+
+    async function speakCloud(text) {
+        try {
+            await speakCloudTts(text);
+        } catch (error) {
+            console.warn('[HearBridge] 云端朗读失败，回退本地:', error.message);
+            speakLocal(text);
+        }
     }
 
     if (supportsSpeech && window.speechSynthesis.onvoiceschanged !== undefined) {
