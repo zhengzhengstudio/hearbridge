@@ -6,7 +6,7 @@
     <meta name="description" content="声桥 HearBridge 是一个帮助听障人士面对面沟通、打字发声和管理提醒的 H5 工具。">
     <title>声桥 HearBridge - 听障沟通助手</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="style.css?v=20260710f">
+    <link rel="stylesheet" href="style.css?v=20260711a">
 </head>
 <body>
     <header class="topbar">
@@ -31,39 +31,29 @@
             <a href="passport.html">通行证</a>
             <a href="reminders.html">提醒</a>
         </nav>
-        <p class="privacy-note">无 API 也可用：本地样本、热词和大字沟通</p>
+        <p class="privacy-note">数据保存在后端 Termux</p>
     </header>
 
     <main>
-        <section class="hero">
+        <section class="hero hero-compact">
             <div class="hero-copy">
-                <h1>分角色进入，让沟通先顺起来。</h1>
-                <p>实时字幕、打字说话、常用短语卡片、震动提醒，先把最容易卡住的几分钟变顺。</p>
+                <h1>声桥 HearBridge</h1>
+                <p>一个给听障人士现场沟通用的工作台：先把话写清楚、放大给对方看；需要练习时再进入闯关和训练。</p>
             </div>
             <div class="hero-actions" aria-label="快速入口">
-                <button class="primary-action" data-focus-target="#caption">开始看字幕</button>
-                <a class="quiet-action" href="challenge.html">开始闯关</a>
+                <a class="primary-action" href="#caption">开始沟通</a>
+                <a class="quiet-action" href="challenge.html">去闯关</a>
             </div>
         </section>
 
-        <section class="module-dock" aria-label="声桥模块">
-            <a class="module-tile active" href="./">
-                <strong>沟通台</strong>
-                <span>字幕、打字、大字卡片</span>
-            </a>
-            <a class="module-tile" href="challenge.html">
-                <strong>闯关训练</strong>
-                <span>医院、通勤、工作场景</span>
-            </a>
-            <a class="module-tile" href="training.html">
-                <strong>本地训练</strong>
-                <span>热词、错词、录音样本</span>
-            </a>
-            <a class="module-tile" href="passport.html">
-                <strong>沟通通行证</strong>
-                <span>给对方看的身份说明</span>
-            </a>
-        </section>
+        <section class="console-shell" aria-label="声桥工作台">
+            <nav class="mode-switch" aria-label="工作模式">
+                <a class="mode-tab active" href="./">快速沟通</a>
+                <a class="mode-tab" href="challenge.html">情境闯关</a>
+                <a class="mode-tab" href="training.html">本地训练</a>
+                <a class="mode-tab" href="passport.html">通行证</a>
+            </nav>
+            <p class="mode-help">默认只显示马上能用的沟通动作；训练、通行证和提醒都在独立页面继续。</p>
 
         <section class="role-section" aria-label="按角色选择沟通方式">
             <button class="role-card active" type="button" data-role="self" aria-pressed="true">
@@ -226,6 +216,7 @@
                 </article>
             </aside>
         </section>
+        </section>
 
         <section class="large-card" id="displayCard" aria-live="polite">
             <div>
@@ -241,7 +232,8 @@
             <a href="#say">编辑大字卡</a>
         </section>
 
-        <section class="insights" aria-label="访谈洞察">
+        <details class="insights" aria-label="访谈洞察">
+            <summary>查看访谈洞察和产品方向</summary>
             <div class="section-heading">
                 <h2>这次访谈告诉我们的事</h2>
                 <p>声桥先解决今天能在 H5 里演示的沟通动作，同时保留未来“字幕眼镜 + 助听 + 手机/手表联动”的方向。</p>
@@ -264,16 +256,20 @@
                     <p>理想工具应低调、一体化、续航更长，并与手机和手表提醒联动。</p>
                 </article>
             </div>
-        </section>
+        </details>
     </main>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <button class="migration-trigger" id="migrateData" type="button">从本机迁移旧数据到后端</button>
 
     <footer class="footer">
         <span>© 2026 ZhengZheng Studio</span>
         <span>声桥 HearBridge 是沟通辅助原型，不替代医疗设备。</span>
     </footer>
 
-    <script src="app.js?v=20260710f" defer></script>
+    <script src="auth.js?v=20260711a" defer></script>
+    <script src="app.js?v=20260711a" defer></script>
+    <script src="migration.js?v=20260711a" defer></script>
 </body>
 </html>

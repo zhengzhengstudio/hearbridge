@@ -5,13 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>声桥 HearBridge - 闯关训练</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="style.css?v=20260710f">
+    <link rel="stylesheet" href="style.css?v=20260711a">
 </head>
 <body>
     <header class="topbar">
         <a class="brand" href="./" aria-label="声桥 HearBridge 首页">
             <span class="brand-mark" aria-hidden="true">
-                <svg viewBox="0 0 32 32"><path d="M5 20c4-8 18-8 22 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M8 20v4M16 16v8M24 20v4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M11 11c2.8-2.4 7.2-2.4 10 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M8 8c4.4-4 11.6-4 16 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+                <svg viewBox="0 0 32 32">
+                    <path d="M5 20c4-8 18-8 22 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+                    <path d="M8 20v4M16 16v8M24 20v4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+                    <path d="M11 11c2.8-2.4 7.2-2.4 10 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+                    <path d="M8 8c4.4-4 11.6-4 16 0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+                </svg>
             </span>
             <span><strong>声桥</strong><small>HearBridge</small></span>
         </a>
@@ -22,47 +27,111 @@
             <a href="passport.html">通行证</a>
             <a href="reminders.html">提醒</a>
         </nav>
-        <p class="privacy-note">闯关数据保存在本机</p>
+        <p class="privacy-note">数据保存在后端 Termux</p>
     </header>
 
     <main class="app-page">
-        <section class="page-hero">
+        <section class="page-hero" id="introSection">
             <div>
-                <h1>把真实沟通，练成一关一关。</h1>
-                <p>医院、地铁、工作、购物、紧急求助，每一关都能打字、录音、保存热词。没有 API key 也能积累本地训练数据。</p>
+                <h1>闯关训练：把真实沟通练成肌肉记忆。</h1>
+                <p>面对医院、地铁、工作、购物、紧急求助五大场景，和 AI 对话。目标是：先说明听障，再请求文字，最后拿到关键信息。</p>
             </div>
             <div class="hero-stat">
                 <strong id="xpValue">0</strong>
-                <span>本地训练经验。完成关卡、保存热词、记录样本都会增长。</span>
+                <span>训练经验。通关、录音、保存样本都会增长。</span>
             </div>
         </section>
 
-        <section class="app-grid">
-            <div class="challenge-map" id="levelList" aria-label="闯关地图"></div>
-            <aside class="panel play-panel" aria-label="当前关卡">
+        <section class="app-grid" id="setupSection">
+            <div class="challenge-map" id="levelList" aria-label="选择关卡"></div>
+            <aside class="panel play-panel" aria-label="开始训练">
                 <div class="panel-heading compact">
                     <div>
-                        <h2 id="levelTitle">选择一关开始</h2>
-                        <p id="levelGoal">练习一句清楚、短、可展示的沟通表达。</p>
+                        <h2 id="levelTitle">选择关卡</h2>
+                        <p id="levelGoal"></p>
                     </div>
                 </div>
                 <div class="scenario-box">
                     <small id="scenarioRole">场景</small>
-                    <p id="scenarioText">请选择左侧关卡。</p>
+                    <p id="scenarioText">从左侧选择一个场景，再选练习或挑战模式。</p>
                 </div>
-                <div class="answer-box">
-                    <textarea id="answerText" rows="5" maxlength="220" placeholder="写下你想给对方看的话。"></textarea>
-                    <div class="toolbar split">
-                        <button class="button button-primary" id="completeLevel">完成本关</button>
-                        <button class="button" id="saveChallengeSample">录音/样本打点</button>
-                    </div>
-                    <button class="button button-ghost" id="useSuggested">使用推荐表达</button>
+                <div class="mode-selector" id="modeSelector">
+                    <button class="mode-card" type="button" data-mode="practice">
+                        <strong>练习模式</strong>
+                        <span>无限提示，随时重试，适合熟悉表达。</span>
+                    </button>
+                    <button class="mode-card" type="button" data-mode="challenge">
+                        <strong>挑战模式</strong>
+                        <span>限制轮数，必须拿到关键信息才通关。</span>
+                    </button>
                 </div>
             </aside>
+        </section>
+
+        <section class="panel play-panel" id="gameSection" hidden>
+            <div class="panel-heading compact">
+                <div>
+                    <h2 id="gameLevelTitle"></h2>
+                    <p id="gameLevelGoal"></p>
+                </div>
+                <div class="game-meta">
+                    <span class="badge" id="roundBadge"></span>
+                    <span class="badge" id="modeBadge"></span>
+                </div>
+            </div>
+
+            <div class="scenario-box" id="gameScenario">
+                <small>场景</small>
+                <p></p>
+            </div>
+
+            <div class="chat-box" id="chatBox">
+                <p class="chat-placeholder">AI 沟通对象会在这里说话。</p>
+            </div>
+
+            <div class="feedback-bar" id="feedback" hidden></div>
+
+            <div class="answer-box">
+                <textarea id="answerText" rows="3" maxlength="220" placeholder="写下你想给对方看的话，按回车发送。"></textarea>
+                <div class="toolbar split">
+                    <button class="button button-primary" id="completeLevel" type="button">发送</button>
+                    <button class="button" id="recordAnswer" type="button">按住录音</button>
+                </div>
+                <div class="toolbar split">
+                    <button class="button button-ghost" id="useSuggested" type="button">推荐表达</button>
+                    <button class="button" id="hintButton" type="button">提示</button>
+                    <button class="button" id="giveUpButton" type="button">结束本轮</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel result-panel" id="resultSection" hidden>
+            <h2 id="resultTitle"></h2>
+            <p id="resultSummary"></p>
+            <div class="score-board" id="scoreBoard">
+                <div class="score-item">
+                    <strong id="scoreClarity">0</strong>
+                    <span>清晰度</span>
+                </div>
+                <div class="score-item">
+                    <strong id="scoreStrategy">0</strong>
+                    <span>策略</span>
+                </div>
+                <div class="score-item">
+                    <strong id="scoreCompletion">0</strong>
+                    <span>完成度</span>
+                </div>
+            </div>
+            <div class="review-list" id="reviewList"></div>
+            <div class="toolbar split">
+                <button class="button button-primary" id="replayLevel" type="button">再玩一次</button>
+                <button class="button" id="backToSetup" type="button">选其他关卡</button>
+            </div>
         </section>
     </main>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="challenge.js?v=20260710f" defer></script>
+    <script src="auth.js?v=20260711a" defer></script>
+    <script src="challenge.js?v=20260711a" defer></script>
 </body>
 </html>

@@ -79,8 +79,8 @@
         asrChecked: false,
         transcript: [],
         recordings: [],
-        reminders: loadReminders(),
-        hotwords: loadHotwords()
+        reminders: [],
+        hotwords: []
     };
 
     const els = {
@@ -126,7 +126,8 @@
 
     init();
 
-    function init() {
+    async function init() {
+        await loadBackendState();
         renderCapabilities();
         applyRole('self', false);
         renderPhrases();
@@ -135,6 +136,20 @@
         bindEvents();
         if (supportsRecognition) setupRecognition();
         checkServerStatus();
+    }
+
+    async function loadBackendState() {
+        try {
+            const res = await HearAuth.apiFetch('/api/data', { cache: 'no-store' });
+            if (!res.ok) return;
+            const data = await res.json();
+            state.reminders = Array.isArray(data.reminders) ? data.reminders : [];
+            state.hotwords = Array.isArray(data.hotwords) ? data.hotwords : [];
+            state.recordings = Array.isArray(data.samples) ? data.samples.filter(s => s.type && s.type.includes('recording')) : [];
+            state.transcript = Array.isArray(data.transcript) ? data.transcript : [];
+        } catch (err) {
+            console.warn('[HearBridge] 加载后端状态失败:', err.message);
+        }
     }
 
     function renderCapabilities() {
@@ -193,13 +208,6 @@
 
         document.querySelectorAll('[data-role]').forEach(button => {
             button.addEventListener('click', () => applyRole(button.dataset.role, true));
-        });
-
-        document.querySelectorAll('[data-focus-target]').forEach(button => {
-            button.addEventListener('click', () => {
-                const target = document.querySelector(button.dataset.focusTarget);
-                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
         });
     }
 
@@ -375,7 +383,7 @@
         state.recorder.stop();
     }
 
-    async function saveLocalRecording() {
+    function saveLocalRecording() {
         const blob = new Blob(state.audioChunks, { type: state.recorder?.mimeType || 'audio/webm' });
         const url = URL.createObjectURL(blob);
         const createdAt = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
@@ -383,6 +391,7 @@
 
         state.recordings.unshift({
             id: Date.now().toString(36),
+            type: 'recording',
             url,
             createdAt,
             size: blob.size
@@ -398,15 +407,16 @@
         els.stopRecord.disabled = true;
         els.micState.textContent = '未开启';
         els.micState.classList.remove('listening');
+        persistBackendState();
         renderRecordings();
 
         if (mode === 'transcribe') {
-            await transcribeRecording(blob);
+            transcribeRecording(blob);
             return;
         }
 
         addTranscript('已保存一段本地录音样本，可用于之后整理个人热词和错词。', '本地录音');
-        toast('录音样本已保存在当前页面。');
+        toast('录音样本已保存。');
     }
 
     function stopMediaStream() {
@@ -528,9 +538,9 @@
         const value = text.trim().slice(0, 40);
         if (!value) return;
         state.hotwords = [value, ...state.hotwords.filter(item => item !== value)].slice(0, 12);
-        saveHotwords();
+        persistBackendState();
         renderHotwords();
-        toast('已加入本地训练词库。');
+        toast('已加入后端训练词库。');
     }
 
     function renderHotwords() {
@@ -605,18 +615,48 @@
             toast('请先输入或选择一句话。');
             return;
         }
+
+        // 优先尝试云端 TTS，音质更好
+        speakCloudTts(text).catch(error => {
+            console.warn('[HearBridge] 云端朗读失败，回退本地:', error.message);
+            speakLocal(text);
+        });
+        toast('正在朗读给对方听。');
+    }
+
+    async function speakCloudTts(text) {
+        const res = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text.slice(0, 500), voice: 'shimmer', speed: '0.95' })
+        });
+        if (!res.ok) {
+            const payload = await res.json().catch(() => ({}));
+            throw new Error(payload.message || '云端朗读失败');
+        }
+        const blob = await res.blob();
+        const audio = new Audio(URL.createObjectURL(blob));
+        audio.play();
+    }
+
+    function speakLocal(text) {
         if (!supportsSpeech) {
             toast('当前浏览器不支持朗读。');
             return;
         }
-
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'zh-CN';
         utterance.rate = 0.92;
-        utterance.pitch = 1;
+        utterance.pitch = 1.05;
+        const voices = window.speechSynthesis.getVoices();
+        const preferred = voices.find(v => v.lang === 'zh-CN' && /Zhiyu|Ting-Ting|Mei-Jia|Yaoyao|yating|hsiaochen|hsiaoyao|yunxi|yunjian|xiaoxiao/i.test(v.name));
+        if (preferred) utterance.voice = preferred;
         window.speechSynthesis.speak(utterance);
-        toast('正在朗读给对方听。');
+    }
+
+    if (supportsSpeech && window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
     }
 
     function showLarge(text) {
@@ -665,10 +705,10 @@
         });
         state.reminders = state.reminders.slice(0, 8);
         els.reminderText.value = '';
-        saveReminders();
+        persistBackendState();
         renderReminders();
         vibrate([140, 70, 140]);
-        toast('提醒已保存在本机。');
+        toast('提醒已保存。');
     }
 
     function renderReminders() {
@@ -687,7 +727,7 @@
         els.reminderList.querySelectorAll('[data-remove-reminder]').forEach(button => {
             button.addEventListener('click', () => {
                 state.reminders = state.reminders.filter(item => item.id !== button.dataset.removeReminder);
-                saveReminders();
+                persistBackendState();
                 renderReminders();
             });
         });
@@ -695,9 +735,9 @@
 
     function clearReminders() {
         state.reminders = [];
-        saveReminders();
+        persistBackendState();
         renderReminders();
-        toast('本地提醒已清空。');
+        toast('提醒已清空。');
     }
 
     function vibrate(pattern) {
@@ -709,31 +749,36 @@
     }
 
     function loadReminders() {
-        try {
-            const raw = localStorage.getItem('hearbridge_reminders_v1');
-            const parsed = raw ? JSON.parse(raw) : [];
-            return Array.isArray(parsed) ? parsed : [];
-        } catch (error) {
-            return [];
-        }
+        return [];
     }
 
     function saveReminders() {
-        localStorage.setItem('hearbridge_reminders_v1', JSON.stringify(state.reminders));
+        // 已迁移到后端 /api/data，无需保留本地存储
     }
 
     function loadHotwords() {
-        try {
-            const raw = localStorage.getItem('hearbridge_hotwords_v1');
-            const parsed = raw ? JSON.parse(raw) : [];
-            return Array.isArray(parsed) ? parsed.filter(Boolean).slice(0, 12) : [];
-        } catch (error) {
-            return [];
-        }
+        return [];
     }
 
     function saveHotwords() {
-        localStorage.setItem('hearbridge_hotwords_v1', JSON.stringify(state.hotwords));
+        // 已迁移到后端 /api/data，无需保留本地存储
+    }
+
+    async function persistBackendState() {
+        try {
+            await fetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    reminders: state.reminders,
+                    hotwords: state.hotwords,
+                    samples: state.recordings,
+                    transcript: state.transcript
+                })
+            });
+        } catch (err) {
+            console.warn('[HearBridge] 保存后端状态失败:', err.message);
+        }
     }
 
     let toastTimer = null;

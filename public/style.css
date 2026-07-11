@@ -29,7 +29,8 @@ body {
     margin: 0;
     color: var(--ink);
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0, rgba(255, 255, 255, 0) 360px),
+        radial-gradient(circle at 18% 0%, rgba(223, 240, 233, 0.9), transparent 320px),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0, rgba(255, 255, 255, 0) 340px),
         var(--bg);
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
     letter-spacing: 0;
@@ -83,6 +84,7 @@ a {
     background: var(--paper);
     border: 1px solid var(--line);
     box-shadow: 0 8px 18px rgba(35, 112, 94, 0.08);
+    flex-shrink: 0;
 }
 
 .brand-mark svg {
@@ -116,6 +118,7 @@ a {
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background: rgba(255, 255, 255, 0.72);
+    max-width: 100%;
 }
 
 .nav a {
@@ -124,6 +127,7 @@ a {
     color: var(--muted);
     font-size: 14px;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .nav a:hover,
@@ -154,6 +158,29 @@ main {
     padding: 34px 0 22px;
 }
 
+.hero.hero-centered {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    gap: 20px;
+    padding: 42px 0 28px;
+}
+
+.hero.hero-compact {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 22px;
+    padding: 28px 0 18px;
+}
+
+.hero.hero-centered .hero-copy {
+    max-width: 780px;
+}
+
+.hero.hero-centered .hero-actions {
+    justify-content: center;
+}
+
 .hero h1 {
     max-width: 850px;
     margin: 0;
@@ -162,12 +189,26 @@ main {
     font-weight: 900;
 }
 
+.hero.hero-centered h1 {
+    font-size: clamp(36px, 6vw, 68px);
+}
+
+.hero.hero-compact h1 {
+    font-size: clamp(34px, 5vw, 56px);
+}
+
 .hero p {
     max-width: 760px;
     margin: 18px 0 0;
     color: var(--muted);
     font-size: clamp(16px, 2vw, 19px);
     line-height: 1.7;
+}
+
+.hero.hero-compact p {
+    max-width: 720px;
+    margin-top: 12px;
+    font-size: clamp(15px, 1.8vw, 18px);
 }
 
 .hero-actions {
@@ -180,9 +221,9 @@ main {
 .primary-action,
 .quiet-action,
 .button {
-    min-height: 42px;
+    min-height: 46px;
     border-radius: var(--radius);
-    padding: 0 16px;
+    padding: 0 20px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -271,6 +312,52 @@ a.quiet-action {
     color: var(--muted);
     font-size: 13px;
     line-height: 1.45;
+}
+
+.console-shell {
+    margin-bottom: 18px;
+    padding: clamp(14px, 2.4vw, 22px);
+    border: 1px solid rgba(216, 228, 220, 0.92);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: 0 20px 50px rgba(28, 54, 45, 0.08);
+}
+
+.mode-switch {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(238, 246, 241, 0.78);
+}
+
+.mode-tab {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 850;
+}
+
+.mode-tab:hover,
+.mode-tab:focus-visible,
+.mode-tab.active {
+    color: #fff;
+    background: var(--primary);
+    outline: none;
+    box-shadow: 0 10px 22px rgba(35, 112, 94, 0.16);
+}
+
+.mode-help {
+    margin: 10px 4px 14px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .app-page {
@@ -429,6 +516,111 @@ a.quiet-action {
     gap: 10px;
 }
 
+.chat-box {
+    min-height: 180px;
+    max-height: 360px;
+    overflow-y: auto;
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper-soft);
+}
+
+.chat-placeholder {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    text-align: center;
+    align-self: center;
+}
+
+.chat-bubble {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    max-width: 92%;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.chat-bubble small {
+    font-size: 11px;
+    opacity: 0.7;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.speak-btn {
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.speak-btn:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.chat-bubble.npc .speak-btn {
+    color: var(--primary);
+}
+
+.chat-bubble.player .speak-btn {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.7);
+}
+
+.feedback-bar {
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    background: var(--warm-soft);
+    border: 1px solid rgba(199, 96, 74, 0.22);
+    color: var(--warm);
+    font-size: 14px;
+}
+
+.record-btn.recording,
+button.recording {
+    background: var(--warm) !important;
+    color: #fff !important;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.chat-bubble.system {
+    justify-self: start;
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--ink);
+}
+
+.chat-bubble.player {
+    justify-self: end;
+    background: var(--primary);
+    color: #fff;
+}
+
+.chat-bubble.system {
+    justify-self: center;
+    background: var(--warm-soft);
+    border: 1px solid rgba(199, 96, 74, 0.22);
+    color: var(--warm);
+    text-align: center;
+}
+
 .progress-list,
 .sample-list {
     display: grid;
@@ -566,6 +758,44 @@ a.quiet-action {
     line-height: 1;
 }
 
+.console-shell .role-section {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.console-shell .role-card {
+    min-height: 66px;
+    gap: 10px;
+    padding: 10px 12px;
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0.76);
+}
+
+.console-shell .role-icon {
+    width: 34px;
+    height: 34px;
+}
+
+.console-shell .role-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.console-shell .role-card strong {
+    font-size: 15px;
+}
+
+.console-shell .role-card small {
+    margin-top: 3px;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.console-shell .role-arrow {
+    display: none;
+}
+
 .role-guide {
     min-height: 78px;
     display: grid;
@@ -590,6 +820,21 @@ a.quiet-action {
     margin: 5px 0 0;
     color: var(--muted);
     line-height: 1.55;
+}
+
+.console-shell .role-guide {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    background: rgba(223, 240, 233, 0.46);
+    box-shadow: none;
+}
+
+.console-shell .role-guide .button {
+    min-height: 38px;
+    padding: 0 14px;
+    font-size: 13px;
 }
 
 .primary-action:hover,
@@ -627,6 +872,11 @@ input:focus-visible {
     border-radius: var(--radius);
     background: rgba(255, 255, 255, 0.9);
     box-shadow: var(--shadow);
+}
+
+.console-shell .panel {
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0.88);
 }
 
 .panel {
@@ -1039,7 +1289,22 @@ input {
 }
 
 .insights {
-    padding: 56px 0 42px;
+    padding: 18px 0 34px;
+}
+
+.insights summary {
+    cursor: pointer;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.82);
+    color: var(--primary-dark);
+    font-weight: 850;
+    box-shadow: 0 10px 24px rgba(28, 54, 45, 0.05);
+}
+
+.insights[open] summary {
+    margin-bottom: 16px;
 }
 
 .section-heading {
@@ -1094,6 +1359,26 @@ input {
     transform: translate(-50%, 0);
 }
 
+.migration-trigger {
+    position: fixed;
+    right: 18px;
+    bottom: 72px;
+    z-index: 25;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+}
+
+.migration-trigger:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
 .footer {
     width: min(var(--max), calc(100% - 36px));
     margin: 0 auto;
@@ -1104,6 +1389,121 @@ input {
     border-top: 1px solid var(--line);
     color: var(--muted);
     font-size: 13px;
+}
+
+.mode-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 10px;
+}
+
+.mode-card {
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper-soft);
+    text-align: left;
+    cursor: pointer;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.mode-card:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow);
+}
+
+.mode-card strong {
+    font-size: 16px;
+    color: var(--ink);
+}
+
+.mode-card span {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.game-meta {
+    display: flex;
+    gap: 8px;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--paper-soft);
+    border: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.result-panel {
+    display: grid;
+    gap: 18px;
+    max-width: 720px;
+    margin: 0 auto 40px;
+}
+
+.result-panel h2 {
+    font-size: 28px;
+    color: var(--ink);
+    margin: 0;
+}
+
+.result-panel p {
+    color: var(--muted);
+    margin: 0;
+}
+
+.score-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+.score-item {
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    border-radius: var(--radius);
+    background: var(--paper-soft);
+    border: 1px solid var(--line);
+    text-align: center;
+}
+
+.score-item strong {
+    font-size: 32px;
+    color: var(--primary);
+}
+
+.score-item span {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.review-list {
+    display: grid;
+    gap: 10px;
+}
+
+.review-item {
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    background: var(--paper-soft);
+    border-left: 3px solid var(--warm);
+}
+
+.review-item strong {
+    font-size: 14px;
+    color: var(--ink);
+}
+
+.review-item p {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 4px 0 0;
 }
 
 @media (max-width: 980px) {
@@ -1128,9 +1528,18 @@ input {
         justify-self: start;
     }
 
+    .mode-selector {
+        grid-template-columns: 1fr;
+    }
+
+    .score-board {
+        grid-template-columns: 1fr;
+    }
+
     .workspace,
     .role-section,
     .module-dock,
+    .mode-switch,
     .page-hero,
     .app-grid,
     .section-heading {
@@ -1177,9 +1586,43 @@ input {
         padding: 28px 0 16px;
     }
 
+    .hero.hero-centered,
+    .hero.hero-compact {
+        padding: 32px 0 20px;
+    }
+
+    .console-shell {
+        padding: 12px;
+    }
+
+    .mode-switch {
+        display: flex;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .mode-switch::-webkit-scrollbar {
+        display: none;
+    }
+
+    .mode-tab {
+        min-width: max-content;
+        padding: 0 14px;
+        flex: 1 0 auto;
+    }
+
     .hero-actions {
         display: grid;
         grid-template-columns: 1fr;
+    }
+
+    .hero-actions .primary-action,
+    .hero-actions .quiet-action {
+        width: 100%;
+    }
+
+    .module-dock {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .role-card {
@@ -1200,6 +1643,42 @@ input {
 
     .role-card strong {
         font-size: 18px;
+    }
+
+    .console-shell .role-card {
+        grid-template-columns: auto minmax(0, 1fr);
+        min-height: 58px;
+        padding: 9px 10px;
+    }
+
+    .console-shell .role-icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    .console-shell .role-card strong {
+        font-size: 14px;
+    }
+
+    .console-shell .role-card small {
+        font-size: 12px;
+    }
+
+    .console-shell .role-section {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+    }
+
+    .console-shell .role-section::-webkit-scrollbar {
+        display: none;
+    }
+
+    .console-shell .role-card {
+        min-width: 174px;
+        flex: 1 0 174px;
     }
 
     .role-guide,
@@ -1272,5 +1751,127 @@ input {
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
+    }
+}
+
+/* 通行证标签和下载按钮样式 */
+.passport-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper-soft);
+    width: fit-content;
+}
+
+.tab-button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 160ms ease, color 160ms ease;
+}
+
+.tab-button:hover,
+.tab-button:focus-visible {
+    background: rgba(255, 255, 255, 0.7);
+    outline: none;
+}
+
+.tab-button.active {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(35, 112, 94, 0.22);
+}
+
+.passport-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.passport-icon {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+}
+
+.passport-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.passport-label {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.passport-body {
+    display: grid;
+    gap: 10px;
+}
+
+.passport-download {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.passport-download .button {
+    flex: 1 1 auto;
+    min-height: 46px;
+}
+
+.passport-preview.zhengzheng {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+}
+
+.login-hint {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+#loginStatus.logged-in {
+    color: #a8e6cf;
+}
+
+#loginCard[hidden] {
+    display: none;
+}
+
+@media (max-width: 720px) {
+    .passport-tabs {
+        width: 100%;
+    }
+
+    .tab-button {
+        flex: 1 1 50%;
+        text-align: center;
+    }
+
+    .passport-download .button,
+    .passport-card .toolbar .button {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tab-button {
+        transition: none;
     }
 }

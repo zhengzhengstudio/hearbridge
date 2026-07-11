@@ -1,8 +1,8 @@
 (function () {
     const state = {
-        hotwords: readList('hearbridge_hotwords_v1'),
-        samples: readList('hearbridge_training_samples_v1'),
-        corrections: readList('hearbridge_corrections_v1')
+        hotwords: [],
+        samples: [],
+        corrections: []
     };
     const els = {
         score: document.getElementById('trainingScore'),
@@ -18,18 +18,52 @@
         toast: document.getElementById('toast')
     };
 
-    render();
-    els.addHotword.addEventListener('click', addHotword);
-    els.hotwordInput.addEventListener('keydown', event => { if (event.key === 'Enter') addHotword(); });
-    els.addCorrection.addEventListener('click', addCorrection);
-    els.clearTraining.addEventListener('click', clearTraining);
+    init();
+
+    async function init() {
+        await loadBackendState();
+        render();
+        els.addHotword.addEventListener('click', addHotword);
+        els.hotwordInput.addEventListener('keydown', event => { if (event.key === 'Enter') addHotword(); });
+        els.addCorrection.addEventListener('click', addCorrection);
+        els.clearTraining.addEventListener('click', clearTraining);
+    }
+
+    async function loadBackendState() {
+        try {
+            const res = await HearAuth.apiFetch('/api/data', { cache: 'no-store' });
+            if (!res.ok) return;
+            const data = await res.json();
+            state.hotwords = Array.isArray(data.hotwords) ? data.hotwords : [];
+            state.samples = Array.isArray(data.samples) ? data.samples : [];
+            state.corrections = Array.isArray(data.corrections) ? data.corrections : [];
+        } catch (err) {
+            console.warn('[HearBridge] 加载后端状态失败:', err.message);
+        }
+    }
+
+    async function persistBackendState() {
+        try {
+            await HearAuth.apiFetch('/api/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    hotwords: state.hotwords,
+                    samples: state.samples,
+                    corrections: state.corrections
+                })
+            });
+        } catch (err) {
+            console.warn('[HearBridge] 保存后端状态失败:', err.message);
+        }
+    }
 
     function addHotword() {
         const value = els.hotwordInput.value.trim().slice(0, 40);
         if (!value) return toast('请输入热词。');
         state.hotwords = [value, ...state.hotwords.filter(item => item !== value)].slice(0, 30);
         els.hotwordInput.value = '';
-        persist();
+        persistBackendState();
         render();
         toast('热词已保存。');
     }
@@ -42,7 +76,7 @@
         state.corrections = state.corrections.slice(0, 20);
         els.wrongWord.value = '';
         els.rightWord.value = '';
-        persist();
+        persistBackendState();
         render();
         toast('错词修正已保存。');
     }
@@ -51,7 +85,7 @@
         state.hotwords = [];
         state.samples = [];
         state.corrections = [];
-        persist();
+        persistBackendState();
         render();
         toast('训练数据已清空。');
     }
@@ -67,21 +101,6 @@
         els.sampleList.innerHTML = state.samples.length
             ? state.samples.map(item => `<li><span>${escapeHtml(item.level || item.type)}：${escapeHtml(item.text || '')}</span><small>${escapeHtml(item.createdAt || '')}</small></li>`).join('')
             : '<li><span>还没有训练样本。先去闯关完成一题。</span></li>';
-    }
-
-    function persist() {
-        localStorage.setItem('hearbridge_hotwords_v1', JSON.stringify(state.hotwords));
-        localStorage.setItem('hearbridge_training_samples_v1', JSON.stringify(state.samples));
-        localStorage.setItem('hearbridge_corrections_v1', JSON.stringify(state.corrections));
-    }
-
-    function readList(key) {
-        try {
-            const parsed = JSON.parse(localStorage.getItem(key) || '[]');
-            return Array.isArray(parsed) ? parsed : [];
-        } catch (error) {
-            return [];
-        }
     }
 
     let toastTimer = null;
