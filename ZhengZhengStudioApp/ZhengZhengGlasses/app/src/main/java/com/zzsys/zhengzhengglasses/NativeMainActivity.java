@@ -51,11 +51,18 @@ public class NativeMainActivity extends Activity {
     private JSONArray catalogFrames = new JSONArray();
     private int catalogPage = 0;
     private int fittingStep = 1;
-    private View fittingBar;
+    // 只记录「配镜底栏的规格」，不复用 View 实例：复用同一个 View 会在换页时抛
+    // "The specified child already has a parent"。每次 setContentView 现场新建。
+    private int fittingBarStep = 0;
+    private String fittingBarNextText = "";
+    private Action fittingBarNextAction = null;
+    // 每次换页自增。异步回调带回发起时的 token，不一致就不再改 UI，避免把用户从当前页拽走。
+    private int pageToken = 0;
     private JSONObject selectedFrame;
     private File pendingInstallApk;
     private String activeTab = "home";
     private String pendingChatPrefill;
+    static final int REQ_CAPTURE = 4101;
 
     private interface Action { void run(); }
 
@@ -64,8 +71,35 @@ public class NativeMainActivity extends Activity {
         super.onCreate(savedInstanceState);
         loadLocalState();
         buildNativeHome();
-        fetchCatalog(false);
-        checkUpdate(false);
+        // 重建（语言/深色模式等配置变化）时不重复发起网络请求
+        if (savedInstanceState == null) {
+            fetchCatalog(false);
+            checkUpdate(false);
+        }
+    }
+
+    /** 所有后台线程回主线程统一走这里：Activity 已结束就不碰 UI，避免 BadTokenException / 空指针。 */
+    private void runOnUi(final Runnable action) {
+        if (isFinishing() || isDestroyed()) return;
+        new Handler(Looper.getMainLooper()).post(() -> {
+            if (isFinishing() || isDestroyed()) return;
+            action.run();
+        });
+    }
+
+    /** 返回键：五步配镜回上一步，其它子页面回首页，首页才退出。避免误触一次就前功尽弃。 */
+    @Override
+    public void onBackPressed() {
+        if (isFinishing()) { super.onBackPressed(); return; }
+        if ("fit".equals(activeTab) && fittingStep > 1) {
+            showFittingStep(fittingStep - 1);
+            return;
+        }
+        if (!"home".equals(activeTab)) {
+            buildNativeHome();
+            return;
+        }
+        super.onBackPressed();
     }
 
     @Override
@@ -97,6 +131,7 @@ public class NativeMainActivity extends Activity {
         root.addView(homeProgressCard());
         root.addView(quickStartCard());
         root.addView(accountCard());
+        root.addView(statusCard());
         setContentView(scroll);
     }
 
@@ -116,6 +151,7 @@ public class NativeMainActivity extends Activity {
 
     @Override
     public void setContentView(View view) {
+        pageToken++;
         if (view instanceof ScrollView) {
             LinearLayout shell = new LinearLayout(this);
             boolean wide = screenDpWidth() >= 840;
@@ -128,12 +164,13 @@ public class NativeMainActivity extends Activity {
                 1f
             ));
             if (!wide) {
-                if (activeTab.equals("fit") && fittingBar != null) {
-                    shell.addView(fittingBar);
-                    fittingBar.requestApplyInsets();
+                if (activeTab.equals("fit") && fittingBarNextAction != null) {
+                    // 每次现场新建底栏，绝不复用带旧父的 View（旧实现换页会崩溃）
+                    LinearLayout bar = buildFittingBar(fittingBarStep, fittingBarNextText, fittingBarNextAction);
+                    shell.addView(bar);
+                    bar.requestApplyInsets();
                 } else {
                     shell.addView(bottomNav());
-                    fittingBar = null;
                 }
             }
             super.setContentView(shell);
@@ -580,6 +617,11 @@ public class NativeMainActivity extends Activity {
             bridge.setText("18");
         }
         page.addView(form(faceWidth, pd, bridge));
+        int capturedFrames = savedAnalysis == null ? 0 : savedAnalysis.optInt("capturedFrames", 0);
+        page.addView(label(capturedFrames > 0
+            ? "已保存多角度采集：" + capturedFrames + " 帧识别数据（每帧 " + savedAnalysis.optInt("capturedPoints", 0) + " 个关键点）。可重新采集覆盖。"
+            : "尚未完成多角度采集。点击下方按钮采集正脸、左右转头与抬头低头。",
+            13, capturedFrames > 0 ? Color.rgb(22, 119, 105) : Color.rgb(83, 101, 107), false));
         page.addView(button("打开多角度采集", false, new Action() {
             @Override public void run() {
                 saveMeasurementInputs(faceWidth, pd, bridge);
@@ -639,7 +681,7 @@ public class NativeMainActivity extends Activity {
         LinearLayout row = new LinearLayout(this);
         row.setPadding(0, dp(12), 0, 0);
         row.addView(button("继续录入", false, new Action() { @Override public void run() { showFittingPage(); } }), weight());
-        row.addView(button("镜框库", true, new Action() { @Override public void run() { showCatalogPage(); } }), weight());
+        row.addView(button("镜框库", true, new Action() { @Override public void run() { showShopPage(); } }), weight());
         page.addView(row);
         page.addView(button("查看心愿单", false, new Action() { @Override public void run() { showWishlistPage(); } }));
         page.addView(button("查看订单", false, new Action() { @Override public void run() { showOrdersPage(); } }));
@@ -832,9 +874,13 @@ public class NativeMainActivity extends Activity {
         return card;
     }
 
-    private void showCatalogPage() {
+    private void showCatalogPage() { showCatalogPage(true); }
+
+    private void showCatalogPage(final boolean loadRemote) {
         activeTab = "fit";
-        fetchCatalog(false);
+        // 从工作台/心愿单直接进这一页时也要同步步骤，避免进度点与步骤号互相矛盾
+        fittingStep = 3;
+        saveLocalState();
         ScrollView scroll = pageRoot();
         LinearLayout root = (LinearLayout) scroll.getChildAt(0);
         addStepHeader(root, 3, "第 3 步 · 摄像头试戴", "选择一款镜框后进入 CameraX + MediaPipe 实时试戴。这里不填写验光单，也不生成报告。");
@@ -848,6 +894,9 @@ public class NativeMainActivity extends Activity {
         if (selectedFrame != null) {
             page.addView(button("打开当前镜框实时试戴", true, new Action() { @Override public void run() { openNativeTryOn(); } }));
         }
+        // 目录数量会在「内置 8 款」与「线上几百款」之间变化，页码越界会渲染出空白页
+        int maxPage = Math.max(0, (catalogFrames.length() - 1) / 4);
+        catalogPage = Math.max(0, Math.min(catalogPage, maxPage));
         int start = catalogPage * 4;
         int end = Math.min(catalogFrames.length(), start + 4);
         for (int i = start; i < end; i++) {
@@ -863,6 +912,8 @@ public class NativeMainActivity extends Activity {
         root.addView(page);
         root.addView(stepNavigation(3, "下一步：报告与验光单", new Action() { @Override public void run() { showFittingStep(4); } }));
         setContentView(scroll);
+        // 放在 setContentView 之后：回调里用 pageToken 判断本页是否仍是当前页
+        if (loadRemote) fetchCatalog(false);
     }
 
     private View frameRow(final JSONObject frame) {        LinearLayout item = new LinearLayout(this);
@@ -947,7 +998,7 @@ public class NativeMainActivity extends Activity {
         row.addView(button("发送给商家", true, new Action() { @Override public void run() { sendWishlistOrder(); } }), weight());
         row.addView(button("清空", false, new Action() { @Override public void run() { wishlist = new JSONArray(); saveLocalState(); showWishlistPage(); } }), weight());
         page.addView(row);
-        page.addView(button("返回镜框库", false, new Action() { @Override public void run() { showCatalogPage(); } }));
+        page.addView(button("返回镜框库", false, new Action() { @Override public void run() { showShopPage(); } }));
         root.addView(page);
         setContentView(scroll);
     }
@@ -1073,9 +1124,29 @@ public class NativeMainActivity extends Activity {
             intent.putExtra("tryOnImage", frame.optString("tryOnImage", ""));
         }
         try {
-            startActivity(intent);
+            // 采集模式需要把识别帧数/关键点数回传给第 2 步，否则采集完什么都没留下
+            if (captureMode) startActivityForResult(intent, REQ_CAPTURE);
+            else startActivity(intent);
         } catch (Exception error) {
             toast((captureMode ? "多角度采集" : "原生试戴") + "暂时打不开：" + error.getMessage());
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != REQ_CAPTURE || resultCode != RESULT_OK || data == null) return;
+        try {
+            if (savedAnalysis == null) savedAnalysis = new JSONObject();
+            savedAnalysis.put("capturedFrames", data.getIntExtra("captureFrames", 0));
+            savedAnalysis.put("capturedPoints", data.getIntExtra("capturePoints", 0));
+            savedAnalysis.put("capturedAt", System.currentTimeMillis());
+        } catch (Exception ignored) {}
+        saveLocalState();
+        int frames = savedAnalysis == null ? 0 : savedAnalysis.optInt("capturedFrames", 0);
+        toast(frames > 0 ? "已保存多角度采集：" + frames + " 帧识别数据" : "采集已结束，未记录到有效帧");
+        if ("fit".equals(activeTab) && fittingStep == 2 && !isFinishing() && !isDestroyed()) {
+            showFittingStep(2);
         }
     }
 
@@ -1210,8 +1281,11 @@ public class NativeMainActivity extends Activity {
         page.addView(label("正在读取服务器订单...", 14, Color.rgb(83, 101, 107), false));
         root.addView(page);
         setContentView(scroll);
+        final int token = pageToken;
         get("/glasses/orders-shop/" + currentUid(), new ActionWithJson() {
             @Override public void run(JSONObject data) {
+                // 请求期间用户可能已切到别的页/退出，不能用旧结果覆盖当前界面
+                if (token != pageToken || isFinishing() || isDestroyed()) return;
                 ScrollView nextScroll = pageRoot();
                 LinearLayout nextRoot = (LinearLayout) nextScroll.getChildAt(0);
                 LinearLayout nextPage = card();
@@ -1259,8 +1333,10 @@ public class NativeMainActivity extends Activity {
         page.addView(label("正在读取服务器会话...", 14, Color.rgb(83, 101, 107), false));
         root.addView(page);
         setContentView(scroll);
+        final int token = pageToken;
         get("/glasses/chat/conversations/" + currentUid(), new ActionWithJson() {
             @Override public void run(JSONObject data) {
+                if (token != pageToken || isFinishing() || isDestroyed()) return;
                 ScrollView nextScroll = pageRoot();
                 LinearLayout nextRoot = (LinearLayout) nextScroll.getChildAt(0);
                 LinearLayout nextPage = card();
@@ -1308,7 +1384,7 @@ public class NativeMainActivity extends Activity {
                 try { data.put("success", false).put("error", error.getMessage()); } catch (Exception ignored) {}
             }
             final JSONObject result = data;
-            new Handler(Looper.getMainLooper()).post(() -> callback.run(result));
+            runOnUi(() -> callback.run(result));
         }).start();
     }
 
@@ -1334,12 +1410,13 @@ public class NativeMainActivity extends Activity {
                 try { data.put("success", false).put("error", error.getMessage()); } catch (Exception ignored) {}
             }
             final JSONObject result = data;
-            new Handler(Looper.getMainLooper()).post(() -> callback.run(result));
+            runOnUi(() -> callback.run(result));
         }).start();
     }
 
     private void fetchCatalog(final boolean notify) {
         if (catalogFrames.length() == 0) fillFallbackCatalog();
+        final int token = pageToken;
         get("/glasses/catalog", new ActionWithJson() {
             @Override public void run(JSONObject data) {
                 JSONArray frames = data.optJSONArray("frames");
@@ -1347,8 +1424,14 @@ public class NativeMainActivity extends Activity {
                     catalogFrames = frames;
                     if (notify) toast("已读取 " + frames.length() + " 款镜框。");
                 } else {
-                    fillFallbackCatalog();
+                    if (catalogFrames.length() == 0) fillFallbackCatalog();
                     if (notify) toast("线上镜框库暂不可用，已使用内置示例。");
+                }
+                // 网络慢时第 3 步先用内置 8 款渲染，服务端返回后必须主动重绘，
+                // 否则「共 8 款」和旧列表会一直挂着，看起来像加载失败。
+                if ("fit".equals(activeTab) && fittingStep == 3 && token == pageToken
+                        && !isFinishing() && !isDestroyed()) {
+                    showCatalogPage(false);
                 }
             }
         });
@@ -1559,8 +1642,11 @@ public class NativeMainActivity extends Activity {
             bar.addView(button(nextText, true, nextAction), weight());
             return bar;
         }
-        // 手机：构建常驻底部操作栏（替代全局 tab 栏），页内只放一个占位的 0 高视图避免改动调用点
-        fittingBar = buildFittingBar(step, nextText, nextAction);
+        // 手机：只登记底栏规格，由 setContentView 现场新建（替代全局 tab 栏）。
+        // 页内返回 0 高占位视图，保持所有调用点不变。
+        fittingBarStep = step;
+        fittingBarNextText = nextText;
+        fittingBarNextAction = nextAction;
         View spacer = new View(this);
         spacer.setLayoutParams(new LinearLayout.LayoutParams(0, 0));
         return spacer;
@@ -1584,14 +1670,19 @@ public class NativeMainActivity extends Activity {
         intent.setType("text/plain");
         intent.putExtra(Intent.EXTRA_SUBJECT, title);
         intent.putExtra(Intent.EXTRA_TEXT, text);
-        startActivity(Intent.createChooser(intent, title));
+        try {
+            startActivity(Intent.createChooser(intent, title));
+        } catch (Exception e) {
+            toast("当前设备没有可用的分享应用。");
+        }
     }
 
     private void checkUpdate(final boolean manual) {
         final boolean marketInstall = isAppMarketInstall();
         if (updateLabel != null) updateLabel.setText(marketInstall ? "正在检查应用市场版本..." : "正在检查官网正式版本...");
         new Thread(() -> {
-            String message = "当前已是最新版本。";
+            // 默认是「检查失败」而不是「已是最新」：断网/超时/404 不能再误报成无需升级
+            String message = "检查更新失败，请检查网络后重试。";
             JSONObject foundUpdate = null;
             try {
                 HttpURLConnection conn = (HttpURLConnection) new URL(BuildConfig.MANIFEST_URL).openConnection();
@@ -1604,8 +1695,10 @@ public class NativeMainActivity extends Activity {
                 reader.close();
                 JSONArray apps = new JSONObject(raw.toString()).optJSONArray("apps");
                 if (apps != null) {
+                    message = "当前已是最新版本 " + BuildConfig.VERSION_NAME + "。";
                     for (int i = 0; i < apps.length(); i++) {
-                        JSONObject item = apps.getJSONObject(i);
+                        JSONObject item = apps.optJSONObject(i);
+                        if (item == null) continue;
                         if (BuildConfig.APP_UPDATE_ID.equals(item.optString("id"))) {
                             if (item.optInt("build", 0) > BuildConfig.VERSION_CODE || item.optInt("versionCode", 0) > BuildConfig.VERSION_CODE) {
                                 foundUpdate = item;
@@ -1621,7 +1714,7 @@ public class NativeMainActivity extends Activity {
             } catch (Exception ignored) {}
             final String finalMessage = message;
             final JSONObject finalUpdate = foundUpdate;
-            new Handler(Looper.getMainLooper()).post(() -> {
+            runOnUi(() -> {
                 latestUpdate = finalUpdate;
                 if (updateLabel != null) updateLabel.setText(finalMessage);
                 if (manual) {
@@ -1726,16 +1819,23 @@ public class NativeMainActivity extends Activity {
                 int len;
                 long downloaded = 0;
                 long total = conn.getContentLengthLong();
+                // 原来每 16KB 就往主线程 post 一次（57MB 约 3500 次），会把消息队列淹没导致下载时界面卡顿。
+                // 只在百分比变化时刷新。
+                final long[] lastPercent = {-1};
                 while ((len = input.read(buffer)) > 0) {
                     output.write(buffer, 0, len);
                     downloaded += len;
                     final long done = downloaded;
                     final long size = total;
-                    new Handler(Looper.getMainLooper()).post(() -> {
-                        if (updateLabel != null) {
-                            updateLabel.setText(size > 0 ? "正在下载 APK：" + (done * 100 / size) + "%" : "正在下载 APK：" + (done / 1024) + " KB");
-                        }
-                    });
+                    long percent = size > 0 ? done * 100 / size : -1;
+                    if (percent != lastPercent[0]) {
+                        lastPercent[0] = percent;
+                        runOnUi(() -> {
+                            if (updateLabel != null) {
+                                updateLabel.setText(size > 0 ? "正在下载 APK：" + (done * 100 / size) + "%" : "正在下载 APK：" + (done / 1024) + " KB");
+                            }
+                        });
+                    }
                 }
                 output.close();
                 input.close();
@@ -1749,7 +1849,7 @@ public class NativeMainActivity extends Activity {
             }
             final File finalApk = apk;
             final String finalError = error;
-            new Handler(Looper.getMainLooper()).post(() -> {
+            runOnUi(() -> {
                 if (finalError != null) {
                     if (updateLabel != null) updateLabel.setText("更新失败：" + finalError);
                     toast("更新失败：" + finalError);
@@ -1773,7 +1873,11 @@ public class NativeMainActivity extends Activity {
                 .setMessage("Android 需要你允许铮铮眼镜安装下载的 APK。打开系统设置后，请开启“允许来自此来源”，返回 App 会继续安装。")
                 .setPositiveButton("打开设置", (dialog, which) -> {
                     Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName()));
-                    startActivity(intent);
+                    try {
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        toast("无法打开系统设置，请在「设置 → 应用 → 特殊权限 → 安装未知应用」里手动开启。");
+                    }
                 })
                 .setNegativeButton("取消", null)
                 .show();

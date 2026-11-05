@@ -11,8 +11,8 @@ android {
         applicationId = "com.zzsys.zhengzhengglasses"
         minSdk = 24
         targetSdk = 36
-        versionCode = 24
-        versionName = "0.1.23"
+        versionCode = 25
+        versionName = "0.1.24"
 
         buildConfigField("String", "APP_UPDATE_ID", "\"zhengzheng-glasses-android\"")
         buildConfigField("String", "MANIFEST_URL", "\"https://zhengzhengstudio.cn/api/apps/manifest.json\"")
