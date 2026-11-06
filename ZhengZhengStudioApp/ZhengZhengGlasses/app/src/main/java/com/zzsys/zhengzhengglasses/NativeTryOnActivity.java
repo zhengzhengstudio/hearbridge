@@ -77,8 +77,6 @@ public class NativeTryOnActivity extends ComponentActivity {
     private boolean captureMode = false;
     private int lastFacePointCount = 0;
     private String tryOnImageUrl = "";
-    private final String[] frameStyles = {"圆框", "矩形框", "方圆框", "猫眼款", "飞行员款"};
-    private int frameStyleIndex = 0;
 
     // 真实镜框试戴图由 TryOnOverlay 持有；这里只记录框名用于界面提示。
     private String frameName = "";
@@ -627,13 +625,6 @@ public class NativeTryOnActivity extends ComponentActivity {
         bindCamera();
     }
 
-    private void nextFrameStyle() {
-        frameStyleIndex = (frameStyleIndex + 1) % frameStyles.length;
-        overlay.frameStyle = frameStyles[frameStyleIndex];
-        statusLabel.setText("已切换：" + overlay.frameStyle);
-        overlay.invalidate();
-    }
-
     private void stopCameraFlow() {
         if (cameraProvider != null) cameraProvider.unbindAll();
         cameraBound = false;
@@ -707,9 +698,6 @@ public class NativeTryOnActivity extends ComponentActivity {
     public static class TryOnOverlay extends View {
         private final Paint meshPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint facePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint glassesPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint lightGlassesPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint lensPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private FaceLandmarkerResult result;
         private int sourceWidth = 1;
         private int sourceHeight = 1;
@@ -720,7 +708,6 @@ public class NativeTryOnActivity extends ComponentActivity {
         float scaleAdjust = 1f;
         float offsetX = 0f;
         float offsetY = 0f;
-        String frameStyle = "圆框";
         Bitmap tryOnBitmap = null;
         final Paint bitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
@@ -731,18 +718,6 @@ public class NativeTryOnActivity extends ComponentActivity {
             facePaint.setColor(Color.argb(210, 61, 188, 174));
             facePaint.setStyle(Paint.Style.STROKE);
             facePaint.setStrokeWidth(4f);
-            glassesPaint.setColor(Color.rgb(12, 37, 52));
-            glassesPaint.setStyle(Paint.Style.STROKE);
-            glassesPaint.setStrokeCap(Paint.Cap.ROUND);
-            glassesPaint.setStrokeJoin(Paint.Join.ROUND);
-            glassesPaint.setStrokeWidth(9f);
-            lightGlassesPaint.setColor(Color.rgb(184, 154, 86));
-            lightGlassesPaint.setStyle(Paint.Style.STROKE);
-            lightGlassesPaint.setStrokeCap(Paint.Cap.ROUND);
-            lightGlassesPaint.setStrokeJoin(Paint.Join.ROUND);
-            lightGlassesPaint.setStrokeWidth(6f);
-            lensPaint.setColor(Color.argb(54, 255, 255, 255));
-            lensPaint.setStyle(Paint.Style.FILL);
         }
 
         public void setSourceSize(int width, int height) {

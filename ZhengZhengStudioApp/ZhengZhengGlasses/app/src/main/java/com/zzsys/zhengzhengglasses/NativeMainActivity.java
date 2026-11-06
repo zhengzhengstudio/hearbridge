@@ -845,7 +845,12 @@ public class NativeMainActivity extends Activity {
         image.setScaleType(ImageView.ScaleType.FIT_CENTER);
         image.setBackgroundColor(Color.rgb(243, 247, 248));
         image.setContentDescription(frame.optString("name", "镜框"));
-        FrameImageLoader.load(image, frame.optString("thumb", frame.optString("tryOnImage", frame.optString("image", ""))));
+        // 用商品原图（960px 级真实产品图）。thumb 只有 320px / 2KB，
+        // 在卡片里放大后糊成一片，看起来像"画的示意图"；仅当原图缺失才退回缩略图。
+        String photo = frame.optString("image", "");
+        if (photo.length() == 0) photo = frame.optString("originalImage", "");
+        if (photo.length() == 0) photo = frame.optString("thumb", frame.optString("tryOnImage", ""));
+        FrameImageLoader.load(image, photo);
         card.addView(image, new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, dp(isCompactWidth() ? 128 : 152)));
 
@@ -923,6 +928,18 @@ public class NativeMainActivity extends Activity {
         LinearLayout.LayoutParams itemParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         itemParams.setMargins(0, dp(10), 0, 0);
         item.setLayoutParams(itemParams);
+        // 五步配镜第 3 步原来只有文字、没有任何商品图，"选镜框"时看不到款式长什么样。
+        // 这里与商品页同源加载真实产品图（不是画出来的示意图）。
+        ImageView photo = new ImageView(this);
+        photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        photo.setBackgroundColor(Color.rgb(243, 247, 248));
+        photo.setContentDescription(frame.optString("name", "镜框"));
+        String photoUrl = frame.optString("image", "");
+        if (photoUrl.length() == 0) photoUrl = frame.optString("originalImage", "");
+        if (photoUrl.length() == 0) photoUrl = frame.optString("thumb", frame.optString("tryOnImage", ""));
+        FrameImageLoader.load(photo, photoUrl);
+        item.addView(photo, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(isCompactWidth() ? 150 : 190)));
         item.addView(label(frame.optString("name", "未命名镜框"), 18, Color.rgb(13, 34, 39), true));
         String size = "镜圈 " + frame.optInt("lensWidth", 0) + " mm / 鼻梁 " + frame.optInt("bridgeSize", frame.optInt("bridgeWidth", 0)) + " mm";
         item.addView(label(frame.optString("merchantName", "商家") + " · " + frame.optString("type", "镜框") + " · ¥" + frame.optInt("price", 0), 13, Color.rgb(83, 101, 107), false));
@@ -1440,21 +1457,44 @@ public class NativeMainActivity extends Activity {
     private void fillFallbackCatalog() {
         if (catalogFrames.length() > 0) return;
         try {
-            String[] names = {"雾银圆框", "雅黑矩形框", "茶棕方圆框", "豆包猫眼款", "钛银半框", "透明方框", "轻运动框", "飞行员框"};
-            int[] lens = {47, 51, 49, 52, 52, 51, 54, 56};
-            int[] bridge = {20, 19, 19, 18, 19, 19, 16, 18};
+            // 断网/首启兜底直接用真实品牌款式（与线上目录同源）。原来内置的 8 款
+            // "雾银圆框/雅黑矩形框"是虚构示例，连图片字段都没有，用户看到的就是
+            // 没有商品图、只有文字的假款式。这里全部补齐 image/tryOnImage/thumb。
+            String[][] rows = {
+                {"molsion_ma6080_b20", "MA6080 B20 玫瑰金色/玳瑁", "陌森光学 MOLSION", "圆框", "399", "49", "20"},
+                {"molsion_ma6080_b60", "MA6080 B60 透浅茶色", "陌森光学 MOLSION", "圆框", "399", "49", "20"},
+                {"shanshan_pf_3599", "大嘴猴 PF3599 光学镜框", "闪闪", "青少年光学镜框", "0", "50", "18"},
+                {"molsion_ma6080_b16", "MA6080 B16 月光银色", "陌森光学 MOLSION", "圆框", "399", "49", "20"},
+                {"molsion_ma6080_b29", "MA6080 B29 玳瑁色", "陌森光学 MOLSION", "圆框", "399", "49", "20"},
+                {"shanshan_pf_3600", "大嘴猴 PF3600 光学镜框", "闪闪", "青少年光学镜框", "0", "48", "18"},
+                {"molsion_ma6080_b21", "MA6080 B21 玫瑰金色", "陌森光学 MOLSION", "圆框", "399", "49", "20"},
+                {"molsion_ma6026_b15", "MA6026 B15 月光银色+亮黑眉", "陌森光学 MOLSION", "眉线框", "399", "51", "19"},
+            };
             JSONArray frames = new JSONArray();
-            for (int i = 0; i < names.length; i++) {
+            for (String[] r : rows) {
                 JSONObject frame = new JSONObject();
-                frame.put("id", "native-fallback-" + (i + 1));
-                frame.put("name", names[i]);
-                frame.put("merchantId", "kimi");
-                frame.put("merchantName", "Kimi 配镜顾问");
-                frame.put("type", i % 2 == 0 ? "圆框" : "矩形框");
-                frame.put("price", 289 + i * 20);
-                frame.put("lensWidth", lens[i]);
-                frame.put("bridgeSize", bridge[i]);
-                frame.put("description", "内置示例镜框，可先用于适配计算和心愿单沟通。");
+                frame.put("id", r[0]);
+                frame.put("name", r[1]);
+                frame.put("merchantName", r[2]);
+                frame.put("merchantId", r[0].startsWith("shanshan") ? "shanshan" : "molsion");
+                frame.put("type", r[3]);
+                frame.put("price", Integer.parseInt(r[4]));
+                frame.put("lensWidth", Integer.parseInt(r[5]));
+                frame.put("bridgeSize", Integer.parseInt(r[6]));
+                frame.put("description", "品牌目录款式，可先用于适配计算和心愿单沟通。");
+                String original, tryOn;
+                if (r[0].startsWith("shanshan")) {
+                    String code = r[0].substring("shanshan_pf_".length());
+                    original = "assets/merchants/shanshan/paul-frank/original/pf" + code + ".webp";
+                    tryOn = "assets/merchants/shanshan/paul-frank/tryon/pf" + code + ".webp";
+                } else {
+                    original = "assets/merchants/molsion/original/" + r[0] + ".webp";
+                    tryOn = "assets/merchants/molsion/tryon/" + r[0] + ".webp";
+                }
+                frame.put("image", original);
+                frame.put("tryOnImage", tryOn);
+                frame.put("thumb", "assets/thumbs/" + r[0] + ".webp");
+                frame.put("source", "builtin-brand-fallback");
                 frames.put(frame);
             }
             catalogFrames = frames;
