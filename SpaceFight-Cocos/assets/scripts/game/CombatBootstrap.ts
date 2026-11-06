@@ -1088,10 +1088,24 @@ export class CombatBootstrap extends Component {
     camera.fov = 62;
     camera.near = 0.08;
     camera.far = 2400;
-    keyLight.illuminance = 36000;
+    // 清屏色从近纯黑 rgb(3,7,11) 抬成深空蓝：之前「飞出去一片死黑」、画面没有层次，
+    // 是「没观感」的直接原因。只抬背景底色，不改任何模型/玩法。
+    camera.clearColor = new Color(14, 23, 38, 255);
+    keyLight.illuminance = 52000;
     keyLight.shadowEnabled = !sys.isBrowser && !this.touchOptimized;
     keyLight.shadowDistance = 180;
     keyLight.enableCSM = !sys.isBrowser && !this.touchOptimized;
+    // 提亮环境光：此前场景 _skyIllum 仅 8500，暗部全死黑，战机/敌机/建筑看不清（用户「没观感」主因）。
+    // 抬高 ambient 给所有材质一层基础亮度，不改变造型，只让画面「能看清、有层次」。
+    try {
+      const globals = scene.globals;
+      if (globals?.ambient) {
+        globals.ambient.skyIllum = 26000;
+        globals.ambient.groundAlbedo = new Color(48, 60, 78, 255);
+      }
+    } catch (error: unknown) {
+      console.warn('[SpaceFight] ambient lift skipped', error);
+    }
     this.applyGraphicsTier(this.graphicsTier);
     this.cockpitInterior = this.createCockpitInterior(cameraNode);
 
@@ -1280,8 +1294,8 @@ export class CombatBootstrap extends Component {
     fillNode.setPosition(-8, 5, 6);
     const fill = fillNode.addComponent(SphereLight);
     fill.color = new Color(66, 154, 194, 255);
-    fill.luminance = 680;
-    fill.range = 34;
+    fill.luminance = 1500;
+    fill.range = 42;
     fill.size = 2.2;
   }
 
