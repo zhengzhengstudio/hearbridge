@@ -33,6 +33,7 @@ import {
 } from '../core/WeaponCatalog';
 import type { CombatLoadout, ResolvedCombatLoadout } from '../core/WeaponCatalog';
 import { PLAYER_SHIP_IDS, resolvePlayerShip } from '../core/ShipCatalog';
+import { BUILD_INFO } from '../core/BuildInfo';
 import { buyStoreItem, loadEconomy, storePrice, type StoreItemId } from '../core/PlayerEconomy';
 import { AUDIO_ENGINE_KEY, AUDIO_SFX_KEY, audioSettingEnabled, toggleAudioSetting } from './GameAudio';
 import {
@@ -943,7 +944,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     shade.fill();
 
     const channel = this.createLabel('NativeBootChannel', 12, HUD_CYAN, this.bootPanel);
-    channel.string = 'ORBITAL FRONTIER  /  CLIENT 60';
+    channel.string = `ORBITAL FRONTIER  /  v${BUILD_INFO.version}  BUILD ${BUILD_INFO.build}`;
     channel.horizontalAlign = HorizontalTextAlignment.LEFT;
     const title = this.createLabel('NativeBootTitle', 42, HUD_WHITE, this.bootPanel);
     title.string = 'SPACEFIGHT';
