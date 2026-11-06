@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.CraftingGuideTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-04T08:57:33" hostname="LJGdeMacBook-Pro.local" time="0.037">
+  <properties/>
+  <testcase name="machete guide exposes a complete reachable production chain" classname="cn.zhengzhengstudio.survivaldiary.CraftingGuideTest" time="0.036"/>
+  <testcase name="stone machete guide is the short early-game route" classname="cn.zhengzhengstudio.survivaldiary.CraftingGuideTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

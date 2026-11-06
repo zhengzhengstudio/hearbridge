@@ -1,0 +1,20 @@
+{
+  "string": [
+    {
+      "name": "entry_desc",
+      "value": "SpaceFight 原生横屏空战游戏"
+    },
+    {
+      "name": "MainAbility_label",
+      "value": "SpaceFight"
+    },
+    {
+      "name": "MainAbility_desc",
+      "value": "SpaceFight 原生横屏空战游戏"
+    },
+    {
+      "name": "permissions_label",
+      "value": "label"
+    }
+  ]
+}

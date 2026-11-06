@@ -1,0 +1,5 @@
+[
+  { "id": "craft-stone-axe", "ingredients": { "driftwood": 2, "stone": 2, "fiber": 1 }, "output": { "itemId": "stone-axe", "amount": 1 } },
+  { "id": "craft-fishing-rod", "ingredients": { "driftwood": 2, "fiber": 3 }, "output": { "itemId": "fishing-rod", "amount": 1 } },
+  { "id": "build-campfire", "ingredients": { "driftwood": 3, "stone": 4 }, "output": { "itemId": "campfire", "amount": 1 } }
+]

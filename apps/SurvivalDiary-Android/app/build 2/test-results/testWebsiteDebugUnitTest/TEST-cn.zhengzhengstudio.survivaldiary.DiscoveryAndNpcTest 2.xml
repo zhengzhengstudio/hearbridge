@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.DiscoveryAndNpcTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-04T08:57:34" hostname="LJGdeMacBook-Pro.local" time="0.182">
+  <properties/>
+  <testcase name="settlementBuildingsDoNotCountAsThePlayersRecruitmentBed" classname="cn.zhengzhengstudio.survivaldiary.DiscoveryAndNpcTest" time="0.064"/>
+  <testcase name="independentWanderersCanTalkWithoutPretendingTheyWereRecruited" classname="cn.zhengzhengstudio.survivaldiary.DiscoveryAndNpcTest" time="0.0"/>
+  <testcase name="villagersWalkDeterministicallyAndTradesConsumeRealItems" classname="cn.zhengzhengstudio.survivaldiary.DiscoveryAndNpcTest" time="0.082"/>
+  <testcase name="workstationRevealsItsCatalogWithoutPretendingMaterialsAreKnown" classname="cn.zhengzhengstudio.survivaldiary.DiscoveryAndNpcTest" time="0.001"/>
+  <testcase name="discoveredMaterialRevealsLinkedRecipeButDoesNotBypassIngredientKnowledge" classname="cn.zhengzhengstudio.survivaldiary.DiscoveryAndNpcTest" time="0.002"/>
+  <testcase name="nativeWorldAlwaysContainsARealBuilderNpcAndMigrationIsIdempotent" classname="cn.zhengzhengstudio.survivaldiary.DiscoveryAndNpcTest" time="0.02"/>
+  <testcase name="recruitConsumesActualCampSupplies" classname="cn.zhengzhengstudio.survivaldiary.DiscoveryAndNpcTest" time="0.011"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

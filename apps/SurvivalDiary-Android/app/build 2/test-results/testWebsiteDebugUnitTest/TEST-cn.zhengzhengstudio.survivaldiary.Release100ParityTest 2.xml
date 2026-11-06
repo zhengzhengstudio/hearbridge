@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.Release100ParityTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-04T08:57:34" hostname="LJGdeMacBook-Pro.local" time="0.005">
+  <properties/>
+  <testcase name="dropping and picking up is persistent and idempotent" classname="cn.zhengzhengstudio.survivaldiary.Release100ParityTest" time="0.001"/>
+  <testcase name="large movement steps cannot tunnel through blocked terrain" classname="cn.zhengzhengstudio.survivaldiary.Release100ParityTest" time="0.001"/>
+  <testcase name="food applies concrete recovery instead of a text only action" classname="cn.zhengzhengstudio.survivaldiary.Release100ParityTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

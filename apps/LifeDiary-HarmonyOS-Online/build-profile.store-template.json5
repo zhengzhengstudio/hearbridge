@@ -1,0 +1,20 @@
+{
+  "app": {
+    "signingConfigs": [{
+      "name": "release",
+      "type": "HarmonyOS",
+      "material": {
+        "certpath": "release/lifediary-release.cer",
+        "storePassword": "REPLACE_WITH_STORE_PASSWORD",
+        "keyAlias": "REPLACE_WITH_KEY_ALIAS",
+        "keyPassword": "REPLACE_WITH_KEY_PASSWORD",
+        "profile": "release/lifediary-hmos-online-release.p7b",
+        "signAlg": "SHA256withECDSA",
+        "storeFile": "release/lifediary-release.p12"
+      }
+    }],
+    "products": [{"name":"default","signingConfig":"release","targetSdkVersion":"6.0.2(22)","compatibleSdkVersion":"6.0.2(22)","runtimeOS":"HarmonyOS"}],
+    "buildModeSet": [{"name":"release"}]
+  },
+  "modules": [{"name":"entry","srcPath":"./entry","targets":[{"name":"default","applyToProducts":["default"]}]}]
+}

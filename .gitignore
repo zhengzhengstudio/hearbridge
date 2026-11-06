@@ -1,0 +1,69 @@
+# 环境变量与敏感配置
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.yaml
+config.yml
+!website/api/cloudflared/config.yaml
+
+# 依赖与构建产物
+node_modules/
+**/node_modules/
+**/build/
+**/dist/
+**/.gradle/
+**/.hvigor/
+**/.vercel/
+
+# 日志与缓存
+*.log
+logs/
+**/.cache/
+**/.storage/
+
+# 本地数据文件（后端会生成）
+website/data/hear_state.json
+website/data/hear_game_sessions.json
+
+# ClawBlog AI 自动撰稿凭据（含 API Key，绝不可提交）
+website/api/.claw_blog_autoposter.json
+website/api/.claw_blog_critic.json
+website/api/.claw_blog_critic_state.json
+website/api/.claw_blog_critic_comment.txt
+
+# IDE 与系统文件
+.vscode/settings.json
+.DS_Store
+*.icloud
+*.icloud
+
+# 临时文件
+*.tmp
+*.temp
+**/temp_*
+
+# Git 隔离工作树
+.worktrees/
+
+# 构建产物与可重建目录（体积大，不入库）
+.sf_build/
+native-build/
+SpaceFight-Cocos/library/
+SpaceFight-Cocos/temp/
+SpaceFight-Cocos/profiles/
+website_api_bak/
+.workbuddy/tmp/
+
+# Survival Diary Android production signing and release artifacts
+Android证书/*
+!Android证书/README.md
+Android证书/*.p12
+Android证书/*.jks
+Android证书/*.properties
+Android证书/*secret*
+Android证书/*export*
+website/api/apps/SurvivalDiary-Android-*.apk
+website/api/apps/SurvivalDiary-Android-*.apk.sha256

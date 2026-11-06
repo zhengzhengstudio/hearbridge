@@ -1,0 +1,309 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62",
+  "files": [],
+  "subMetas": {
+    "30866": {
+      "importer": "gltf-material",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@30866",
+      "displayName": "",
+      "id": "30866",
+      "name": "Outpost_Glass.material",
+      "userData": {
+        "gltfIndex": 2
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "54756": {
+      "importer": "gltf-material",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@54756",
+      "displayName": "",
+      "id": "54756",
+      "name": "Outpost_Hull.material",
+      "userData": {
+        "gltfIndex": 4
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "12b8b": {
+      "importer": "gltf-mesh",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@12b8b",
+      "displayName": "",
+      "id": "12b8b",
+      "name": "Torus.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 4340
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "41ac8": {
+      "importer": "gltf-mesh",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@41ac8",
+      "displayName": "",
+      "id": "41ac8",
+      "name": "Cube.001.mesh",
+      "userData": {
+        "gltfIndex": 1,
+        "triangleCount": 3404
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f051b": {
+      "importer": "gltf-mesh",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@f051b",
+      "displayName": "",
+      "id": "f051b",
+      "name": "Cube.016.mesh",
+      "userData": {
+        "gltfIndex": 2,
+        "triangleCount": 972
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "52ffd": {
+      "importer": "gltf-mesh",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@52ffd",
+      "displayName": "",
+      "id": "52ffd",
+      "name": "Torus.001.mesh",
+      "userData": {
+        "gltfIndex": 3,
+        "triangleCount": 5448
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "c244a": {
+      "importer": "gltf-mesh",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@c244a",
+      "displayName": "",
+      "id": "c244a",
+      "name": "Cylinder.mesh",
+      "userData": {
+        "gltfIndex": 4,
+        "triangleCount": 764
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "b958d": {
+      "importer": "gltf-mesh",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@b958d",
+      "displayName": "",
+      "id": "b958d",
+      "name": "Cylinder.018.mesh",
+      "userData": {
+        "gltfIndex": 5,
+        "triangleCount": 472
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "0b568": {
+      "importer": "gltf-mesh",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@0b568",
+      "displayName": "",
+      "id": "0b568",
+      "name": "Cylinder.001.mesh",
+      "userData": {
+        "gltfIndex": 6,
+        "triangleCount": 2424
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f66fe": {
+      "importer": "gltf-material",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@f66fe",
+      "displayName": "",
+      "id": "f66fe",
+      "name": "Outpost_Armor.material",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "512de": {
+      "importer": "gltf-material",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@512de",
+      "displayName": "",
+      "id": "512de",
+      "name": "Outpost_Dark.material",
+      "userData": {
+        "gltfIndex": 1
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "ec8df": {
+      "importer": "gltf-material",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@ec8df",
+      "displayName": "",
+      "id": "ec8df",
+      "name": "Outpost_Guidance.material",
+      "userData": {
+        "gltfIndex": 3
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "785b0": {
+      "importer": "gltf-material",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@785b0",
+      "displayName": "",
+      "id": "785b0",
+      "name": "Outpost_Interior.material",
+      "userData": {
+        "gltfIndex": 5
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "4b155": {
+      "importer": "gltf-material",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@4b155",
+      "displayName": "",
+      "id": "4b155",
+      "name": "Outpost_Warning.material",
+      "userData": {
+        "gltfIndex": 6
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "b8c53": {
+      "importer": "gltf-scene",
+      "uuid": "0f73fcad-30f7-40a8-af58-39df4bc94f62@b8c53",
+      "displayName": "",
+      "id": "b8c53",
+      "name": "outpost.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@12b8b",
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@41ac8",
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@f051b",
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@52ffd",
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@c244a",
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@b958d",
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@0b568"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@f66fe",
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@512de",
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@30866",
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@ec8df",
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@54756",
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@785b0",
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@4b155"
+      ],
+      "scenes": [
+        "0f73fcad-30f7-40a8-af58-39df4bc94f62@b8c53"
+      ]
+    }
+  }
+}

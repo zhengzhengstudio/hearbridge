@@ -1,0 +1,5 @@
+[
+  { "id": "steam-engine", "kind": "machine", "itemId": "steam-engine", "assetId": "building.furnace", "anchor": { "x": 0.5, "y": 0.9 }, "collision": { "shape": "box", "width": 2.4, "height": 2.0 }, "footprint": { "width": 3, "height": 2 }, "heightLayer": 3, "requiredStates": ["icon", "world", "working", "damaged"], "fuelTags": ["coal", "charcoal"], "powerPerMinute": 6 },
+  { "id": "ore-crusher", "kind": "machine", "itemId": "ore-crusher", "assetId": "building.furnace", "anchor": { "x": 0.5, "y": 0.9 }, "collision": { "shape": "box", "width": 2.4, "height": 1.8 }, "footprint": { "width": 3, "height": 2 }, "heightLayer": 2, "requiredStates": ["icon", "world", "working", "damaged"], "powerPerCycle": 120 },
+  { "id": "rail-segment", "kind": "rail", "itemId": "rail-segment", "assetId": "world.rail-segment", "anchor": { "x": 0.5, "y": 0.96 }, "collision": { "shape": "box", "width": 1.0, "height": 2.0 }, "footprint": { "width": 1, "height": 2 }, "heightLayer": 0, "requiredStates": ["icon", "world", "working", "damaged"], "connectors": ["north", "east", "south", "west"] }
+]

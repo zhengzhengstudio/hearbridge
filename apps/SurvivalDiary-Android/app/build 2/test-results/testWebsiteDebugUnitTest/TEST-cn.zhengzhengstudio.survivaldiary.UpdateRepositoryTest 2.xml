@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.UpdateRepositoryTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-04T08:57:35" hostname="LJGdeMacBook-Pro.local" time="0.015">
+  <properties/>
+  <testcase name="update selection prefers versioned download and rejects unavailable or unsafe entries" classname="cn.zhengzhengstudio.survivaldiary.UpdateRepositoryTest" time="0.014"/>
+  <testcase name="semanticVersionComparisonUsesEveryComponent" classname="cn.zhengzhengstudio.survivaldiary.UpdateRepositoryTest" time="0.0"/>
+  <testcase name="download progress reports determinate percentage without exceeding one hundred" classname="cn.zhengzhengstudio.survivaldiary.UpdateRepositoryTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

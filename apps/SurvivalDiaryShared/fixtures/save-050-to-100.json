@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 4,
+  "productVersion": "0.5.0",
+  "build": 15,
+  "seed": "saved-island-050",
+  "day": 9,
+  "time": 825,
+  "discoveredChunks": { "0,0": { "x": 0, "y": 0, "visibility": "discovered" }, "1,0": { "x": 1, "y": 0, "visibility": "discovered" } },
+  "players": { "local": { "id": "local", "position": { "x": 12.5, "y": 7.25 }, "inventory": { "rope": 2 } } },
+  "inventory": { "stone": 9, "rope": 2, "storage-crate": 1 },
+  "entities": { "camp": { "id": "camp", "type": "shelter", "coordinates": { "x": 8, "y": 5 } } },
+  "journals": { "9": { "text": "桥的另一边还有路。" } },
+  "animals": {}, "populations": {}, "nests": {}, "traps": {}, "domestication": {}, "wildlifeTraces": {}, "processedEventIds": []
+}

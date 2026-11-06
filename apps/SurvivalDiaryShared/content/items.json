@@ -1,0 +1,170 @@
+[
+  {
+    "id": "driftwood",
+    "name": "漂流木",
+    "category": "material",
+    "stackLimit": 99
+  },
+  {
+    "id": "stone",
+    "name": "海蚀石",
+    "category": "material",
+    "stackLimit": 99
+  },
+  {
+    "id": "fiber",
+    "name": "棕榈纤维",
+    "category": "material",
+    "stackLimit": 99
+  },
+  {
+    "id": "shell",
+    "name": "贝壳",
+    "category": "material",
+    "stackLimit": 99
+  },
+  {
+    "id": "fresh-water",
+    "name": "淡水",
+    "category": "food",
+    "stackLimit": 20
+  },
+  {
+    "id": "reef-fish",
+    "name": "礁鱼",
+    "category": "food",
+    "stackLimit": 20
+  },
+  {
+    "id": "stone-axe",
+    "name": "石斧",
+    "category": "tool",
+    "stackLimit": 1
+  },
+  {
+    "id": "fishing-rod",
+    "name": "钓竿",
+    "category": "tool",
+    "stackLimit": 1
+  },
+  {
+    "id": "campfire",
+    "name": "营火",
+    "category": "building",
+    "stackLimit": 10
+  },
+  {
+    "id": "feather",
+    "name": "羽毛",
+    "category": "material",
+    "stackLimit": 40
+  },
+  {
+    "id": "egg",
+    "name": "鸟蛋",
+    "category": "food",
+    "stackLimit": 30
+  },
+  {
+    "id": "crab",
+    "name": "蟹肉",
+    "category": "food",
+    "stackLimit": 20
+  },
+  {
+    "id": "lizard-meat",
+    "name": "蜥蜴肉",
+    "category": "food",
+    "stackLimit": 20
+  },
+  {
+    "id": "lizard-hide",
+    "name": "蜥蜴皮",
+    "category": "material",
+    "stackLimit": 20
+  },
+  {
+    "id": "turtle-shell",
+    "name": "龟甲",
+    "category": "material",
+    "stackLimit": 20
+  },
+  {
+    "id": "rabbit-meat",
+    "name": "兔肉",
+    "category": "food",
+    "stackLimit": 30
+  },
+  {
+    "id": "rabbit-fur",
+    "name": "兔毛",
+    "category": "material",
+    "stackLimit": 30
+  },
+  {
+    "id": "boar-meat",
+    "name": "野猪肉",
+    "category": "food",
+    "stackLimit": 30
+  },
+  {
+    "id": "boar-hide",
+    "name": "野猪皮",
+    "category": "material",
+    "stackLimit": 20
+  },
+  {
+    "id": "bone",
+    "name": "兽骨",
+    "category": "material",
+    "stackLimit": 30
+  },
+  {
+    "id": "snake-skin",
+    "name": "蛇皮",
+    "category": "material",
+    "stackLimit": 20
+  },
+  {
+    "id": "venom",
+    "name": "毒液",
+    "category": "material",
+    "stackLimit": 10
+  },
+  {
+    "id": "guano",
+    "name": "粪肥",
+    "category": "material",
+    "stackLimit": 20
+  },
+  {
+    "id": "goat-milk",
+    "name": "羊奶",
+    "category": "food",
+    "stackLimit": 20
+  },
+  {
+    "id": "goat-hair",
+    "name": "山羊毛",
+    "category": "material",
+    "stackLimit": 20
+  },
+  {
+    "id": "goat-meat",
+    "name": "山羊肉",
+    "category": "food",
+    "stackLimit": 20
+  },
+  {
+    "id": "shark-meat",
+    "name": "鲨鱼肉",
+    "category": "food",
+    "stackLimit": 20
+  },
+  {
+    "id": "shark-skin",
+    "name": "鲨鱼皮",
+    "category": "material",
+    "stackLimit": 20
+  }
+]

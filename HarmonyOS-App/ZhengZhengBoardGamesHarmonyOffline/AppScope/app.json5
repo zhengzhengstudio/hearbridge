@@ -1,0 +1,10 @@
+{
+  "app": {
+    "bundleName": "cn.zhengzhengstudio.boardgames.offline.hmos",
+    "vendor": "铮铮实验室",
+    "versionCode": 1010700,
+    "versionName": "1.7.0",
+    "icon": "$media:layered_image",
+    "label": "$string:app_name"
+  }
+}

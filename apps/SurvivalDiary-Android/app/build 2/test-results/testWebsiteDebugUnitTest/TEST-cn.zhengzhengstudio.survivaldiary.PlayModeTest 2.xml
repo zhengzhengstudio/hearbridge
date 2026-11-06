@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.PlayModeTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-04T08:57:34" hostname="LJGdeMacBook-Pro.local" time="0.001">
+  <properties/>
+  <testcase name="switchingModePreservesIsland" classname="cn.zhengzhengstudio.survivaldiary.PlayModeTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

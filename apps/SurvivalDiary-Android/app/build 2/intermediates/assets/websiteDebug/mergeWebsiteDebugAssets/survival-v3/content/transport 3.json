@@ -1,0 +1,4 @@
+[
+  { "id": "rowboat", "kind": "boat", "itemId": "rowboat", "assetId": "building.dock", "anchor": { "x": 0.5, "y": 0.86 }, "collision": { "shape": "ellipse", "width": 3.2, "height": 1.2 }, "footprint": { "width": 4, "height": 2 }, "heightLayer": 2, "requiredStates": ["icon", "world", "working", "damaged"], "capacity": 2, "waterDepth": { "min": 0.45, "max": 4.0 } },
+  { "id": "rope-bridge", "kind": "bridge", "itemId": "rope-bridge", "assetId": "building.rope-bridge", "anchor": { "x": 0.5, "y": 0.94 }, "collision": { "shape": "box", "width": 2.0, "height": 5.0 }, "footprint": { "width": 2, "height": 5 }, "heightLayer": 1, "requiredStates": ["icon", "world", "working", "damaged"], "span": { "min": 2, "max": 7 } }
+]

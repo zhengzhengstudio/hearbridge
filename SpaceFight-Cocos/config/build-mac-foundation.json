@@ -1,0 +1,28 @@
+{
+  "platform": "mac",
+  "debug": true,
+  "buildPath": "project://native-build",
+  "outputName": "spacefight-mac",
+  "taskName": "spacefight-mac-foundation",
+  "buildMode": "normal",
+  "mainBundleCompressionType": "merge_dep",
+  "packages": {
+    "mac": {
+      "packageName": "cn.zhengzhengstudio.spacefight",
+      "targetVersion": "12.0"
+    }
+  },
+  "name": "spacefight-cocos",
+  "mangleProperties": false,
+  "md5Cache": true,
+  "sourceMaps": false,
+  "useSplashScreen": false,
+  "showFPS": false,
+  "startScene": "ee9bc189-ccbe-45a5-bafb-2a39c70b4b08",
+  "scenes": [
+    {
+      "url": "db://assets/scenes/Combat.scene",
+      "uuid": "ee9bc189-ccbe-45a5-bafb-2a39c70b4b08"
+    }
+  ]
+}

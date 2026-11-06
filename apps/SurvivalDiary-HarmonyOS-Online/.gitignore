@@ -1,0 +1,6 @@
+.hvigor/
+oh_modules/
+build/
+entry/build/
+*.hap
+*.hsp

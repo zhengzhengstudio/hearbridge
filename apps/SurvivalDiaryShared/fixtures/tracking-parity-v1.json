@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "stone-machete-needs-nearest-fibre",
+      "save": {
+        "trackedRecipe": {
+          "recipeId": "craft-stone-machete",
+          "quantity": 1,
+          "version": 1
+        },
+        "inventory": {
+          "stone": 2,
+          "branch": 1
+        },
+        "players": {
+          "local": {
+            "position": {
+              "x": 4,
+              "y": 4
+            }
+          }
+        }
+      },
+      "world": {
+        "resourceNodes": {
+          "far-fibre": {
+            "id": "far-fibre",
+            "itemId": "palm-fiber",
+            "position": {
+              "x": 18,
+              "y": 18
+            },
+            "remaining": 8,
+            "state": "full",
+            "reachable": true
+          },
+          "near-fibre": {
+            "id": "near-fibre",
+            "itemId": "palm-fiber",
+            "position": {
+              "x": 6,
+              "y": 5
+            },
+            "remaining": 4,
+            "state": "full",
+            "reachable": true
+          }
+        }
+      },
+      "expectedPlan": {
+        "recipeId": "craft-stone-machete",
+        "quantity": 1,
+        "steps": [
+          {
+            "kind": "gather",
+            "itemId": "palm-fiber",
+            "required": 4,
+            "available": 0
+          },
+          {
+            "kind": "craft",
+            "itemId": "rope",
+            "recipeId": "craft-rope",
+            "required": 1,
+            "available": 0,
+            "batches": 1
+          },
+          {
+            "kind": "craft",
+            "itemId": "stone-machete",
+            "recipeId": "craft-stone-machete",
+            "required": 1,
+            "available": 0,
+            "batches": 1
+          }
+        ],
+        "blockedReason": "",
+        "progress": {
+          "completed": 3,
+          "required": 8
+        }
+      },
+      "expectedAction": {
+        "kind": "gather",
+        "itemId": "palm-fiber",
+        "amount": 4,
+        "nodeId": "near-fibre",
+        "position": {
+          "x": 6,
+          "y": 5
+        },
+        "reason": ""
+      }
+    }
+  ]
+}

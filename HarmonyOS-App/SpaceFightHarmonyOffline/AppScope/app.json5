@@ -1,0 +1,10 @@
+{
+  "app": {
+    "bundleName": "cn.zhengzhengstudio.spacefight.huawei",
+    "vendor": "铮铮实验室",
+    "versionCode": 63,
+    "versionName": "0.12.0",
+    "icon": "$media:layered_image",
+    "label": "$string:app_name"
+  }
+}

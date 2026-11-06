@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1920, initial-scale=1">
+  <title>SpaceFight HarmonyOS Offline 商店宣传图</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; margin: 0; overflow: hidden; }
+    body {
+      color: #f4f5f2;
+      background: #071017 url("spacefight-harmonyos-offline-key-art-1920x1080.png") center / cover no-repeat;
+      font-family: "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+    .frame { position: relative; width: 100%; height: 100%; }
+    .info {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 790px;
+      padding: 68px 70px 58px 78px;
+      background: rgba(5, 12, 17, 0.96);
+      border-right: 2px solid rgba(240, 164, 75, 0.82);
+    }
+    .info::after {
+      content: "";
+      position: absolute;
+      right: -16px;
+      top: 0;
+      width: 12px;
+      height: 100%;
+      background: rgba(5, 12, 17, 0.64);
+      border-right: 1px solid rgba(102, 201, 211, 0.42);
+    }
+    .brand { display: flex; align-items: center; gap: 20px; }
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 76px;
+      height: 76px;
+      background: #0e171d;
+      border: 1px solid #f0a44b;
+    }
+    .mark img { width: 56px; height: 56px; }
+    .wordmark { font: 800 48px/1 Arial, sans-serif; color: #fff; }
+    .edition { margin-top: 9px; color: #66c9d3; font-size: 18px; font-weight: 700; }
+    .rule { width: 86px; height: 6px; margin: 58px 0 28px; background: #f0a44b; }
+    h1 { margin: 0; font-size: 68px; line-height: 1.12; font-weight: 800; }
+    .lead { margin: 24px 0 0; color: #bdc7cb; font-size: 25px; line-height: 1.6; }
+    .features { display: grid; gap: 18px; margin-top: 46px; }
+    .feature { display: grid; grid-template-columns: 62px 1fr; align-items: center; min-height: 74px; }
+    .number {
+      color: #f0a44b;
+      font: 700 22px/1.2 "SFMono-Regular", Menlo, monospace;
+      border-left: 3px solid #66c9d3;
+      padding-left: 14px;
+    }
+    .feature strong { display: block; font-size: 25px; line-height: 1.3; }
+    .feature span { display: block; margin-top: 4px; color: #94a4aa; font-size: 17px; line-height: 1.35; }
+    .privacy {
+      position: absolute;
+      left: 78px;
+      bottom: 55px;
+      color: #e7eaeb;
+      font-size: 19px;
+      font-weight: 700;
+    }
+    .privacy b { color: #66c9d3; }
+    .capture-label {
+      position: absolute;
+      top: 64px;
+      right: 70px;
+      padding: 13px 18px;
+      color: #f8faf9;
+      background: rgba(5, 12, 17, 0.84);
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      font: 700 17px/1 "SFMono-Regular", Menlo, monospace;
+    }
+    .mode-strip {
+      position: absolute;
+      right: 70px;
+      bottom: 58px;
+      display: flex;
+      gap: 10px;
+    }
+    .mode {
+      min-width: 118px;
+      padding: 16px 18px;
+      background: rgba(5, 12, 17, 0.88);
+      border-top: 3px solid #f0a44b;
+      color: #f4f5f2;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .version {
+      position: absolute;
+      right: 70px;
+      bottom: 136px;
+      color: rgba(244, 245, 242, 0.76);
+      font: 600 16px/1 "SFMono-Regular", Menlo, monospace;
+    }
+  </style>
+</head>
+<body>
+  <main class="frame" aria-label="SpaceFight HarmonyOS Offline 软件介绍">
+    <section class="info">
+      <div class="brand">
+        <div class="mark"><img src="spacefight-mark.svg" alt="SpaceFight 舰徽"></div>
+        <div>
+          <div class="wordmark">SPACEFIGHT</div>
+          <div class="edition">HARMONYOS OFFLINE</div>
+        </div>
+      </div>
+      <div class="rule"></div>
+      <h1>纯单机太空射击</h1>
+      <p class="lead">无等待、无账号门槛。驾驶舰船穿越峡谷与风暴，在本机完成移动、瞄准、射击与武器切换。</p>
+      <div class="features">
+        <div class="feature"><div class="number">01</div><div><strong>六种任务</strong><span>生存 · 首领 · 护航 · 防守 · 歼灭 · 突袭</span></div></div>
+        <div class="feature"><div class="number">02</div><div><strong>本机 60 Hz</strong><span>飞行与弹道即时响应</span></div></div>
+        <div class="feature"><div class="number">03</div><div><strong>双视角飞行</strong><span>第一/第三人称 · 左侧移动 · 右侧瞄准开火</span></div></div>
+      </div>
+      <div class="privacy"><b>无需登录</b> · 不申请网络权限 · 进度保存在本机</div>
+    </section>
+    <div class="capture-label">REAL-TIME LOCAL COMBAT</div>
+    <div class="version">VERSION 0.9.0 · BUILD 12</div>
+    <div class="mode-strip" aria-label="游戏模式">
+      <div class="mode">生存战</div>
+      <div class="mode">首领战</div>
+      <div class="mode">护航战</div>
+      <div class="mode">防守战</div>
+      <div class="mode">歼灭战</div>
+      <div class="mode">突袭战</div>
+    </div>
+  </main>
+</body>
+</html>

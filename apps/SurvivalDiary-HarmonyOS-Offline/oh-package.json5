@@ -1,0 +1,1 @@
+{ "modelVersion": "6.0.2", "description": "生存日记 HarmonyOS 单机版", "dependencies": {}, "devDependencies": { "@ohos/hypium": "1.0.25", "@ohos/hamock": "1.0.0" } }

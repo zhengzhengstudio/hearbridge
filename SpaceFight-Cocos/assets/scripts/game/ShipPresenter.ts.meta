@@ -1,0 +1,13 @@
+{
+  "ver": "4.0.24",
+  "importer": "typescript",
+  "imported": true,
+  "uuid": "b68f452d-25aa-4b52-9e43-a37ce985f480",
+  "files": [],
+  "subMetas": {},
+  "userData": {
+    "moduleId": "project:///assets/scripts/game/ShipPresenter.js",
+    "importerSettings": 7,
+    "simulateGlobals": []
+  }
+}

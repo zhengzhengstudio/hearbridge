@@ -1,0 +1,3 @@
+/Users/ljg/Desktop/开发者/TRAE/ZhengZhengStudioApp/ZhengZhengGlasses/manual-build-v0.1.3/gen/com/zzsys/zhengzhengglasses/R.java
+/Users/ljg/Desktop/开发者/TRAE/ZhengZhengStudioApp/ZhengZhengGlasses/manual-build-v0.1.3/buildconfig/com/zzsys/zhengzhengglasses/BuildConfig.java
+/Users/ljg/Desktop/开发者/TRAE/ZhengZhengStudioApp/ZhengZhengGlasses/app/src/main/java/com/zzsys/zhengzhengglasses/NativeMainActivity.java

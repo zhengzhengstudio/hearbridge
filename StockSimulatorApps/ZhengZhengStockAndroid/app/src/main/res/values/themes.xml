@@ -1,0 +1,15 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.ZhengZhengStudio" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/stock_red</item>
+        <item name="colorPrimaryVariant">@color/stock_graphite</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/stock_green</item>
+        <item name="colorSecondaryVariant">@color/stock_green</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:statusBarColor">@color/stock_graphite</item>
+        <item name="android:navigationBarColor">@color/stock_graphite</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:fontFamily">sans</item>
+    </style>
+</resources>

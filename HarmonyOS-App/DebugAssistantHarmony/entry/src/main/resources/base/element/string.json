@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "铮铮调试助手鸿蒙端"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "铮铮调试助手"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "铮铮调试助手"
+    }
+  ]
+}

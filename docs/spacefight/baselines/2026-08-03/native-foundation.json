@@ -1,0 +1,64 @@
+{
+  "createdAt": "2026-08-03T06:29:22.669Z",
+  "identity": {
+    "version": "0.10.0",
+    "build": 18
+  },
+  "artifacts": [
+    {
+      "platform": "android",
+      "path": "website/api/apps/SpaceFight-Android-v0.10.0.apk",
+      "size": 8233645,
+      "sha256": "d9a2347b01d3a380dd4741374551a7f28b7627b1e907762446e1d76d42de7f19"
+    },
+    {
+      "platform": "ios",
+      "path": "website/api/apps/SpaceFight-iOS-v0.10.0.ipa",
+      "size": 2966424,
+      "sha256": "0b02fcc04a69c4033398b75d42b81499cbfb8e24c29273b43e4acc3864305afb"
+    },
+    {
+      "platform": "macos",
+      "path": "website/api/apps/SpaceFight-macOS-v0.10.0.dmg",
+      "size": 6186088,
+      "sha256": "be5b151a36f273ba52e3b1acfbd844f1778539d998adc0ff16df87e49b100cfb"
+    },
+    {
+      "platform": "harmonyos",
+      "path": "website/api/apps/SpaceFight-HarmonyOS-v0.10.0-unsigned.hap",
+      "size": 5429261,
+      "sha256": "4e2da6269601f3e57edd07ab8eac550b8074ca88d8ed138d783a0fb8f743f524"
+    },
+    {
+      "platform": "harmonyos-offline-hap",
+      "path": "website/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.0.hap",
+      "size": 5230386,
+      "sha256": "2c20e652e6639eef3df9e1e11163d240df20595479bef82b9e5c5c012f3ff6c6"
+    },
+    {
+      "platform": "harmonyos-offline-app",
+      "path": "website/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.0.app",
+      "size": 5076577,
+      "sha256": "95218695a1f0b5b02c6d9d193de0d6df66d66f6def96a5621abae40c385271a0"
+    }
+  ],
+  "signingMaterial": {
+    "harmonyos": {
+      "keystore": false,
+      "certificate": false,
+      "profile": false,
+      "complete": false
+    },
+    "harmonyosOffline": {
+      "keystore": true,
+      "certificate": true,
+      "profile": true,
+      "complete": true
+    }
+  },
+  "archive": {
+    "path": "/Users/ljg/Downloads/SpaceFight-native-foundation-before-2026-08-03T06-29-22-669Z.tar.gz",
+    "sourceCount": 8,
+    "artifactCount": 6
+  }
+}

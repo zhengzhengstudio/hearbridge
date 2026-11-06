@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zhengzhengstudio.cn/schemas/survival-diary/protocol-v1.json",
+  "title": "Survival Diary Protocol",
+  "oneOf": [
+    { "$ref": "#/$defs/join" },
+    { "$ref": "#/$defs/command" },
+    { "$ref": "#/$defs/snapshot" },
+    { "$ref": "#/$defs/friendRequest" },
+    { "$ref": "#/$defs/tapTokenCreate" },
+    { "$ref": "#/$defs/tapTokenRedeem" },
+    { "$ref": "#/$defs/diaryRequest" },
+    { "$ref": "#/$defs/error" }
+  ],
+  "$defs": {
+    "base": {
+      "type": "object",
+      "required": ["type", "requestId"],
+      "properties": {
+        "type": { "type": "string" },
+        "requestId": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    },
+    "join": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        { "properties": { "type": { "const": "join" }, "islandId": { "type": "string" } }, "required": ["islandId"] }
+      ]
+    },
+    "command": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        { "properties": { "type": { "const": "command" }, "command": { "type": "object" } }, "required": ["command"] }
+      ]
+    },
+    "snapshot": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        { "properties": { "type": { "const": "snapshot" }, "revision": { "type": "integer", "minimum": 0 }, "world": { "type": "object" } }, "required": ["revision", "world"] }
+      ]
+    },
+    "friendRequest": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        { "properties": { "type": { "const": "friend_request" }, "receiverUid": { "type": "string" } }, "required": ["receiverUid"] }
+      ]
+    },
+    "tapTokenCreate": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        { "properties": { "type": { "const": "tap_token_create" }, "kind": { "enum": ["friend", "island"] }, "islandId": { "type": "string" } }, "required": ["kind"] }
+      ]
+    },
+    "tapTokenRedeem": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        { "properties": { "type": { "const": "tap_token_redeem" }, "token": { "type": "string" } }, "required": ["token"] }
+      ]
+    },
+    "diaryRequest": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        { "properties": { "type": { "const": "diary_request" }, "summary": { "type": "object" } }, "required": ["summary"] }
+      ]
+    },
+    "error": {
+      "allOf": [
+        { "$ref": "#/$defs/base" },
+        { "properties": { "type": { "const": "error" }, "code": { "type": "string" }, "message": { "type": "string" } }, "required": ["code", "message"] }
+      ]
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "app": {
+    "bundleName": "cn.zhengzhengstudio.managerportal.hmos",
+    "vendor": "zhengzhengstudio",
+    "versionCode": 1050214,
+    "versionName": "1.5.2",
+    "icon": "$media:app_icon",
+    "label": "$string:app_name",
+    "description": "$string:app_desc"
+  }
+}

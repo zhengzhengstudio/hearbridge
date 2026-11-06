@@ -1,0 +1,118 @@
+[
+  {
+    "id": "lagoon",
+    "name": "浅蓝潟湖",
+    "terrainModel": "continuous-low-poly",
+    "climate": "tropical-coast",
+    "resources": ["shell", "reef-fish", "fresh-water", "seaweed", "clam"],
+    "spawnTable": [
+      { "resourceId": "shell-bed", "chance": 0.2 },
+      { "resourceId": "reef-fish-school", "chance": 0.18 },
+      { "resourceId": "seaweed-bed", "chance": 0.16 },
+      { "resourceId": "clam-bed", "chance": 0.14 },
+      { "resourceId": "fresh-water-spring", "chance": 0.03 }
+    ]
+  },
+  {
+    "id": "palm-grove",
+    "name": "棕榈林",
+    "terrainModel": "continuous-low-poly",
+    "climate": "tropical",
+    "resources": ["driftwood", "fiber", "palm-fiber", "coconut", "branch", "leaf", "fresh-water", "stone"],
+    "spawnTable": [
+      { "resourceId": "coconut-palm", "chance": 0.2 },
+      { "resourceId": "palm-fiber-clump", "chance": 0.18 },
+      { "resourceId": "fallen-branches", "chance": 0.16 },
+      { "resourceId": "broadleaf-bush", "chance": 0.14 },
+      { "resourceId": "driftwood-pile", "chance": 0.06 },
+      { "resourceId": "fresh-water-spring", "chance": 0.08 },
+      { "resourceId": "loose-stones", "chance": 0.14 },
+      { "resourceId": "stone-outcrop", "chance": 0.12 }
+    ]
+  },
+  {
+    "id": "basalt-ridge",
+    "name": "玄武岩脊",
+    "terrainModel": "continuous-low-poly",
+    "climate": "highland",
+    "resources": ["stone", "flint", "coal", "iron-ore", "sulfur", "quartz"],
+    "spawnTable": [
+      { "resourceId": "stone-outcrop", "chance": 0.22 },
+      { "resourceId": "flint-outcrop", "chance": 0.14 },
+      { "resourceId": "coal-seam", "chance": 0.1 },
+      { "resourceId": "iron-vein", "chance": 0.07 },
+      { "resourceId": "magnetite-outcrop", "chance": 0.06 },
+      { "resourceId": "sulfur-vent", "chance": 0.04 },
+      { "resourceId": "quartz-vein", "chance": 0.04 }
+    ]
+  },
+  {
+    "id": "mangrove",
+    "name": "红树林",
+    "terrainModel": "continuous-low-poly",
+    "climate": "humid",
+    "resources": ["softwood-log", "vine", "resin", "latex", "clay", "crab", "herb"],
+    "spawnTable": [
+      { "resourceId": "softwood-tree", "chance": 0.2 },
+      { "resourceId": "vine-thicket", "chance": 0.18 },
+      { "resourceId": "clay-bank", "chance": 0.14 },
+      { "resourceId": "crab-burrow", "chance": 0.12 },
+      { "resourceId": "herb-patch", "chance": 0.1 },
+      { "resourceId": "resin-tree", "chance": 0.08 },
+      { "resourceId": "latex-tree", "chance": 0.08 }
+    ]
+  },
+  {
+    "id": "cloud-forest",
+    "name": "云雾林",
+    "terrainModel": "continuous-low-poly",
+    "climate": "cool-humid",
+    "resources": ["hardwood-log", "bamboo", "mushroom", "herb", "fresh-water"],
+    "spawnTable": [
+      { "resourceId": "hardwood-tree", "chance": 0.2 },
+      { "resourceId": "bamboo-grove", "chance": 0.16 },
+      { "resourceId": "mushroom-ring", "chance": 0.14 },
+      { "resourceId": "herb-patch", "chance": 0.12 },
+      { "resourceId": "fresh-water-spring", "chance": 0.06 }
+    ]
+  },
+  {
+    "id": "dry-savanna",
+    "name": "风干草原",
+    "terrainModel": "continuous-low-poly",
+    "climate": "hot-dry",
+    "resources": ["dry-grass", "softwood-log", "berry", "salt", "sand"],
+    "spawnTable": [
+      { "resourceId": "dry-grass-patch", "chance": 0.24 },
+      { "resourceId": "softwood-tree", "chance": 0.1 },
+      { "resourceId": "berry-bush", "chance": 0.11 },
+      { "resourceId": "salt-flat", "chance": 0.08 },
+      { "resourceId": "sand-bank", "chance": 0.1 }
+    ]
+  },
+  {
+    "id": "limestone-upland",
+    "name": "石灰岩台地",
+    "terrainModel": "continuous-low-poly",
+    "climate": "warm-upland",
+    "resources": ["stone", "copper-ore", "tin-ore", "quartz", "coral-fragment"],
+    "spawnTable": [
+      { "resourceId": "stone-outcrop", "chance": 0.18 },
+      { "resourceId": "copper-vein", "chance": 0.1 },
+      { "resourceId": "tin-vein", "chance": 0.08 },
+      { "resourceId": "quartz-vein", "chance": 0.05 },
+      { "resourceId": "coral-wash", "chance": 0.06 }
+    ]
+  },
+  {
+    "id": "ruins",
+    "name": "潮汐遗迹",
+    "terrainModel": "continuous-low-poly",
+    "climate": "coastal",
+    "resources": ["stone", "shell", "metal-parts"],
+    "spawnTable": [
+      { "resourceId": "stone-outcrop", "chance": 0.15 },
+      { "resourceId": "shell-bed", "chance": 0.12 }
+    ]
+  }
+]

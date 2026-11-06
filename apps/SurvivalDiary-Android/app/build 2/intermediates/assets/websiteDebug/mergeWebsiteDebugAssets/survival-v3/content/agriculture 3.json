@@ -1,0 +1,3 @@
+[
+  { "id": "farm-plot", "kind": "farm", "itemId": "farm-plot", "assetId": "building.garden-plot", "anchor": { "x": 0.5, "y": 0.92 }, "collision": { "shape": "box", "width": 3.0, "height": 3.0 }, "footprint": { "width": 3, "height": 3 }, "heightLayer": 0, "requiredStates": ["icon", "world", "working", "damaged"], "soilCapacity": 9, "waterCapacity": 12, "cropSlots": 9 }
+]

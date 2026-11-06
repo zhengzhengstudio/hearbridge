@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.WorldPresentationTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-09-04T08:57:36" hostname="LJGdeMacBook-Pro.local" time="0.058">
+  <properties/>
+  <testcase name="visibleResourcesAndBuildingsBlockWalkingButRoadsStayPassable" classname="cn.zhengzhengstudio.survivaldiary.WorldPresentationTest" time="0.004"/>
+  <testcase name="undiscoveredChunksDoNotRevealResourceEntities" classname="cn.zhengzhengstudio.survivaldiary.WorldPresentationTest" time="0.002"/>
+  <testcase name="terrainLightingMakesHighGroundAndSlopesVisiblyDifferent" classname="cn.zhengzhengstudio.survivaldiary.WorldPresentationTest" time="0.004"/>
+  <testcase name="fogCloudsRepeatAlongTheFrontierWithoutStretchingTheRaster" classname="cn.zhengzhengstudio.survivaldiary.WorldPresentationTest" time="0.009"/>
+  <testcase name="firstViewStartsInsideTheChunkAtReadableScale" classname="cn.zhengzhengstudio.survivaldiary.WorldPresentationTest" time="0.001"/>
+  <testcase name="recipesUnlockFromKnownMaterialsAndPlacedStations" classname="cn.zhengzhengstudio.survivaldiary.WorldPresentationTest" time="0.001"/>
+  <testcase name="fogFrontierOnlyFacesAlreadyExploredLand" classname="cn.zhengzhengstudio.survivaldiary.WorldPresentationTest" time="0.013"/>
+  <testcase name="buildingRenderSizeUsesItsCollisionFootprint" classname="cn.zhengzhengstudio.survivaldiary.WorldPresentationTest" time="0.005"/>
+  <testcase name="groundMaterialUsesOrganicImagegenTexturesWithoutCoveringWater" classname="cn.zhengzhengstudio.survivaldiary.WorldPresentationTest" time="0.005"/>
+  <testcase name="mapWindowFollowsLivePlayerAndKeepsConcreteChunkDetails" classname="cn.zhengzhengstudio.survivaldiary.WorldPresentationTest" time="0.008"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <title>SpaceFight</title>
+  <path d="M32 5 39 21 55 28 42 35 37 57 32 47 27 57 22 35 9 28 25 21 32 5Z" fill="#10171d" stroke="#f0a44b" stroke-width="2"/>
+  <path d="m32 13 3.5 15L32 39l-3.5-11L32 13Z" fill="#f2f0ea"/>
+  <path d="m13 29 14-3-5 7-9-4Zm38 0-14-3 5 7 9-4Z" fill="#66c9d3"/>
+  <path d="M28 45h8l-4 12-4-12Z" fill="#d6604c"/>
+</svg>

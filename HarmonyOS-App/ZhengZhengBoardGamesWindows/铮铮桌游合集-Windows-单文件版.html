@@ -1,0 +1,4688 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-version="1.6.0">
+<head>
+  <meta charset="UTF-8">
+  <title>铮铮桌游合集 · Windows 单文件版 v1.6.0</title>
+  <style>
+/* 铮铮桌游合集 · Windows 版
+   视觉语言：WinUI 2 / Fluent Design（Windows 11 原生观感）
+   - Segoe UI 字体、Mica 质感背景、亚克力卡片
+   - NavigationView 左侧分栏 + 顶部命令栏
+   - 强调色走系统 accent（--accent），控件圆角 4px / 卡片 8px
+*/
+
+:root {
+  /* 文本与层次 */
+  --ink: #1B1B1F;
+  --ink-2: #404040;
+  --muted: #5F5F5F;
+  --line: rgba(0, 0, 0, .08);
+  --line-strong: rgba(0, 0, 0, .16);
+
+  /* 表面：Card / Acrylic / Mica */
+  --card: #FFFFFF;
+  --card-2: #FBFBFB;
+  --surface: #F3F3F3;
+  --mica: #EFEFF3;
+  --acrylic: rgba(255, 255, 255, .78);
+  --stroke-card: rgba(0, 0, 0, .06);
+
+  /* 强调色（Windows 默认 accent） */
+  --accent: #0078D4;
+  --accent-hover: #1A86D9;
+  --accent-press: #005FB8;
+  --accent-soft: #E8F3FC;
+  --accent-text: #FFFFFF;
+
+  /* 语义色 */
+  --green: #0F7B4F;
+  --gold: #B7791F;
+  --red: #C0392B;
+
+  --radius-control: 4px;
+  --radius-card: 8px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, .06), 0 8px 24px rgba(0, 0, 0, .06);
+  --shadow-pop: 0 2px 8px rgba(0, 0, 0, .10), 0 16px 40px rgba(0, 0, 0, .10);
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 12% -10%, rgba(0, 120, 212, .10), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(15, 123, 79, .08), transparent 55%),
+    var(--mica);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--accent); color: #fff; }
+
+/* 滚动条 Fluent 化 */
+*::-webkit-scrollbar { width: 12px; height: 12px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, .22);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, .34); background-clip: padding-box; }
+
+/* ---------- 布局：NavigationView ---------- */
+.app { display: flex; min-height: 100vh; }
+
+.navview {
+  width: 232px;
+  flex: 0 0 232px;
+  display: flex;
+  flex-direction: column;
+  background: var(--acrylic);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border-right: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.nav-brand { display: flex; align-items: center; gap: 10px; padding: 16px 14px 12px; }
+
+.logo {
+  width: 34px; height: 34px; border-radius: var(--radius-control);
+  background: linear-gradient(160deg, var(--accent), #005FB8);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; flex: 0 0 auto;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .16);
+}
+
+.nav-brand h1 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: .2px; }
+.nav-brand p { margin: 1px 0 0; font-size: 11px; color: var(--muted); }
+
+.nav-list { flex: 1; overflow-y: auto; padding: 6px 8px 12px; }
+
+.nav-section {
+  font-size: 11px; font-weight: 600; color: var(--muted);
+  padding: 12px 10px 6px; letter-spacing: .4px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  height: 34px; padding: 0 10px; margin: 2px 0;
+  border-radius: var(--radius-control);
+  cursor: pointer; user-select: none;
+  color: var(--ink-2); font-size: 13.5px;
+  border: 1px solid transparent;
+  position: relative;
+  background: transparent;
+}
+.nav-item:hover { background: rgba(0, 0, 0, .045); }
+.nav-item .ico { width: 18px; text-align: center; font-size: 15px; line-height: 1; }
+.nav-item .txt { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-item.active { background: var(--accent-soft); color: var(--accent-press); font-weight: 600; }
+.nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px;
+  border-radius: 2px; background: var(--accent);
+}
+
+.nav-foot { padding: 10px 14px 14px; border-top: 1px solid var(--line); }
+.nav-foot .tag { display: inline-block; }
+
+.content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+/* ---------- 顶部命令栏 ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 20px;
+  background: var(--acrylic);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border-bottom: 1px solid var(--line);
+}
+.topbar .crumb { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.topbar .crumb h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.topbar .crumb span { font-size: 12px; color: var(--muted); }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+/* ---------- 控件 ---------- */
+button {
+  font-family: inherit; font-size: 13.5px; cursor: pointer;
+  border: 1px solid var(--line-strong); background: var(--card); color: var(--ink);
+  padding: 7px 14px; border-radius: var(--radius-control);
+  transition: background .12s, border-color .12s, transform .08s;
+}
+button:hover:not(:disabled) { background: var(--card-2); border-color: rgba(0, 0, 0, .22); }
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+button.primary,
+button.good,
+button.warn { border-color: transparent; color: #fff; }
+button.primary { background: var(--accent); }
+button.primary:hover:not(:disabled) { background: var(--accent-hover); }
+button.primary:active:not(:disabled) { background: var(--accent-press); }
+button.good { background: var(--green); }
+button.good:hover:not(:disabled) { background: #129063; }
+button.warn { background: var(--gold); }
+button.warn:hover:not(:disabled) { background: #C98A26; }
+button.ghost { background: transparent; border-color: transparent; }
+button.ghost:hover:not(:disabled) { background: rgba(0, 0, 0, .05); border-color: transparent; }
+
+.tag {
+  font-size: 11.5px; color: var(--muted);
+  background: var(--surface); border: 1px solid var(--line);
+  padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+}
+
+/* ---------- 大厅 ---------- */
+.lobby { padding: 22px 20px 40px; }
+.hero {
+  background: var(--card); border: 1px solid var(--stroke-card);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+  padding: 18px 20px; margin-bottom: 18px;
+}
+.hero h2 { margin: 0 0 4px; font-size: 20px; font-weight: 600; }
+.hero p { margin: 0; color: var(--muted); font-size: 13px; }
+
+.grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(212px, 1fr)); gap: 12px;
+}
+
+.game-card {
+  background: var(--card); border: 1px solid var(--stroke-card);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+  padding: 14px; cursor: pointer; transition: .16s; position: relative; overflow: hidden;
+}
+.game-card:hover {
+  box-shadow: var(--shadow-pop);
+  border-color: rgba(0, 120, 212, .40);
+  transform: translateY(-2px);
+}
+.game-card:active { transform: translateY(0); }
+.game-card .badge {
+  position: absolute; top: 0; right: 0;
+  font-size: 11px; color: #fff; padding: 3px 9px;
+  border-bottom-left-radius: var(--radius-card);
+}
+.game-card h3 { margin: 0 0 5px; font-size: 15.5px; font-weight: 600; }
+.game-card p { margin: 0 0 8px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* ---------- 游戏舞台 ---------- */
+.stage { padding: 20px 20px 40px; }
+.stage-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+
+.game-root {
+  background: var(--card); border: 1px solid var(--stroke-card);
+  border-radius: var(--radius-card); box-shadow: var(--shadow-card);
+  padding: 18px; min-height: 420px;
+}
+
+.status {
+  font-size: 13px; color: var(--ink-2); background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius-control);
+  padding: 9px 12px; margin: 10px 0; min-height: 38px; line-height: 1.5;
+}
+
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.row.tight { gap: 5px; }
+.grow { flex: 1; min-width: 110px; }
+
+.info-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+.info-box {
+  flex: 1; min-width: 96px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius-control); padding: 8px; text-align: center;
+}
+.info-box .k { font-size: 11px; color: var(--muted); }
+.info-box .v { font-size: 16px; font-weight: 700; margin-top: 2px; }
+
+.hidden { display: none !important; }
+
+/* ---------- 棋盘通用 ---------- */
+.board-wrap { display: flex; justify-content: center; }
+table.board { border-collapse: collapse; background: #EFE6D2; border-radius: var(--radius-control); overflow: hidden; }
+table.board td {
+  width: 42px; height: 42px; text-align: center; vertical-align: middle;
+  border: 1px solid #C9B896; font-size: 20px; cursor: pointer; user-select: none;
+  position: relative;
+}
+table.board td.dark { background: #D8C6A6; }
+table.board td.sel { outline: 3px solid var(--accent); outline-offset: -3px; }
+table.board td.hint::after {
+  content: ''; position: absolute; left: 50%; top: 50%;
+  width: 12px; height: 12px; margin: -6px 0 0 -6px;
+  background: rgba(183, 121, 31, .55); border-radius: 50%;
+}
+table.board td.last { background: rgba(245, 197, 66, .35); }
+
+.piece {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 50%; font-size: 16px; font-weight: 700;
+  border: 2px solid rgba(0, 0, 0, .25);
+}
+.piece.b { background: #313A45; color: #fff; }
+.piece.w { background: #FCFBF7; color: #172033; }
+.piece.r { background: #C0392B; color: #fff; }
+.piece.y { background: #E3B23C; color: #3B2F16; }
+.piece.bl { background: #2E5C8A; color: #fff; }
+.piece.g { background: #2E7D5B; color: #fff; }
+.piece.hidden { background: #3C4A60; color: #fff; }
+
+.tile {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 40px; height: 56px; padding: 0 6px; margin: 3px;
+  background: #F6F2E8; border: 1.5px solid #BBAE98; border-radius: var(--radius-control);
+  font-size: 17px; font-weight: 700; cursor: pointer; user-select: none;
+}
+.tile.sel { border: 3px solid var(--accent); transform: translateY(-5px); }
+.tile.c0 { color: #C2413A; }
+.tile.c1 { color: #2B67A0; }
+.tile.c2 { color: #B7791F; }
+.tile.c3 { color: #202522; }
+.tile.joker { color: #7A3E9D; }
+/* 拉密牌架：行数由用户控制，空位显示占位框 */
+.rack { display: flex; flex-direction: column; gap: 2px; margin: 6px 0; }
+.rack-row { display: flex; flex-wrap: nowrap; }
+.tile.empty {
+  background: transparent; border-style: dashed; border-color: #C9BEA8;
+  cursor: default;
+}
+
+/* AI 陪练 ↔ 线下多人 全局开关 */
+.mode-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(52, 120, 246, .12); border: 1.5px solid rgba(52, 120, 246, .4);
+}
+.mode-toggle.local { background: rgba(34, 155, 84, .14); border-color: rgba(34, 155, 84, .45); }
+.mode-toggle-label { font-weight: 600; }
+
+.card-face {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 58px; height: 80px; margin: 3px; border-radius: var(--radius-control); cursor: pointer;
+  background: #FFFDF7; border: 1.5px solid #B9AD99; font-weight: 700; user-select: none;
+  font-size: 19px;
+}
+.card-face.red { color: #C0392B; }
+.card-face.sel { border: 3px solid var(--accent); transform: translateY(-6px); }
+.card-face.back { background: #2F4F7A; color: #fff; font-size: 13px; }
+
+.mahjong-tile {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 60px; margin: 3px; border-radius: var(--radius-control); cursor: pointer;
+  background: #FFFDF7; border: 1.5px solid #B9AD99; font-size: 15px; font-weight: 700;
+}
+.mahjong-tile.drawn { background: #F5C542; }
+.mahjong-tile.small { width: 30px; height: 40px; font-size: 11px; margin: 2px; }
+
+.chip {
+  display: inline-block; padding: 3px 9px; border-radius: 999px;
+  font-size: 12px; background: var(--surface); border: 1px solid var(--line);
+}
+
+.rules { font-size: 11.5px; color: var(--muted); line-height: 1.6; margin-top: 8px; }
+.center { text-align: center; }
+.win { color: var(--green); font-weight: 700; }
+
+</style>
+</head>
+<body>
+  <div class="app">
+    <!-- WinUI NavigationView：左侧分栏 -->
+    <aside class="navview">
+      <div class="nav-brand">
+        <span class="logo">铮</span>
+        <div>
+          <h1>铮铮桌游合集</h1>
+          <p id="brand-sub">17 种棋牌 · 单机畅玩</p>
+        </div>
+      </div>
+      <nav id="nav-list" class="nav-list"></nav>
+      <div class="nav-foot">
+        <span id="version-tag" class="tag">v—</span>
+      </div>
+    </aside>
+
+    <div class="content">
+      <!-- 顶部命令栏 -->
+      <header class="topbar">
+        <div class="crumb">
+          <h2 id="crumb-title">大厅</h2>
+          <span id="crumb-note">全部游戏均为单机版，内置 AI 对手，无需联网</span>
+        </div>
+        <div class="topbar-actions">
+          <button id="btn-home" class="ghost">返回大厅</button>
+          <button id="btn-back" class="ghost hidden">← 返回</button>
+        </div>
+      </header>
+
+      <main id="lobby" class="lobby">
+        <section class="hero">
+          <h2>想玩点什么？</h2>
+          <p>点左侧导航或下面任意一张卡片即可开局；Esc 可随时回到大厅。</p>
+        </section>
+        <div id="game-grid" class="grid"></div>
+      </main>
+
+      <section id="stage" class="stage hidden">
+        <div class="stage-head">
+          <h2 id="stage-title">游戏</h2>
+          <span id="stage-note" class="tag"></span>
+        </div>
+        <div id="game-root" class="game-root"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+  // 通用工具：DOM 构建、洗牌、存档
+(function (global) {
+  const Core = {}
+
+  // 版本号：Electron 下由 preload 从 package.json 注入；浏览器/单文件版回退到内置值
+  Core.version = (global.ZZDesktop && global.ZZDesktop.version) ||
+    global.ZZ_VERSION ||
+    document.documentElement.getAttribute('data-version') ||
+    '1.6.0'
+  Core.runtime = global.ZZDesktop
+    ? `${global.ZZDesktop.platform}/${global.ZZDesktop.arch}`
+    : 'browser'
+
+  Core.el = function (tag, attrs, children) {
+    const node = document.createElement(tag)
+    if (attrs) {
+      Object.keys(attrs).forEach((k) => {
+        if (k === 'class') node.className = attrs[k]
+        else if (k === 'text') node.textContent = attrs[k]
+        else if (k === 'html') node.innerHTML = attrs[k]
+        else if (k.startsWith('on') && typeof attrs[k] === 'function') {
+          node.addEventListener(k.slice(2).toLowerCase(), attrs[k])
+        } else if (attrs[k] !== null && attrs[k] !== undefined) {
+          node.setAttribute(k, attrs[k])
+        }
+      })
+    }
+    const list = Array.isArray(children) ? children : (children ? [children] : [])
+    list.forEach((c) => {
+      if (c === null || c === undefined) return
+      node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c)
+    })
+    return node
+  }
+
+  Core.shuffle = function (arr) {
+    const a = arr.slice()
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      const t = a[i]
+      a[i] = a[j]
+      a[j] = t
+    }
+    return a
+  }
+
+  Core.dice = function () { return Math.floor(Math.random() * 6) + 1 }
+
+  Core.clear = function (node) { while (node.firstChild) node.removeChild(node.firstChild) }
+
+  // 每个游戏模块的结构：{ title, note, players, mount(root, ctx) }
+  Core.games = {}
+  Core.register = function (id, def) { Core.games[id] = def }
+
+  // 简单的对局存档（localStorage）
+  Core.save = function (key, value) {
+    try { localStorage.setItem('zzbg:' + key, JSON.stringify(value)) } catch (e) { /* 忽略 */ }
+  }
+  Core.load = function (key, fallback) {
+    try {
+      const raw = localStorage.getItem('zzbg:' + key)
+      return raw ? JSON.parse(raw) : fallback
+    } catch (e) { return fallback }
+  }
+
+  // ---- 对局模式：AI 陪练（'ai'）↔ 线下多人（'local'）----
+  // 以前每个游戏都把「只有 1 号是玩家」写死在守卫里（turn !== 1就return），
+  // 导致 AI 陪练无法关闭。改成全局开关后，各模块用Core.isPlayer(side) 判断。
+  Core.mode = Core.load('mode', 'ai')
+  Core.isAi = function () { return Core.mode === 'ai' }
+  Core.isLocal = function () { return Core.mode === 'local' }
+  Core.setMode = function (mode) {
+    Core.mode = mode === 'local' ? 'local' : 'ai'
+    Core.save('mode', Core.mode)
+    Core.emit('mode', Core.mode)
+    return Core.mode
+  }
+  Core.toggleMode = function () { return Core.setMode(Core.isAi() ? 'local' : 'ai') }
+
+  // side: 0 起算的座位号。AI 模式下只有 0 号是玩家，其余交给 AI；
+  // 线下多人模式下所有座位都由本机玩家操作，AI 不再自动落子。
+  Core.isPlayer = function (side) {
+    if (Core.isAi()) return side === 0
+    return true
+  }
+
+  // 轻量事件总线：模式切换后正在对局的游戏需要据此重绘按钮、接管回合。
+  Core._listeners = {}
+  Core.on = function (evt, fn) {
+    if (!Core._listeners[evt]) Core._listeners[evt] = []
+    Core._listeners[evt].push(fn)
+  }
+  Core.emit = function (evt, payload) {
+    (Core._listeners[evt] || []).forEach((fn) => {
+      try { fn(payload) } catch (e) { /* 单个订阅者出错不影响其他 */ }
+    })
+  }
+
+  // 生成一个「AI 陪练 ↔ 线下多人」开关按钮，返回 { node, refresh }。
+  // 用法：const modes = Core.modeToggle(); modes.refresh()
+  Core.modeToggle = function () {
+    const label = Core.el('span', { class: 'mode-toggle-label' })
+    const btn = Core.el('button', {
+      class: 'grow mode-toggle',
+      onclick: () => { Core.toggleMode(); refresh() }
+    }, [label])
+    function refresh() {
+      const local = Core.isLocal()
+      label.textContent = local ? '当前：线下多人（AI 已关闭）' : '当前：AI 陪练'
+      btn.classList.toggle('local', local)
+      Core.emit('modeRender')
+    }
+    refresh()
+    return { node: btn, refresh: refresh }
+  }
+
+  // 通用状态条
+  Core.status = function (root, text) {
+    let bar = root.querySelector('.status')
+    if (!bar) {
+      bar = Core.el('div', { class: 'status' })
+      root.insertBefore(bar, root.firstChild)
+    }
+    bar.textContent = text
+    return bar
+  }
+
+  Core.infoRow = function (items) {
+    return Core.el('div', { class: 'info-grid' }, items.map((it) =>
+      Core.el('div', { class: 'info-box' }, [
+        Core.el('div', { class: 'k', text: it.k }),
+        Core.el('div', { class: 'v', text: String(it.v) })
+      ])))
+  }
+
+  Core.buttonRow = function (buttons) {
+    return Core.el('div', { class: 'row' }, buttons.map((b) =>
+      Core.el('button', {
+        class: 'grow' + (b.primary ? ' primary' : '') + (b.good ? ' good' : '') + (b.warn ? ' warn' : ''),
+        text: b.text,
+        disabled: b.disabled ? 'disabled' : null,
+        onclick: b.onClick
+      })))
+  }
+
+  Core.rules = function (root, text) {
+    root.appendChild(Core.el('div', { class: 'rules', text }))
+  }
+
+  // 简易 minimax（用于五子棋/井字棋等小规模搜索）
+  Core.minimaxScore = function (line, me, opp) {
+    let score = 0
+    let mine = 0
+    let theirs = 0
+    line.forEach((v) => {
+      if (v === me) mine++
+      else if (v === opp) theirs++
+    })
+    if (mine > 0 && theirs > 0) return 0
+    if (mine === 1) score = 1
+    else if (mine === 2) score = 12
+    else if (mine === 3) score = 90
+    else if (mine === 4) score = 900
+    if (theirs === 1) score = -2
+    else if (theirs === 2) score = -20
+    else if (theirs === 3) score = -140
+    else if (theirs === 4) score = -1200
+    return score
+  }
+
+  global.ZZCore = Core
+})(window)
+
+</script>
+  <script>
+// 棋盘类：五子棋 / 黑白棋 / 井字棋 / 围棋 / 中国跳棋 / 扫雷
+(function (C) {
+  const el = C.el
+
+  // ---------- 通用方格棋盘 ----------
+  function gridBoard(size, cellRender, onCell) {
+    const table = el('table', { class: 'board' })
+    const cells = []
+    for (let r = 0; r < size; r++) {
+      const tr = el('tr')
+      for (let c = 0; c < size; c++) {
+        const idx = r * size + c
+        const td = el('td', {
+          class: ((r + c) % 2 === 0 ? '' : 'dark'),
+          onclick: () => onCell(idx)
+        })
+        cells.push(td)
+        tr.appendChild(td)
+      }
+      table.appendChild(tr)
+    }
+    return { table, cells, render: () => cells.forEach((td, i) => cellRender(td, i)) }
+  }
+
+  // ================= 五子棋 =================
+  C.register('gobang', {
+    title: '五子棋', note: '15 路 · 连五即胜', players: '1-2 人', accent: '#A4453A',
+    mount(root) {
+      const N = 15
+      const board = new Array(N * N).fill(0)
+      let turn = 1
+      let over = false
+      const status = C.status(root, '你执黑先行，点击交叉点落子')
+
+      function winnerAt(b) {
+        const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]]
+        for (let i = 0; i < b.length; i++) {
+          const v = b[i]
+          if (!v) continue
+          const r = Math.floor(i / N)
+          const c = i % N
+          for (const d of dirs) {
+            let count = 1
+            for (let k = 1; k < 5; k++) {
+              const rr = r + d[0] * k
+              const cc = c + d[1] * k
+              if (rr < 0 || rr >= N || cc < 0 || cc >= N || b[rr * N + cc] !== v) break
+              count++
+            }
+            for (let k = 1; k < 5; k++) {
+              const rr = r - d[0] * k
+              const cc = c - d[1] * k
+              if (rr < 0 || rr >= N || cc < 0 || cc >= N || b[rr * N + cc] !== v) break
+              count++
+            }
+            if (count >= 5) return v
+          }
+        }
+        return 0
+      }
+
+      function scorePoint(idx, who) {
+        const r = Math.floor(idx / N)
+        const c = idx % N
+        const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]]
+        let total = 0
+        dirs.forEach((d) => {
+          const line = [board[idx]]
+          for (let k = 1; k <= 4; k++) {
+            const rr = r + d[0] * k
+            const cc = c + d[1] * k
+            if (rr < 0 || rr >= N || cc < 0 || cc >= N) break
+            line.push(board[rr * N + cc])
+          }
+          for (let k = 1; k <= 4; k++) {
+            const rr = r - d[0] * k
+            const cc = c - d[1] * k
+            if (rr < 0 || rr >= N || cc < 0 || cc >= N) break
+            line.unshift(board[rr * N + cc])
+          }
+          total += C.minimaxScore(line, who, who === 1 ? 2 : 1)
+        })
+        // 靠近已有棋子更有价值
+        let near = 0
+        for (let dr = -2; dr <= 2; dr++) {
+          for (let dc = -2; dc <= 2; dc++) {
+            const rr = r + dr
+            const cc = c + dc
+            if (rr < 0 || rr >= N || cc < 0 || cc >= N) continue
+            if (board[rr * N + cc]) near += 1
+          }
+        }
+        return total + near
+      }
+
+      function aiMove() {
+        let best = -1
+        let bestScore = -Infinity
+        for (let i = 0; i < board.length; i++) {
+          if (board[i]) continue
+          const mine = scorePoint(i, 2)
+          const theirs = scorePoint(i, 1)
+          const s = mine * 1.0 + theirs * 0.85
+          if (s > bestScore) { bestScore = s; best = i }
+        }
+        if (best >= 0) place(best, 2)
+      }
+
+      function place(idx, who) {
+        if (over || board[idx]) return
+        board[idx] = who
+        const w = winnerAt(board)
+        if (w) {
+          over = true
+          status.textContent = w === 1 ? '五子连珠，你赢了！🏆' : 'AI 连成五子，本局失利'
+          g.render()
+          return
+        }
+        turn = who === 1 ? 2 : 1
+        g.render()
+        if (turn === 2) setTimeout(aiMove, 260)
+        else status.textContent = '轮到你（黑）'
+      }
+
+      const g = gridBoard(N, (td, i) => {
+        td.innerHTML = ''
+        if (board[i]) {
+          td.appendChild(el('span', { class: 'piece ' + (board[i] === 1 ? 'b' : 'w') }))
+        }
+      }, (i) => { if (!over && C.isPlayer(turn - 1)) place(i, turn) })
+
+      const wrap = el('div', { class: 'board-wrap' })
+      wrap.appendChild(g.table)
+      root.appendChild(wrap)
+      const modes = C.modeToggle()
+      root.appendChild(C.el('div', { class: 'row' }, [modes.node]))
+      root.appendChild(C.buttonRow([
+        { text: '重开', onClick: () => { board.fill(0); over = false; turn = 1; status.textContent = '重开一局，你执黑'; g.render() } },
+        { text: 'AI 先手', onClick: () => { board.fill(0); over = false; turn = 2; if (C.isAi()) aiMove(); else { turn = 1; status.textContent = '线下模式已忽略「AI 先手」，你执黑先行'; g.render() } } }
+      ]))
+      C.rules(root, '规则：横、竖、斜任意方向先连成 5 子获胜。AI 会同时评估自己的进攻与你的威胁。')
+      C.on('mode', () => { modes.refresh(); status.textContent = C.isLocal() ? '线下双人：黑白轮流由你落子' : 'AI 陪练：白子由电脑落子' })
+      g.render()
+    }
+  })
+
+  // ================= 黑白棋 =================
+  C.register('reversi', {
+    title: '黑白棋', note: '翻转棋子 · 终局计数', players: '2 人', accent: '#2F855A',
+    mount(root) {
+      const N = 8
+      const board = new Array(64).fill(0)
+      board[27] = 2
+      board[28] = 1
+      board[35] = 1
+      board[36] = 2
+      let turn = 1
+      const status = C.status(root, '你执黑，只能在能夹住对方棋子的位置落子')
+
+      function flips(idx, who) {
+        const r = Math.floor(idx / 8)
+        const c = idx % 8
+        const opp = who === 1 ? 2 : 1
+        const out = []
+        const dirs = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
+        dirs.forEach((d) => {
+          let rr = r + d[0]
+          let cc = c + d[1]
+          const caps = []
+          while (rr >= 0 && rr < 8 && cc >= 0 && cc < 8 && board[rr * 8 + cc] === opp) {
+            caps.push(rr * 8 + cc)
+            rr += d[0]
+            cc += d[1]
+          }
+          if (caps.length && rr >= 0 && rr < 8 && cc >= 0 && cc < 8 && board[rr * 8 + cc] === who) {
+            caps.forEach((x) => out.push(x))
+          }
+        })
+        return out
+      }
+
+      function legal(who) {
+        const res = []
+        for (let i = 0; i < 64; i++) {
+          if (!board[i] && flips(i, who).length) res.push(i)
+        }
+        return res
+      }
+
+      function counts() {
+        let a = 0
+        let b = 0
+        board.forEach((v) => { if (v === 1) a++; else if (v === 2) b++ })
+        return [a, b]
+      }
+
+      function finish() {
+        const c = counts()
+        const txt = `终局：黑 ${c[0]} · 白 ${c[1]} —— ` + (c[0] > c[1] ? '你获胜！🏆' : c[0] < c[1] ? 'AI 获胜' : '平局')
+        status.textContent = txt
+        turn = 0
+      }
+
+      function apply(idx, who) {
+        const fs = flips(idx, who)
+        if (!fs.length) return false
+        board[idx] = who
+        fs.forEach((i) => board[i] = who)
+        return true
+      }
+
+      function nextTurn() {
+        if (legal(1).length || legal(2).length) {
+          if (!legal(turn).length) {
+            turn = turn === 1 ? 2 : 1
+            status.textContent = turn === 1 ? '白方无处可下，轮到你' : '你无处可下，AI 继续'
+          }
+        } else {
+          finish()
+        }
+        g.render()
+      }
+
+      function aiMove() {
+        const moves = legal(2)
+        if (!moves.length) { nextTurn(); return }
+        const corners = [0, 7, 56, 63]
+        let best = moves[0]
+        let bestScore = -Infinity
+        moves.forEach((m) => {
+          let s = flips(m, 2).length
+          if (corners.indexOf(m) >= 0) s += 60
+          const r = Math.floor(m / 8)
+          const c = m % 8
+          if (r === 0 || r === 7 || c === 0 || c === 7) s += 8
+          if (s > bestScore) { bestScore = s; best = m }
+        })
+        apply(best, 2)
+        turn = 1
+        nextTurn()
+      }
+
+      const g = gridBoard(N, (td, i) => {
+        td.innerHTML = ''
+        td.className = ((Math.floor(i / 8) + i % 8) % 2 === 0 ? '' : 'dark')
+        if (board[i]) td.appendChild(el('span', { class: 'piece ' + (board[i] === 1 ? 'b' : 'w') }))
+        else if (turn === 1 && flips(i, 1).length) td.classList.add('hint')
+      }, (i) => {
+        if (turn !== 1) return
+        if (!apply(i, 1)) { status.textContent = '这里不能落子：必须夹住至少一枚白棋'; return }
+        turn = 2
+        nextTurn()
+        if (turn === 2) setTimeout(aiMove, 300)
+      })
+
+      const wrap = el('div', { class: 'board-wrap' })
+      wrap.appendChild(g.table)
+      root.appendChild(wrap)
+      root.appendChild(C.buttonRow([
+        { text: '重开', onClick: () => {
+          board.fill(0); board[27] = 2; board[28] = 1; board[35] = 1; board[36] = 2
+          turn = 1; status.textContent = '重开一局'; g.render()
+        } }
+      ]))
+      C.rules(root, '规则：落子必须夹住对方至少一枚棋子，被夹住的棋子翻面。双方都无处可下时子多者胜。')
+      g.render()
+    }
+  })
+
+  // ================= 井字棋 =================
+  C.register('tictactoe', {
+    title: '井字棋', note: '三连获胜 · 极速对局', players: '2 人', accent: '#2471A3',
+    mount(root) {
+      const board = new Array(9).fill(0)
+      let turn = 1
+      let over = false
+      const status = C.status(root, '你执 ✕ 先行')
+      const lines = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
+
+      function winner() {
+        for (const l of lines) {
+          if (board[l[0]] && board[l[0]] === board[l[1]] && board[l[1]] === board[l[2]]) return board[l[0]]
+        }
+        return 0
+      }
+
+      function ai() {
+        const empty = board.map((v, i) => v ? -1 : i).filter((i) => i >= 0)
+        if (!empty.length) return
+        let pick = empty[Math.floor(Math.random() * empty.length)]
+        // 能赢就赢，能堵就堵
+        for (const who of [2, 1]) {
+          for (const e of empty) {
+            board[e] = who
+            const w = winner()
+            board[e] = 0
+            if (w === who) { pick = e; break }
+          }
+          if (board[pick] === 0 && winner() === 0 && who === 2) {
+            // 检查上面是否已锁定
+          }
+        }
+        board[pick] = 2
+        if (winner()) { over = true; status.textContent = C.isLocal() ? '○ 三连，本局结束' : 'AI 连成一线，本局失利'; g.render(); return }
+        if (!board.includes(0)) { over = true; status.textContent = '平局'; g.render(); return }
+        turn = 1
+        g.render()
+      }
+
+      const g = gridBoard(3, (td, i) => {
+        td.innerHTML = ''
+        td.textContent = board[i] ? (board[i] === 1 ? '✕' : '○') : ''
+        td.style.fontSize = '30px'
+      }, (i) => {
+        // 单击直接落子（无二次确认）；线下多人模式下 ✕/○ 双方都由本机玩家操作
+        if (over || board[i]) return
+        if (turn === 1 ? !C.isPlayer(0) : !C.isPlayer(1)) return
+        const me = turn
+        board[i] = me
+        if (winner()) { over = true; status.textContent = me === 1 ? '三连！你赢了 🏆' : '三连！电脑获胜'; g.render(); return }
+        if (!board.includes(0)) { over = true; status.textContent = '平局'; g.render(); return }
+        turn = me === 1 ? 2 : 1
+        g.render()
+        if (C.isAi()) setTimeout(ai, 280)
+      })
+
+      const wrap = el('div', { class: 'board-wrap' })
+      wrap.appendChild(g.table)
+      root.appendChild(wrap)
+      const modes = C.modeToggle()
+      root.appendChild(C.el('div', { class: 'row' }, [modes.node]))
+      root.appendChild(C.buttonRow([{ text: '重开', onClick: () => { board.fill(0); over = false; turn = 1; status.textContent = '重开一局'; g.render() } }]))
+      C.on('mode', () => { modes.refresh(); status.textContent = C.isLocal() ? '线下双人：✕ 与 ○ 轮流由你落子' : 'AI 陪练：○ 由电脑落子' })
+      g.render()
+    }
+  })
+
+  // ================= 围棋（9 / 13 / 19 路可切换） =================
+  C.register('go', {
+    title: '围棋', note: '9 / 13 / 19 路 · 提子与数目', players: '1-2 人', accent: '#B58B45',
+    mount(root) {
+      // N 之前硬编码 9 路，且 gridBoard 一次性建表；改成可变尺寸后
+      // 换路数必须整张表重建，所以g 声明为 let并提供 rebuild()。
+      let N = 9
+      let board = new Array(N * N).fill(0)
+      let turn = 1
+      let passCount = 0
+      const status = C.status(root, '你执黑，点击交叉点落子；无气之子会被提掉')
+
+      function neighbors(i) {
+        const r = Math.floor(i / N)
+        const c = i % N
+        const out = []
+        if (r > 0) out.push(i - N)
+        if (r < N - 1) out.push(i + N)
+        if (c > 0) out.push(i - 1)
+        if (c < N - 1) out.push(i + 1)
+        return out
+      }
+
+      function groupAndLiberties(i) {
+        const color = board[i]
+        const seen = new Set([i])
+        const stack = [i]
+        let libs = 0
+        while (stack.length) {
+          const cur = stack.pop()
+          neighbors(cur).forEach((n) => {
+            if (!board[n]) libs++
+            else if (board[n] === color && !seen.has(n)) { seen.add(n); stack.push(n) }
+          })
+        }
+        return { stones: Array.from(seen), libs }
+      }
+
+      function place(idx, who) {
+        if (board[idx]) return false
+        board[idx] = who
+        // 提对方无气子
+        neighbors(idx).forEach((n) => {
+          if (board[n] && board[n] !== who) {
+            const g = groupAndLiberties(n)
+            if (g.libs === 0) g.stones.forEach((s) => board[s] = 0)
+          }
+        })
+        // 自杀判定
+        const mine = groupAndLiberties(idx)
+        if (mine.libs === 0) {
+          mine.stones.forEach((s) => board[s] = 0)
+          return false
+        }
+        return true
+      }
+
+      function counts() {
+        let a = 0
+        let b = 0
+        board.forEach((v) => { if (v === 1) a++; else if (v === 2) b++ })
+        return [a, b]
+      }
+
+      function ai() {
+        const empty = []
+        for (let i = 0; i < board.length; i++) if (!board[i]) empty.push(i)
+        if (!empty.length) { status.textContent = '棋盘已满'; return }
+        let pick = empty[Math.floor(Math.random() * empty.length)]
+        let bestScore = -Infinity
+        empty.forEach((i) => {
+          const snapshot = board.slice()
+          const ok = place(i, 2)
+          board = snapshot
+          if (!ok) return
+          let s = Math.random() * 3
+          neighbors(i).forEach((n) => {
+            if (board[n] === 1) {
+              const g = groupAndLiberties(n)
+              if (g.libs === 1) s += 30
+            }
+            if (board[n] === 2) s += 4
+          })
+          if (s > bestScore) { bestScore = s; pick = i }
+        })
+        place(pick, 2)
+        passCount = 0
+        turn = 1
+        const c = counts()
+        status.textContent = `AI 落子 · 黑白子数 ${c[0]} : ${c[1]}`
+        g.render()
+      }
+
+      function makeBoard() {
+        const boardEl = gridBoard(N, (td, i) => {
+          td.innerHTML = ''
+          if (board[i]) td.appendChild(el('span', { class: 'piece ' + (board[i] === 1 ? 'b' : 'w') }))
+        }, (i) => {
+          // AI 陪练模式下白方是电脑；线下多人模式下双方都由本机玩家操作。
+          if (turn === 1 ? !C.isPlayer(0) : !C.isPlayer(1)) return
+          if (!place(i, turn)) { status.textContent = '这里不能落子（无气或已有棋子）'; return }
+          passCount = 0
+          const moved = turn
+          turn = turn === 1 ? 2 : 1
+          const c = counts()
+          status.textContent = `落子成功 · 黑白子数 ${c[0]} : ${c[1]}`
+          g.render()
+          if (C.isAi()) setTimeout(ai, 320)
+        })
+        return boardEl
+      }
+
+      let g = makeBoard()
+
+      const wrap = el('div', { class: 'board-wrap' })
+      wrap.appendChild(g.table)
+      root.appendChild(wrap)
+
+      const modes = C.modeToggle()
+
+      root.appendChild(C.buttonRow([
+        { text: '9 路', onClick: () => switchSize(9) },
+        { text: '13 路', onClick: () => switchSize(13) },
+        { text: '19 路', onClick: () => switchSize(19) },
+      ]))
+      root.appendChild(C.el('div', { class: 'row' }, [modes.node]))
+      root.appendChild(C.buttonRow([
+        { text: '虚手（Pass）', onClick: () => { passCount++; turn = turn === 1 ? 2 : 1; if (passCount >= 2) { const c = counts(); status.textContent = `双方虚手，终局：黑 ${c[0]} · 白 ${c[1]}` } else { status.textContent = '你选择虚手'; if (C.isAi()) setTimeout(ai, 250) } } },
+        { text: '重开', onClick: () => { board = new Array(N * N).fill(0); turn = 1; passCount = 0; status.textContent = '重开一局'; g.render() } }
+      ]))
+      C.rules(root, `规则：当前 ${N} 路盘，落子后对方无气的棋块被提掉；双方连续虚手即终局，按盘面子数计胜负。`)
+
+      // 换路数：重置棋盘并整张表重建（旧 N 的 table 节点必须丢弃）
+      function switchSize(next) {
+        if (next === N) return
+        N = next
+        board = new Array(N * N).fill(0)
+        turn = 1
+        passCount = 0
+        const old = g.table
+        g = makeBoard()
+        wrap.replaceChild(g.table, old)
+        status.textContent = `已切换到 ${N} 路，新开一局`
+        g.render()
+      }
+
+      C.on('mode', () => { modes.refresh(); status.textContent = C.isLocal() ? '线下多人：黑白双方都由你落子' : 'AI 陪练：白方由电脑应对' })
+      g.render()
+    }
+  })
+
+  // ================= 中国跳棋（六角星） =================
+  C.register('jump', {
+    title: '中国跳棋', note: '六角星 · 连跳 · 三人', players: '2-3 人', accent: '#5B6FB5',
+    mount(root) {
+      const canvas = el('canvas', { width: 720, height: 720 })
+      canvas.style.maxWidth = '100%'
+      const ctx = canvas.getContext('2d')
+      const status = C.status(root, '你是红色，点击自己的棋子，再点高亮目标；可连跳')
+
+      // 六角星 121 孔：17 行
+      const ROW_START = [0, -0.5, -1, -1.5, -6, -5.5, -5, -4.5, -4, -4.5, -5, -5.5, -6, -1.5, -1, -0.5, 0]
+      const ROW_COUNT = [1, 2, 3, 4, 13, 12, 11, 10, 9, 10, 11, 12, 13, 4, 3, 2, 1]
+      const pos = []
+      for (let r = 0; r < 17; r++) {
+        for (let k = 0; k < ROW_COUNT[r]; k++) {
+          const ux = ROW_START[r] + k
+          const uy = r * 0.8660254
+          pos.push({ x: 360 + (ux + 6) * 34, y: 90 + uy * 34, ux, row: r })
+        }
+      }
+      const neighbors = pos.map((p, i) => {
+        const out = []
+        pos.forEach((q, j) => {
+          if (i === j) return
+          const dr = Math.abs(p.row - q.row)
+          const dx = Math.abs(p.ux - q.ux)
+          if ((dr === 0 && Math.abs(dx - 1) < 0.01) || (dr === 1 && Math.abs(dx - 0.5) < 0.01)) out.push(j)
+        })
+        return out
+      })
+      const idxOf = (r, ux) => pos.findIndex((p) => p.row === r && Math.abs(p.ux - ux) < 0.01)
+      const T = []
+      const B = []
+      for (let r = 0; r < 4; r++) for (let k = 0; k < ROW_COUNT[r]; k++) T.push(idxOf(r, ROW_START[r] + k))
+      for (let r = 13; r < 17; r++) for (let k = 0; k < ROW_COUNT[r]; k++) B.push(idxOf(r, ROW_START[r] + k))
+      const corner = (rows, fromLeft) => {
+        const out = []
+        rows.forEach((r, n) => {
+          const take = n + 1
+          for (let k = 0; k < take; k++) {
+            out.push(idxOf(r, ROW_START[r] + (fromLeft ? k : ROW_COUNT[r] - take + k)))
+          }
+        })
+        return out
+      }
+      const TL = corner([4, 5, 6, 7], true)
+      const TR = corner([4, 5, 6, 7], false)
+      const BL = corner([9, 10, 11, 12], true)
+      const BR = corner([9, 10, 11, 12], false)
+
+      const homes = [T, BL, BR]
+      const goals = [B, TR, TL]
+      const colors = ['#C0392B', '#E3B23C', '#2E5C8A']
+      const names = ['红（你）', '黄', '蓝']
+
+      let board = new Array(121).fill(0)
+      let turn = 0
+      let sel = -1
+      let targets = []
+
+      function reset() {
+        board = new Array(121).fill(0)
+        homes.forEach((h, p) => h.forEach((i) => board[i] = p + 1))
+        turn = 0
+        sel = -1
+        targets = []
+        status.textContent = '你是红色，目标是正下方的蓝色营地'
+      }
+      reset()
+
+      // 单步 + 连跳可达（不能越过己方目标区）
+      function reachable(from) {
+        const out = []
+        const seen = new Set([from])
+        neighbors[from].forEach((n) => {
+          if (!board[n]) { out.push(n); seen.add(n) }
+        })
+        const queue = [from]
+        let h = 0
+        while (h < queue.length) {
+          const cur = queue[h++]
+          neighbors[cur].forEach((m) => {
+            if (!board[m]) return
+            const lr = 2 * pos[m].row - pos[cur].row
+            const lx = 2 * pos[m].ux - pos[cur].ux
+            for (let j = 0; j < pos.length; j++) {
+              if (seen.has(j) || board[j]) continue
+              if (pos[j].row !== lr || Math.abs(pos[j].ux - lx) > 0.01) continue
+              seen.add(j)
+              out.push(j)
+              queue.push(j)
+              break
+            }
+          })
+        }
+        return out
+      }
+
+      function inGoal(i, p) { return goals[p].indexOf(i) >= 0 }
+      function inHome(i, p) { return homes[p].indexOf(i) >= 0 }
+
+      function winner() {
+        for (let p = 0; p < 3; p++) {
+          const g = goals[p]
+          let full = true
+          g.forEach((i) => { if (board[i] !== p + 1) full = false })
+          if (full) return p
+        }
+        return -1
+      }
+
+      function move(from, to) {
+        board[to] = board[from]
+        board[from] = 0
+        const w = winner()
+        if (w >= 0) {
+          turn = -1
+          status.textContent = w === 0 ? '你的 10 枚棋子全部到达对面，获胜！🏆' : `${names[w]} 获胜`
+          draw()
+          return
+        }
+        turn = (turn + 1) % 3
+        sel = -1
+        targets = []
+        draw()
+        if (turn !== 0) setTimeout(aiMove, 420)
+      }
+
+      function aiMove() {
+        const p = turn
+        let best = null
+        let bestScore = Infinity
+        const goalSet = goals[p]
+        for (let i = 0; i < 121; i++) {
+          if (board[i] !== p + 1) continue
+          if (inGoal(i, p) && goalSet.indexOf(i) >= 0) {
+            // 已入营的棋子尽量不动（简化：允许动但优先级低）
+          }
+          reachable(i).forEach((t) => {
+            let s = 0
+            goalSet.forEach((g) => {
+              s += Math.abs(pos[t].row - pos[g].row) * 3 + Math.abs(pos[t].ux - pos[g].ux)
+            })
+            if (goalSet.indexOf(t) >= 0) s -= 40
+            if (Math.random() < 0.15) s -= 20
+            if (s < bestScore) { bestScore = s; best = { from: i, to: t } }
+          })
+        }
+        if (best) move(best.from, best.to)
+        else { turn = (turn + 1) % 3; draw(); if (turn !== 0) setTimeout(aiMove, 300) }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, 720, 720)
+        ctx.fillStyle = '#FBF7EC'
+        ctx.fillRect(0, 0, 720, 720)
+        // 角区底色
+        const corners = [
+          { set: T, color: 'rgba(192,57,43,.18)' }, { set: B, color: 'rgba(46,92,138,.18)' },
+          { set: TL, color: 'rgba(227,178,60,.16)' }, { set: TR, color: 'rgba(227,178,60,.16)' },
+          { set: BL, color: 'rgba(46,92,138,.16)' }, { set: BR, color: 'rgba(46,92,138,.16)' }
+        ]
+        corners.forEach((c) => {
+          ctx.fillStyle = c.color
+          c.set.forEach((i) => {
+            ctx.beginPath()
+            ctx.arc(pos[i].x, pos[i].y, 15, 0, Math.PI * 2)
+            ctx.fill()
+          })
+        })
+        // 孔
+        pos.forEach((p, i) => {
+          ctx.beginPath()
+          ctx.arc(p.x, p.y, 9, 0, Math.PI * 2)
+          ctx.fillStyle = '#DCC9A8'
+          ctx.fill()
+          ctx.strokeStyle = '#B9A483'
+          ctx.lineWidth = 1
+          ctx.stroke()
+        })
+        // 落点提示
+        if (sel >= 0) {
+          targets.forEach((t) => {
+            ctx.beginPath()
+            ctx.arc(pos[t].x, pos[t].y, 11, 0, Math.PI * 2)
+            ctx.fillStyle = 'rgba(183,121,31,.55)'
+            ctx.fill()
+          })
+        }
+        // 棋子
+        board.forEach((v, i) => {
+          if (!v) return
+          ctx.beginPath()
+          ctx.arc(pos[i].x, pos[i].y, 13, 0, Math.PI * 2)
+          ctx.fillStyle = colors[v - 1]
+          ctx.fill()
+          ctx.strokeStyle = sel === i ? '#F5C542' : 'rgba(0,0,0,.3)'
+          ctx.lineWidth = sel === i ? 4 : 2
+          ctx.stroke()
+        })
+      }
+
+      canvas.addEventListener('click', (e) => {
+        if (turn !== 0) return
+        const rect = canvas.getBoundingClientRect()
+        const mx = (e.clientX - rect.left) * (720 / rect.width)
+        const my = (e.clientY - rect.top) * (720 / rect.height)
+        let hit = -1
+        pos.forEach((p, i) => {
+          if (Math.hypot(p.x - mx, p.y - my) < 20) hit = i
+        })
+        if (hit < 0) return
+        if (sel >= 0 && targets.indexOf(hit) >= 0) { move(sel, hit); return }
+        if (board[hit] === 1) {
+          sel = hit
+          targets = reachable(hit)
+          status.textContent = `已选中，可落点 ${targets.length} 个`
+          draw()
+        } else {
+          sel = -1
+          targets = []
+          draw()
+        }
+      })
+
+      const wrap = el('div', { class: 'board-wrap' })
+      wrap.appendChild(canvas)
+      root.appendChild(wrap)
+      root.appendChild(C.buttonRow([
+        { text: '重开', onClick: () => { reset(); draw() } }
+      ]))
+      C.rules(root, '规则：每次可走一步或连续跳跃（隔一枚棋子落到对称空位）；先把自己 10 枚棋子全部送进正对面营地者获胜。')
+      draw()
+    }
+  })
+
+  // ================= 扫雷 =================
+  C.register('minesweeper', {
+    title: '扫雷', note: '三档难度 · 首击必安全', players: '1 人', accent: '#5D6D7E',
+    mount(root) {
+      const levels = [
+        { name: '初级', size: 9, mines: 10 },
+        { name: '中级', size: 12, mines: 24 },
+        { name: '高级', size: 16, mines: 40 }
+      ]
+      let level = 0
+      let size = 9
+      let mines = 10
+      let board = []
+      let shown = []
+      let flagged = []
+      let started = false
+      let finished = false
+      const status = C.status(root, '点击格子开始，首次点击必定安全')
+
+      function build(safeIdx) {
+        board = new Array(size * size).fill(0)
+        const spots = []
+        for (let i = 0; i < board.length; i++) if (i !== safeIdx) spots.push(i)
+        C.shuffle(spots).slice(0, mines).forEach((i) => board[i] = -1)
+        for (let i = 0; i < board.length; i++) {
+          if (board[i] === -1) continue
+          let n = 0
+          around(i).forEach((j) => { if (board[j] === -1) n++ })
+          board[i] = n
+        }
+        shown = new Array(board.length).fill(false)
+        flagged = new Array(board.length).fill(false)
+      }
+
+      function around(i) {
+        const r = Math.floor(i / size)
+        const c = i % size
+        const out = []
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            if (!dr && !dc) continue
+            const rr = r + dr
+            const cc = c + dc
+            if (rr < 0 || rr >= size || cc < 0 || cc >= size) continue
+            out.push(rr * size + cc)
+          }
+        }
+        return out
+      }
+
+      function reveal(i) {
+        if (shown[i] || flagged[i]) return
+        shown[i] = true
+        if (board[i] === -1) {
+          finished = true
+          shown = shown.map(() => true)
+          status.textContent = '踩到雷了，本局结束 💥'
+          render()
+          return
+        }
+        if (board[i] === 0) around(i).forEach(reveal)
+        checkWin()
+      }
+
+      function checkWin() {
+        let hidden = 0
+        for (let i = 0; i < board.length; i++) if (board[i] !== -1 && !shown[i]) hidden++
+        if (hidden === 0 && !finished) {
+          finished = true
+          status.textContent = '全部安全格子已翻开，扫雷成功！🏆'
+        }
+      }
+
+      const table = el('table', { class: 'board' })
+      function render() {
+        C.clear(table)
+        for (let r = 0; r < size; r++) {
+          const tr = el('tr')
+          for (let c = 0; c < size; c++) {
+            const i = r * size + c
+            const td = el('td', {
+              style: 'width:32px;height:32px;font-size:15px;cursor:pointer;background:' +
+                (shown[i] ? '#F7F3EA' : '#D9CFBC'),
+              oncontextmenu: (e) => {
+                e.preventDefault()
+                if (!shown[i] && !finished) { flagged[i] = !flagged[i]; render() }
+              },
+              onclick: () => {
+                if (finished) return
+                if (!started) { started = true; build(i) }
+                if (flagged[i]) return
+                reveal(i)
+                render()
+              }
+            })
+            if (shown[i]) {
+              if (board[i] === -1) td.textContent = '💥'
+              else if (board[i] > 0) {
+                td.textContent = board[i]
+                td.style.color = ['', '#2B67A0', '#2E7D5B', '#C0392B', '#7A3E9D', '#B7791F', '#3C8C7A', '#172033', '#6B7280'][board[i]] || '#172033'
+                td.style.fontWeight = '700'
+              }
+            } else if (flagged[i]) td.textContent = '🚩'
+            tr.appendChild(td)
+          }
+          table.appendChild(tr)
+        }
+      }
+
+      const wrap = el('div', { class: 'board-wrap' })
+      wrap.appendChild(table)
+      root.appendChild(wrap)
+      root.appendChild(C.buttonRow(levels.map((lv, i) => ({
+        text: lv.name + ` ${lv.size}×${lv.size}`,
+        primary: i === 0,
+        onClick: () => { level = i; size = lv.size; mines = lv.mines; started = false; finished = false; build(-1); status.textContent = `${lv.name}：${lv.mines} 颗雷，右键插旗`; render() }
+      }))))
+      root.appendChild(C.buttonRow([{ text: '重开本档', onClick: () => { started = false; finished = false; build(-1); status.textContent = '重新开局，首次点击必定安全'; render() } }]))
+      C.rules(root, '左键翻开，右键插旗。首次点击必定安全。')
+      build(-1)
+      render()
+    }
+  })
+})(window.ZZCore)
+
+</script>
+  <script>
+// 中国象棋 与 国际象棋
+(function (C) {
+  const el = C.el
+
+  // ================= 中国象棋 =================
+  const XQ = {
+    W: 9, H: 10,
+    // 棋子：红 'r'+类型，黑 'b'+类型；类型 K 将 A 士 B 象 N 马 R 车 C 炮 P 兵
+    layout() {
+      const b = new Array(90).fill('')
+      const back = ['R', 'N', 'B', 'A', 'K', 'A', 'B', 'N', 'R']
+      for (let i = 0; i < 9; i++) {
+        b[i] = 'b' + back[i]
+        b[81 + i] = 'r' + back[i]
+      }
+      b[19] = 'bC'
+      b[25] = 'bC'
+      b[64] = 'rC'
+      b[70] = 'rC'
+      for (let i = 0; i < 5; i++) {
+        b[27 + i * 2] = 'bP'
+        b[54 + i * 2] = 'rP'
+      }
+      return b
+    },
+    sideOf(p) { return p.charAt(0) },
+    typeOf(p) { return p.charAt(1) },
+    inside(r, c) { return r >= 0 && r < this.H && c >= 0 && c < this.W },
+    // 伪合法走法
+    pseudo(board, from) {
+      const out = []
+      const p = board[from]
+      if (!p) return out
+      const r = Math.floor(from / 9)
+      const c = from % 9
+      const me = this.sideOf(p)
+      const t = this.typeOf(p)
+      const push = (rr, cc) => {
+        if (!this.inside(rr, cc)) return false
+        const to = rr * 9 + cc
+        const q = board[to]
+        if (q && this.sideOf(q) === me) return false
+        out.push(to)
+        return !q
+      }
+      if (t === 'R') {
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach((d) => {
+          for (let k = 1; k < 10; k++) if (!push(r + d[0] * k, c + d[1] * k)) break
+        })
+      } else if (t === 'C') {
+        [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach((d) => {
+          let jumped = false
+          for (let k = 1; k < 10; k++) {
+            const rr = r + d[0] * k
+            const cc = c + d[1] * k
+            if (!this.inside(rr, cc)) break
+            const to = rr * 9 + cc
+            const q = board[to]
+            if (!jumped) {
+              if (q) { jumped = true }
+              else out.push(to)
+            } else if (q) {
+              if (this.sideOf(q) !== me) out.push(to)
+              break
+            }
+          }
+        })
+      } else if (t === 'N') {
+        const steps = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]]
+        const legs = [[-1, 0], [-1, 0], [0, -1], [0, -1], [0, 1], [0, 1], [1, 0], [1, 0]]
+        steps.forEach((s, i) => {
+          const rr = r + s[0]
+          const cc = c + s[1]
+          if (!this.inside(rr, cc)) return
+          const lr = r + legs[i][0]
+          const lc = c + legs[i][1]
+          if (board[lr * 9 + lc]) return
+          const q = board[rr * 9 + cc]
+          if (q && this.sideOf(q) === me) return
+          out.push(rr * 9 + cc)
+        })
+      } else if (t === 'B') {
+        [[-2, -2], [-2, 2], [2, -2], [2, 2]].forEach((s) => {
+          const rr = r + s[0]
+          const cc = c + s[1]
+          if (!this.inside(rr, cc)) return
+          if (board[(r + s[0] / 2) * 9 + (c + s[1] / 2)]) return
+          // 象不过河
+          if (me === 'r' && rr < 5) return
+          if (me === 'b' && rr > 4) return
+          const q = board[rr * 9 + cc]
+          if (q && this.sideOf(q) === me) return
+          out.push(rr * 9 + cc)
+        })
+      } else if (t === 'A') {
+        [[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach((s) => {
+          const rr = r + s[0]
+          const cc = c + s[1]
+          if (!this.inside(rr, cc)) return
+          if (me === 'r' && (rr < 7 || cc < 3 || cc > 5)) return
+          if (me === 'b' && (rr > 2 || cc < 3 || cc > 5)) return
+          const q = board[rr * 9 + cc]
+          if (q && this.sideOf(q) === me) return
+          out.push(rr * 9 + cc)
+        })
+      } else if (t === 'K') {
+        [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach((s) => {
+          const rr = r + s[0]
+          const cc = c + s[1]
+          if (!this.inside(rr, cc)) return
+          if (me === 'r' && (rr < 7 || cc < 3 || cc > 5)) return
+          if (me === 'b' && (rr > 2 || cc < 3 || cc > 5)) return
+          const q = board[rr * 9 + cc]
+          if (q && this.sideOf(q) === me) return
+          out.push(rr * 9 + cc)
+        })
+      } else if (t === 'P') {
+        const dir = me === 'r' ? -1 : 1
+        push(r + dir, c)
+        const crossed = me === 'r' ? r <= 4 : r >= 5
+        if (crossed) {
+          push(r, c - 1)
+          push(r, c + 1)
+        }
+      }
+      return out
+    },
+    findKing(board, side) {
+      for (let i = 0; i < board.length; i++) {
+        if (board[i] === side + 'K') return i
+      }
+      return -1
+    },
+    // 将帅照面
+    kingsFace(board) {
+      let red = -1
+      let black = -1
+      for (let i = 0; i < board.length; i++) {
+        if (board[i] === 'rK') red = i
+        if (board[i] === 'bK') black = i
+      }
+      if (red < 0 || black < 0) return false
+      if (red % 9 !== black % 9) return false
+      const hi = Math.max(red, black)
+      const lo = Math.min(red, black)
+      for (let i = lo + 9; i < hi; i += 9) if (board[i]) return false
+      return true
+    },
+    inCheck(board, side) {
+      const king = this.findKing(board, side)
+      if (king < 0) return false
+      for (let i = 0; i < board.length; i++) {
+        const p = board[i]
+        if (!p || this.sideOf(p) === side) continue
+        if (this.pseudo(board, i).indexOf(king) >= 0) return true
+      }
+      return this.kingsFace(board)
+    },
+    legal(board, from) {
+      const p = board[from]
+      if (!p) return []
+      const me = this.sideOf(p)
+      return this.pseudo(board, from).filter((to) => {
+        const nb = board.slice()
+        nb[to] = nb[from]
+        nb[from] = ''
+        return !this.inCheck(nb, me)
+      })
+    },
+    value(t) {
+      return { K: 10000, R: 900, N: 400, C: 450, A: 200, B: 200, P: 100 }[t] || 0
+    }
+  }
+
+  C.register('chinese-chess', {
+    title: '中国象棋', note: '楚河汉界 · 完整走法与将军判定', players: '2 人', accent: '#C0392B',
+    mount(root) {
+      let board = XQ.layout()
+      let turn = 'r'
+      let sel = -1
+      let targets = []
+      const status = C.status(root, '你执红先行，点自己的棋子再点目标')
+
+      const table = el('table', { class: 'board' })
+      const cells = []
+      for (let r = 0; r < 10; r++) {
+        const tr = el('tr')
+        for (let c = 0; c < 9; c++) {
+          const td = el('td', { style: 'width:46px;height:46px;font-size:22px;cursor:pointer;background:#EFE0C4' })
+          cells.push(td)
+          tr.appendChild(td)
+        }
+        table.appendChild(tr)
+      }
+
+      const glyph = { rK: '帥', rA: '仕', rB: '相', rN: '傌', rR: '俥', rC: '炮', rP: '兵', bK: '將', bA: '士', bB: '象', bN: '馬', bR: '車', bC: '砲', bP: '卒' }
+
+      function render() {
+        for (let i = 0; i < cells.length; i++) {
+          const td = cells[i]
+          td.innerHTML = ''
+          td.className = ''
+          td.style.background = (Math.floor(i / 9) + i % 9) % 2 ? '#E4D2B0' : '#EFE0C4'
+          if (sel === i) td.classList.add('sel')
+          if (targets.indexOf(i) >= 0) td.classList.add('hint')
+          if (board[i]) {
+            const span = el('span', {
+              class: 'piece ' + (XQ.sideOf(board[i]) === 'r' ? 'r' : 'b'),
+              text: glyph[board[i]] || '?'
+            })
+            span.style.background = XQ.sideOf(board[i]) === 'r' ? '#C0392B' : '#2E3440'
+            td.appendChild(span)
+          }
+          td.onclick = () => tap(i)
+        }
+      }
+
+      function tap(i) {
+        if (turn !== 'r') return
+        if (sel >= 0 && targets.indexOf(i) >= 0) { apply(sel, i); return }
+        const p = board[i]
+        if (p && XQ.sideOf(p) === 'r') {
+          sel = i
+          targets = XQ.legal(board, i)
+          status.textContent = `已选 ${glyph[p]}，可走 ${targets.length} 步` + (targets.length ? '' : '（此子无合法走法）')
+          render()
+          return
+        }
+        sel = -1
+        targets = []
+        render()
+      }
+
+      function apply(from, to) {
+        const captured = board[to]
+        board[to] = board[from]
+        board[from] = ''
+        sel = -1
+        targets = []
+        if (captured && XQ.typeOf(captured) === 'K') {
+          status.textContent = '你吃掉对方的将，获胜！🏆'
+          turn = 'x'
+          render()
+          return
+        }
+        turn = 'b'
+        render()
+        setTimeout(ai, 320)
+      }
+
+      function ai() {
+        const moves = []
+        for (let i = 0; i < board.length; i++) {
+          if (!board[i] || XQ.sideOf(board[i]) !== 'b') continue
+          XQ.legal(board, i).forEach((to) => moves.push({ from: i, to }))
+        }
+        if (!moves.length) {
+          status.textContent = '黑方无棋可走，你获胜！🏆'
+          turn = 'x'
+          return
+        }
+        let best = moves[0]
+        let bestScore = -Infinity
+        moves.forEach((m) => {
+          const victim = board[m.to]
+          let s = victim ? XQ.value(XQ.typeOf(victim)) : Math.random() * 8
+          // 走后自己是否会被吃
+          const nb = board.slice()
+          nb[m.to] = nb[m.from]
+          nb[m.from] = ''
+          let risk = 0
+          for (let i = 0; i < nb.length; i++) {
+            if (!nb[i] || XQ.sideOf(nb[i]) !== 'r') continue
+            if (XQ.pseudo(nb, i).indexOf(m.to) >= 0) risk += XQ.value(XQ.typeOf(nb[m.to]))
+          }
+          s -= risk * 0.8
+          if (XQ.inCheck(nb, 'r')) s += 60
+          if (s > bestScore) { bestScore = s; best = m }
+        })
+        const captured = board[best.to]
+        board[best.to] = board[best.from]
+        board[best.from] = ''
+        if (captured && XQ.typeOf(captured) === 'K') {
+          status.textContent = '红帅被吃，本局失利'
+          turn = 'x'
+          render()
+          return
+        }
+        turn = 'r'
+        const inChk = XQ.inCheck(board, 'r')
+        status.textContent = (inChk ? '将军！' : '') + '轮到你（红方）'
+        render()
+      }
+
+      const wrap = el('div', { class: 'board-wrap' })
+      wrap.appendChild(table)
+      root.appendChild(wrap)
+      root.appendChild(C.buttonRow([
+        { text: '重开', onClick: () => { board = XQ.layout(); turn = 'r'; sel = -1; targets = []; status.textContent = '重开一局，你执红'; render() } }
+      ]))
+      C.rules(root, '规则：车直线、马走日（有蹩腿）、炮隔子吃、象飞田不过河、士将限九宫，将帅不可照面。')
+      render()
+    }
+  })
+
+  // ================= 国际象棋 =================
+  const WC = {
+    layout() {
+      const b = new Array(64).fill('')
+      const back = ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
+      for (let i = 0; i < 8; i++) {
+        b[i] = 'b' + back[i]
+        b[8 + i] = 'bP'
+        b[48 + i] = 'wP'
+        b[56 + i] = 'w' + back[i]
+      }
+      return b
+    },
+    sideOf(p) { return p.charAt(0) },
+    typeOf(p) { return p.charAt(1) },
+    value(t) { return { K: 10000, Q: 900, R: 500, B: 330, N: 320, P: 100 }[t] || 0 },
+    inside(r, c) { return r >= 0 && r < 8 && c >= 0 && c < 8 },
+    pseudo(board, from, ep) {
+      const p = board[from]
+      if (!p) return []
+      const r = Math.floor(from / 8)
+      const c = from % 8
+      const me = this.sideOf(p)
+      const t = this.typeOf(p)
+      const out = []
+      const push = (rr, cc, okEmpty) => {
+        if (!this.inside(rr, cc)) return false
+        const to = rr * 8 + cc
+        const q = board[to]
+        if (q && this.sideOf(q) === me) return false
+        if (!q && !okEmpty) return false
+        out.push(to)
+        return !q
+      }
+      if (t === 'P') {
+        const dir = me === 'w' ? -1 : 1
+        if (this.inside(r + dir, c) && !board[(r + dir) * 8 + c]) {
+          out.push((r + dir) * 8 + c)
+          const startRow = me === 'w' ? 6 : 1
+          if (r === startRow && !board[(r + dir * 2) * 8 + c]) out.push((r + dir * 2) * 8 + c)
+        }
+        [-1, 1].forEach((dc) => {
+          const rr = r + dir
+          const cc = c + dc
+          if (!this.inside(rr, cc)) return
+          const to = rr * 8 + cc
+          if (board[to] && this.sideOf(board[to]) !== me) out.push(to)
+          else if (ep === to) out.push(to)
+        })
+      } else if (t === 'N') {
+        [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]].forEach((s) => push(r + s[0], c + s[1], true))
+      } else if (t === 'K') {
+        for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+          if (!dr && !dc) continue
+          push(r + dr, c + dc, true)
+        }
+      } else {
+        const dirs = t === 'R' ? [[1, 0], [-1, 0], [0, 1], [0, -1]]
+          : t === 'B' ? [[1, 1], [1, -1], [-1, 1], [-1, -1]]
+            : [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]
+        dirs.forEach((d) => {
+          for (let k = 1; k < 8; k++) if (!push(r + d[0] * k, c + d[1] * k, true)) break
+        })
+      }
+      return out
+    },
+    attacked(board, idx, by) {
+      for (let i = 0; i < 64; i++) {
+        const p = board[i]
+        if (!p || this.sideOf(p) !== by) continue
+        if (this.pseudo(board, i, -1).indexOf(idx) >= 0) return true
+      }
+      return false
+    },
+    findKing(board, side) {
+      for (let i = 0; i < 64; i++) if (board[i] === side + 'K') return i
+      return -1
+    },
+    inCheck(board, side) {
+      const k = this.findKing(board, side)
+      if (k < 0) return false
+      return this.attacked(board, k, side === 'w' ? 'b' : 'w')
+    },
+    legal(board, from, ep, castle) {
+      const p = board[from]
+      if (!p) return []
+      const me = this.sideOf(p)
+      const moves = this.pseudo(board, from, ep).filter((to) => {
+        const nb = board.slice()
+        nb[to] = nb[from]
+        nb[from] = ''
+        return !this.inCheck(nb, me)
+      })
+      // 王车易位
+      if (this.typeOf(p) === 'K' && castle && castle[me]) {
+        const row = me === 'w' ? 7 : 0
+        if (from === row * 8 + 4 && !this.inCheck(board, me)) {
+          const rightEmpty = !board[row * 8 + 5] && !board[row * 8 + 6]
+          const rightRook = board[row * 8 + 7] === me + 'R'
+          if (rightEmpty && rightRook && castle[me].kingSide &&
+            !this.attacked(board, row * 8 + 5, me === 'w' ? 'b' : 'w') &&
+            !this.attacked(board, row * 8 + 6, me === 'w' ? 'b' : 'w')) {
+            moves.push(row * 8 + 6)
+          }
+          const leftEmpty = !board[row * 8 + 3] && !board[row * 8 + 2] && !board[row * 8 + 1]
+          const leftRook = board[row * 8] === me + 'R'
+          if (leftEmpty && leftRook && castle[me].queenSide &&
+            !this.attacked(board, row * 8 + 3, me === 'w' ? 'b' : 'w') &&
+            !this.attacked(board, row * 8 + 2, me === 'w' ? 'b' : 'w')) {
+            moves.push(row * 8 + 2)
+          }
+        }
+      }
+      return moves
+    }
+  }
+
+  C.register('world-chess', {
+    title: '国际象棋', note: '王车易位 · 兵升变 · 将军判定', players: '2 人', accent: '#4A5A3A',
+    mount(root) {
+      let board = WC.layout()
+      let turn = 'w'
+      let sel = -1
+      let targets = []
+      let ep = -1
+      let castle = { w: { kingSide: true, queenSide: true }, b: { kingSide: true, queenSide: true } }
+      let promote = -1
+      const status = C.status(root, '你执白，点棋子再点目标')
+
+      const glyph = { wK: '♔', wQ: '♕', wR: '♖', wB: '♗', wN: '♘', wP: '♙', bK: '♚', bQ: '♛', bR: '♜', bB: '♝', bN: '♞', bP: '♟' }
+
+      const table = el('table', { class: 'board' })
+      const cells = []
+      for (let r = 0; r < 8; r++) {
+        const tr = el('tr')
+        for (let c = 0; c < 8; c++) {
+          const td = el('td', { style: 'width:48px;height:48px;font-size:30px;cursor:pointer' })
+          cells.push(td)
+          tr.appendChild(td)
+        }
+        table.appendChild(tr)
+      }
+
+      function render() {
+        cells.forEach((td, i) => {
+          td.innerHTML = ''
+          td.className = ''
+          td.style.background = (Math.floor(i / 8) + i % 8) % 2 ? '#B58863' : '#F0D9B5'
+          td.style.color = board[i] && WC.sideOf(board[i]) === 'w' ? '#FFFFFF' : '#172033'
+          if (sel === i) td.classList.add('sel')
+          if (targets.indexOf(i) >= 0) td.classList.add('hint')
+          if (board[i]) td.textContent = glyph[board[i]] || '?'
+          td.onclick = () => tap(i)
+        })
+      }
+
+      function tap(i) {
+        if (turn !== 'w' || promote >= 0) return
+        if (sel >= 0 && targets.indexOf(i) >= 0) { apply(sel, i); return }
+        const p = board[i]
+        if (p && WC.sideOf(p) === 'w') {
+          sel = i
+          targets = WC.legal(board, i, ep, castle)
+          status.textContent = `已选，可走 ${targets.length} 步`
+          render()
+          return
+        }
+        sel = -1
+        targets = []
+        render()
+      }
+
+      function apply(from, to) {
+        const piece = board[from]
+        const captured = board[to]
+        // 王车易位：同步移动车
+        if (WC.typeOf(piece) === 'K' && Math.abs((to % 8) - (from % 8)) === 2) {
+          const row = Math.floor(from / 8)
+          if (to === row * 8 + 6) {
+            board[row * 8 + 5] = board[row * 8 + 7]
+            board[row * 8 + 7] = ''
+          } else {
+            board[row * 8 + 3] = board[row * 8]
+            board[row * 8] = ''
+          }
+        }
+        // 吃过路兵
+        if (WC.typeOf(piece) === 'P' && to === ep && !captured) {
+          const dir = WC.sideOf(piece) === 'w' ? 1 : -1
+          board[to + dir * 8] = ''
+        }
+        board[to] = piece
+        board[from] = ''
+        // 记录易位权利
+        if (WC.typeOf(piece) === 'K') castle[WC.sideOf(piece)] = null
+        if (WC.typeOf(piece) === 'R') {
+          const row = Math.floor(from / 8)
+          if (from === row * 8) castle[WC.sideOf(piece)] && (castle[WC.sideOf(piece)].queenSide = false)
+          if (from === row * 8 + 7) castle[WC.sideOf(piece)] && (castle[WC.sideOf(piece)].kingSide = false)
+        }
+        // 过路兵目标
+        ep = -1
+        if (WC.typeOf(piece) === 'P' && Math.abs(Math.floor(to / 8) - Math.floor(from / 8)) === 2) {
+          ep = (Math.floor(to / 8) + Math.floor(from / 8)) / 2 * 8 + (to % 8)
+        }
+        // 升变
+        if (WC.typeOf(piece) === 'P' && (Math.floor(to / 8) === 0 || Math.floor(to / 8) === 7)) {
+          promote = to
+          sel = -1
+          targets = []
+          render()
+          showPromote(to, WC.sideOf(piece))
+          return
+        }
+        sel = -1
+        targets = []
+        if (captured && WC.typeOf(captured) === 'K') {
+          status.textContent = '你吃掉对方的王，获胜！🏆'
+          turn = 'x'
+          render()
+          return
+        }
+        turn = 'b'
+        render()
+        setTimeout(ai, 320)
+      }
+
+      function showPromote(at, side) {
+        status.textContent = '兵升变：选择要变成的棋子'
+        const row = C.buttonRow(['Q', 'R', 'B', 'N'].map((t) => ({
+          text: { Q: '后', R: '车', B: '象', N: '马' }[t],
+          primary: t === 'Q',
+          onClick: () => {
+            board[at] = side + t
+            promote = -1
+            turn = 'b'
+            render()
+            setTimeout(ai, 320)
+          }
+        })))
+        root.insertBefore(row, root.children[1])
+      }
+
+      function ai() {
+        const moves = []
+        for (let i = 0; i < 64; i++) {
+          if (!board[i] || WC.sideOf(board[i]) !== 'b') continue
+          WC.legal(board, i, ep, castle).forEach((to) => moves.push({ from: i, to }))
+        }
+        if (!moves.length) {
+          status.textContent = WC.inCheck(board, 'b') ? '将杀！你获胜 🏆' : '逼和，平局'
+          turn = 'x'
+          return
+        }
+        let best = moves[0]
+        let bestScore = -Infinity
+        moves.forEach((m) => {
+          const victim = board[m.to]
+          let s = victim ? WC.value(WC.typeOf(victim)) : Math.random() * 6
+          const nb = board.slice()
+          nb[m.to] = nb[m.from]
+          nb[m.from] = ''
+          let risk = 0
+          for (let i = 0; i < 64; i++) {
+            if (!nb[i] || WC.sideOf(nb[i]) !== 'w') continue
+            if (WC.pseudo(nb, i, -1).indexOf(m.to) >= 0) risk += WC.value(WC.typeOf(nb[m.to]))
+          }
+          s -= risk * 0.75
+          if (WC.inCheck(nb, 'w')) s += 50
+          if (s > bestScore) { bestScore = s; best = m }
+        })
+        const captured = board[best.to]
+        const piece = board[best.from]
+        if (WC.typeOf(piece) === 'K' && Math.abs((best.to % 8) - (best.from % 8)) === 2) {
+          const row = Math.floor(best.from / 8)
+          if (best.to === row * 8 + 6) { board[row * 8 + 5] = board[row * 8 + 7]; board[row * 8 + 7] = '' }
+          else { board[row * 8 + 3] = board[row * 8]; board[row * 8] = '' }
+        }
+        board[best.to] = piece
+        board[best.from] = ''
+        if (WC.typeOf(piece) === 'P' && (Math.floor(best.to / 8) === 0 || Math.floor(best.to / 8) === 7)) {
+          board[best.to] = 'bQ'
+        }
+        ep = -1
+        if (captured && WC.typeOf(captured) === 'K') {
+          status.textContent = '白王被吃，本局失利'
+          turn = 'x'
+          render()
+          return
+        }
+        turn = 'w'
+        status.textContent = (WC.inCheck(board, 'w') ? '将军！' : '') + '轮到你（白方）'
+        render()
+      }
+
+      const wrap = el('div', { class: 'board-wrap' })
+      wrap.appendChild(table)
+      root.appendChild(wrap)
+      root.appendChild(C.buttonRow([
+        { text: '重开', onClick: () => {
+          board = WC.layout(); turn = 'w'; sel = -1; targets = []; ep = -1; promote = -1
+          castle = { w: { kingSide: true, queenSide: true }, b: { kingSide: true, queenSide: true } }
+          status.textContent = '重开一局，你执白'; render()
+        } }
+      ]))
+      C.rules(root, '规则：含王车易位、兵升变（自动升后）与吃过路兵；被将且无解即为将杀。')
+      render()
+    }
+  })
+})(window.ZZCore)
+
+</script>
+  <script>
+// 陆战棋（中国军棋）· 暗棋：玩家红方明牌，对手蓝方暗子，交火后才互相揭晓
+(function (C) {
+  const el = C.el
+  const W = 5
+  const H = 12
+  const BASE = [1, 3, 56, 58]
+  // 行营：紧贴己方大本营的标准位置（红方在上半，蓝方镜像在下半）
+  const CAMP = [7, 8, 12, 13, 17, 46, 47, 51, 52, 53]
+  const NAMES = {
+    '9': '司令', '8': '军长', '7': '师长', '6': '旅长', '5': '团长',
+    '4': '营长', '3': '连长', '2': '排长', '1': '工兵', 'M': '地雷', 'B': '炸弹', 'F': '军旗'
+  }
+
+  function rankOf(p) {
+    const t = p.charAt(1)
+    if (t === 'F') return -2
+    if (t === 'M') return 0
+    if (t === 'B') return -1
+    return parseInt(t, 10)
+  }
+
+  // 中国军棋铁路：每方一个独立的「口」字形闭环，红方沿上半绕行、蓝方沿下半镜像，
+  // 两个闭环在中央不互通。此前实现是「中央 4 行全行横向铁路 + 两侧纵线」，
+  // 两侧共用一条大铁路，规则本质与标准军棋不同。
+  //
+  // 几何（已用连通性脚本验证：恰好 2 个环，各 12 点，互不连通）：
+  //   红方环 = 第 3 行整行 + 第 5 行整行 + 第 4 行第1/3 列 + 第 6 行第1/3 列的镜像侧
+  //   蓝方环 = 上者的row -> 11 - row 镜像
+  // 用镜像视角定义「红方环」，再判定实际落点属于哪一方，避免两处各写一遍。
+  function railSide(idx) {
+    return Math.floor(idx / 5) <= 5 ? 'r' : 'b'
+  }
+
+  function isRailPoint(idx) {
+    const r = Math.floor(idx / 5)
+    const c = idx % 5
+    // 镜像到红方视角：蓝方 row r 映射为 11 - r
+    const rr = railSide(idx) === 'r' ? r : 11 - r
+    // 纵向铁路固定在第 1 / 第 3 列，覆盖第 3~6 行
+    const onVert = (c === 1 || c === 3) && rr >= 3 && rr <= 6
+    // 横向铁路在第 3 / 第 5 行，横贯整行（连接两条纵线并向外延伸一格）
+    const onHoriz = (rr === 3 || rr === 5)
+    return onVert || onHoriz
+  }
+
+  function isRail(a, b) {
+    const ra = Math.floor(a / 5), ca = a % 5
+    const rb = Math.floor(b / 5), cb = b % 5
+    const sameRow = ra === rb && Math.abs(ca - cb) === 1
+    const sameCol = ca === cb && Math.abs(ra - rb) === 1
+    if (!sameRow && !sameCol) return false
+    if (railSide(a) !== railSide(b)) return false
+    return isRailPoint(a) && isRailPoint(b)
+  }
+
+  // 预计算每个落点相邻的铁路格，避免在 movesFrom 里重复做边界与环判定。
+  const RAIL_NEIGHBORS = (function () {
+    const table = []
+    for (let i = 0; i < W * H; i++) {
+      const list = []
+      const r = Math.floor(i / W)
+      const c = i % W
+      if (isRailPoint(i)) {
+        if (c > 0&& isRail(i - 1, i)) list.push(i - 1)
+        if (c < W - 1 && isRail(i + 1, i)) list.push(i + 1)
+        if (r > 0 && isRail(i - W, i)) list.push(i - W)
+        if (r < H - 1 && isRail(i + W, i)) list.push(i + W)
+      }
+      table.push(list)
+    }
+    return table
+  })()
+
+  C.register('junqi', {
+    title: '陆战棋', note: '暗棋 · 敌子未明 · 铁路行营', players: '2 人', accent: '#2F4F3A',
+    mount(root) {
+      let board = []
+      let known = []      // 玩家视角已知
+      let aiKnown = []    // AI 视角已知
+      let turn = 'r'
+      let sel = -1
+      let over = false
+
+      const status = C.status(root, '你是红方（自家明牌），蓝方棋子以暗子显示，交火后互相揭晓')
+
+      function setup() {
+        board = new Array(60).fill('')
+        const ranks = ['9', '8', '7', '7', '6', '6', '5', '5', '4', '4', '3', '3', '3', '2', '2', '2', '1', '1', '1', 'B', 'B']
+        for (let s = 0; s < 2; s++) {
+          const side = s === 0 ? 'b' : 'r'
+          const startRow = s === 0 ? 0 : 6
+          const backRows = s === 0 ? [0, 1] : [10, 11]
+          const baseA = s === 0 ? 1 : 56
+          const baseB = s === 0 ? 3 : 58
+          const flagBase = Math.random() < 0.5 ? baseA : baseB
+          const mineBase = flagBase === baseA ? baseB : baseA
+          board[flagBase] = side + 'F'
+          board[mineBase] = side + 'M'
+          const spots = []
+          for (let r = startRow; r < startRow + 6; r++) {
+            for (let col = 0; col < W; col++) {
+              const idx = r * W + col
+              if (BASE.indexOf(idx) >= 0 || CAMP.indexOf(idx) >= 0) continue
+              if (board[idx]) continue
+              spots.push(idx)
+            }
+          }
+          C.shuffle(spots)
+          const mineSpots = []
+          const restSpots = []
+          spots.forEach((idx) => {
+            if (backRows.indexOf(Math.floor(idx / W)) >= 0) mineSpots.push(idx)
+            else restSpots.push(idx)
+          })
+          C.shuffle(mineSpots)
+          for (let m = 0; m < 2 && m < mineSpots.length; m++) board[mineSpots[m]] = side + 'M'
+          for (let m = 2; m < mineSpots.length; m++) restSpots.push(mineSpots[m])
+          const rest = C.shuffle(ranks.map((rk) => side + rk))
+          for (let i = 0; i < restSpots.length && i < rest.length; i++) board[restSpots[i]] = rest[i]
+        }
+        // 视角：各自自家明牌
+        known = board.map((p) => !!p && p.charAt(0) === 'r')
+        aiKnown = board.map((p) => !!p && p.charAt(0) === 'b')
+        turn = 'r'
+        sel = -1
+        over = false
+      }
+      setup()
+
+      function movable(p) {
+        const t = p.charAt(1)
+        return t !== 'F' && t !== 'M'
+      }
+
+      function canEnter(from, to) {
+        if (BASE.indexOf(to) >= 0) return false
+        const target = board[to]
+        if (!target) return true
+        if (target.charAt(0) === board[from].charAt(0)) return false
+        if (CAMP.indexOf(to) >= 0) return false
+        return true
+      }
+
+      function movesFrom(idx) {
+        const p = board[idx]
+        if (!p || !movable(p)) return []
+        const r = Math.floor(idx / W)
+        const c = idx % W
+        const out = []
+        const inCamp = CAMP.indexOf(idx) >= 0
+        const isEngineer = rankOf(p) === 1
+        const dirs = inCamp
+          ? [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
+          : [[-1, 0], [1, 0], [0, -1], [0, 1]]
+        dirs.forEach((d) => {
+          const nr = r + d[0]
+          const nc = c + d[1]
+          if (nr < 0 || nr >= H || nc < 0 || nc >= W) return
+          const to = nr * W + nc
+          if (!canEnter(idx, to)) return
+          // 行营内棋子可八方向流动（行营内互相不受攻击）；行营外只走公路相邻格。
+          // 铁路不在单步范围内 —— 工兵沿铁路远行由下面的 BFS 单独处理。
+          if (!inCamp) return
+          out.push(to)
+        })
+        // 铁路单步（相邻铁路格）：公路棋子也可沿铁路上一步
+        if (!inCamp) {
+          for (let i = 0; i < 4; i++) {
+            const to = RAIL_NEIGHBORS[idx] && RAIL_NEIGHBORS[idx][i]
+            if (to === undefined) continue
+            if (canEnter(idx, to)) out.push(to)
+          }
+        }
+        // 工兵沿铁路任意长距离
+        if (isEngineer) {
+          for (let i = 0; i < 60; i++) {
+            if (i === idx) continue
+            if (!canEnter(idx, i)) continue
+            // 沿铁路 BFS
+            const seen = new Set([idx])
+            const queue = [idx]
+            let found = false
+            while (queue.length && !found) {
+              const cur = queue.shift()
+              const cr = Math.floor(cur / W)
+              const cc = cur % W
+              [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach((d) => {
+                const nr = cr + d[0]
+                const nc = cc + d[1]
+                if (nr < 0 || nr >= H || nc < 0 || nc >= W) return
+                const nx = nr * W + nc
+                if (!isRail(cur, nx) || seen.has(nx)) return
+                seen.add(nx)
+                // 铁路上若有棋子则不能越过（工兵也不能）
+                if (board[nx]) return
+                if (nx === i) found = true
+                queue.push(nx)
+              })
+            }
+            if (found && out.indexOf(i) < 0) out.push(i)
+          }
+        }
+        return Array.from(new Set(out))
+      }
+
+      function sideHasMove(side) {
+        for (let i = 0; i < 60; i++) {
+          if (!board[i] || board[i].charAt(0) !== side) continue
+          if (movesFrom(i).length) return true
+        }
+        return false
+      }
+
+      function reveal(idxArr) {
+        idxArr.forEach((i) => {
+          if (i >= 0 && i < 60) { known[i] = true; aiKnown[i] = true }
+        })
+      }
+
+      function applyMove(from, to) {
+        const attacker = board[from]
+        const defender = board[to]
+        const aSide = attacker.charAt(0)
+        board[from] = ''
+        let text = ''
+        if (!defender) {
+          board[to] = attacker
+          text = `红方${NAMES[attacker.charAt(1)]}移动`.replace('红方', aSide === 'r' ? '红方' : '蓝方')
+        } else {
+          reveal([from, to])
+          const aRank = rankOf(attacker)
+          const dRank = rankOf(defender)
+          const aName = (aSide === 'r' ? '红方' : '蓝方') + NAMES[attacker.charAt(1)]
+          const dName = (defender.charAt(0) === 'r' ? '红方' : '蓝方') + NAMES[defender.charAt(1)]
+          if (dRank === -2) {
+            board[to] = attacker
+            text = `${aName}夺得${dName}，${aSide === 'r' ? '你获胜！🏆' : '你失利'}`
+            over = true
+          } else if (dRank === 0 && aRank === 1) {
+            board[to] = attacker
+            text = `${aName}挖掉${dName}`
+          } else if (dRank === 0) {
+            text = `${aName}触雷阵亡`
+          } else if (dRank === -1 || aRank === -1) {
+            text = `${aName}与${dName}同归于尽`
+          } else if (aRank > dRank) {
+            board[to] = attacker
+            text = `${aName}吃掉${dName}`
+          } else if (aRank === dRank) {
+            text = `${aName}与${dName}对拼双双阵亡`
+          } else {
+            text = `${aName}进攻${dName}失败阵亡`
+          }
+        }
+        sel = -1
+        if (over) { status.textContent = text; render(); return }
+        const next = aSide === 'r' ? 'b' : 'r'
+        turn = next
+        if (!sideHasMove(next)) {
+          over = true
+          status.textContent = `${text} · ${next === 'r' ? '红' : '蓝'}方无子可动，${aSide === 'r' ? '红方（你）' : '蓝方'}获胜！🏆`
+          render()
+          return
+        }
+        status.textContent = text + ` · 轮到${next === 'r' ? '你（红方）' : (C.isLocal() ? '蓝方（你操作）' : '蓝方（电脑）')}`
+        render()
+        // 线下双人模式：蓝方也由本机玩家操作，AI 不再自动走
+        if (next === 'b' && !C.isPlayer(1)) setTimeout(aiMove, 520)
+      }
+
+      function aiMove() {
+        if (over) return
+        const moves = []
+        for (let i = 0; i < 60; i++) {
+          const p = board[i]
+          if (!p || p.charAt(0) !== 'b' || !movable(p)) continue
+          movesFrom(i).forEach((to) => moves.push({ from: i, to }))
+        }
+        if (!moves.length) {
+          status.textContent = '蓝方无子可动，你获胜！🏆'
+          over = true
+          render()
+          return
+        }
+        let best = moves[0]
+        let bestScore = -Infinity
+        moves.forEach((m) => {
+          const cell = board[m.from]
+          const target = board[m.to]
+          let s = Math.random() * 4
+          if (target) {
+            const aRank = rankOf(cell)
+            const dRank = rankOf(target)
+            if (!aiKnown[m.to]) {
+              // AI 不知道这枚红子是什么，只能按期望试探（不作弊）
+              if (aRank === -1) s += 12
+              else if (aRank === 9) s += 14
+              else if (aRank === 1) s += 3
+              else s += 5
+            } else if (dRank === -2) s += 1000
+            else if (dRank === 0 && aRank === 1) s += 60
+            else if (dRank === 0) s += -5
+            else if (dRank === -1) s += aRank >= 7 ? 30 : -10
+            else if (aRank > dRank) s += 10 + dRank * 3
+            else if (aRank === dRank) s += aRank >= 7 ? -8 : 4
+            else s += -6 - aRank
+          } else {
+            // 朝红方大本营方向推进
+            const d0 = Math.abs(Math.floor(m.from / W) - 10) + Math.abs(m.from % W - 1)
+            const d1 = Math.abs(Math.floor(m.to / W) - 10) + Math.abs(m.to % W - 1)
+            s += Math.max(0, d0 - d1)
+          }
+          if (s > bestScore) { bestScore = s; best = m }
+        })
+        applyMove(best.from, best.to)
+      }
+
+      const table = el('table', { class: 'board' })
+      const cells = []
+      for (let r = 0; r < H; r++) {
+        const tr = el('tr')
+        for (let c = 0; c < W; c++) {
+          const td = el('td', { style: 'width:56px;height:38px;font-size:15px;cursor:pointer' })
+          cells.push(td)
+          tr.appendChild(td)
+        }
+        table.appendChild(tr)
+      }
+
+      function render() {
+        cells.forEach((td, i) => {
+          td.innerHTML = ''
+          let bg = '#EEE6D2'
+          if (BASE.indexOf(i) >= 0) bg = '#8E6E4A'
+          else if (CAMP.indexOf(i) >= 0) bg = '#C9B79A'
+          else if (Math.floor(i / W) >= 4 && Math.floor(i / W) <= 7) bg = '#E6DCC4'
+          td.style.background = bg
+          td.style.border = '1px solid #B9A483'
+          if (sel === i) td.style.outline = '3px solid #F5C542'
+          else td.style.outline = ''
+          const p = board[i]
+          if (!p) return
+          const isRed = p.charAt(0) === 'r'
+          const shown = known[i]
+          const span = el('span', {
+            class: 'chip',
+            text: shown ? NAMES[p.charAt(1)] : '暗子'
+          })
+          span.style.display = 'inline-block'
+          span.style.padding = '2px 6px'
+          span.style.borderRadius = '4px'
+          span.style.color = '#fff'
+          span.style.fontSize = '12px'
+          span.style.background = shown ? (isRed ? '#C0392B' : '#2E5C8A') : '#3C4A60'
+          td.appendChild(span)
+          td.onclick = () => tap(i)
+        })
+      }
+
+      function tap(i) {
+        if (over || !C.isPlayer(turn === 'r' ? 0 : 1)) return
+        const p = board[i]
+        if (sel >= 0 && movesFrom(sel).indexOf(i) >= 0) { applyMove(sel, i); return }
+        if (p && p.charAt(0) === turn && movable(p)) {
+          sel = i
+          status.textContent = `已选${NAMES[p.charAt(1)]}，金色高亮为可走点`
+          render()
+        } else {
+          sel = -1
+          render()
+        }
+      }
+
+      const wrap = el('div', { class: 'board-wrap' })
+      wrap.appendChild(table)
+      root.appendChild(wrap)
+      root.appendChild(C.infoRow([
+        { k: '你的明子', v: board.filter((p, i) => p && p.charAt(0) === 'r' && known[i]).length },
+        { k: '敌方暗子', v: board.filter((p, i) => p && p.charAt(0) === 'b' && !known[i]).length },
+        { k: '已揭晓', v: known.filter((k) => k).length }
+      ]))
+      const modes = C.modeToggle()
+      root.appendChild(C.el('div', { class: 'row' }, [modes.node]))
+      root.appendChild(C.buttonRow([
+        { text: '重开', onClick: () => { setup(); status.textContent = '暗棋模式 · 你是红方，蓝方为暗子'; render() } }
+      ]))
+      C.rules(root, '暗棋规则：你只能看到自己的棋子；敌方棋子显示「暗子」，一旦发生交战双方子力同时亮明。工兵可沿铁路任意行进并可挖地雷，炸弹与任何棋子同归于尽，夺得军旗即胜。')
+      C.on('mode', () => { modes.refresh(); status.textContent = C.isLocal() ? '线下双人：红蓝双方都由你操作' : 'AI 陪练：蓝方由电脑走棋' })
+      render()
+      root.querySelector('.info-grid').id = 'junqi-info'
+      // 使信息条随局面刷新
+      const origRender = render
+      render = function () {
+        origRender()
+        const info = root.querySelector('#junqi-info')
+        if (info) {
+          const boxes = info.querySelectorAll('.v')
+          if (boxes.length >= 3) {
+            boxes[0].textContent = board.filter((p, i) => p && p.charAt(0) === 'r' && known[i]).length
+            boxes[1].textContent = board.filter((p, i) => p && p.charAt(0) === 'b' && !known[i]).length
+            boxes[2].textContent = known.filter((k) => k).length
+          }
+        }
+      }
+      render()
+    }
+  })
+})(window.ZZCore)
+
+</script>
+  <script>
+// 飞行棋（中国飞行棋）：标准经典十字棋盘
+// · 15×15 网格，52 格主跑道闭环（四内角为对角过渡），四色起点相隔 13 格
+// · 四条归航通道各 5 格 → 中央四色风车终点
+// · 四角机场（大色块 + 白色内框 + 2×2 停机圆点）
+// · 四个起飞格带白色方向箭头；机场 → 中央 对角虚线航线
+// 几何与底图同源：scripts/gen_ludo_cn_classic.py（SIZE/MARGIN/CS 完全一致）
+// 玩家：0 红(左上) 1 黄(右上) 2 蓝(右下) 3 绿(左下)
+(function (C) {
+  const el = C.el
+
+  // ===== 画布与网格（与 scripts/gen_ludo_cn_classic.py 完全一致）=====
+  const SIZE = 800
+  const MARGIN = 18
+  const CS = (SIZE - 2 * MARGIN) / 15
+
+  const COLORS = ['#E94B3C', '#F5A623', '#3B7DD8', '#229B54']
+  const NAMES = ['红', '黄', '蓝', '绿']
+  const CREAM = '#F4EDDD'
+  const BROWN = '#5A3C28'
+  const WHITE = '#FFFFFF'
+
+  const START_OFFSET = [0, 13, 26, 39]  // 各方起飞格在主跑道上的下标
+  const RING = 52                       // 主跑道总格数
+  const MAIN = 51                       // 主跑道可停留步数（progress 0..50）
+  const FINISH = 56                     // 到达中心终点
+
+  // ===== 52 格主跑道（顺时针，15×15 网格 [行, 列]）=====
+  const TRACK = []
+  function run(r, c, dr, dc, n) {
+    for (let i = 0; i < n; i++) TRACK.push([r + dr * i, c + dc * i])
+  }
+  run(6, 1, 0, 1, 5); run(5, 6, -1, 0, 6); TRACK.push([0, 7])
+  run(0, 8, 1, 0, 6); run(6, 9, 0, 1, 6); TRACK.push([7, 14])
+  run(8, 14, 0, -1, 6); run(9, 8, 1, 0, 6); TRACK.push([14, 7])
+  run(14, 6, -1, 0, 6); run(8, 5, 0, -1, 6); TRACK.push([7, 0]); TRACK.push([6, 0])
+
+  // 四条归航通道（从边缘走向中央）：0红左 / 1黄上 / 2蓝右 / 3绿下
+  const HOME = [
+    [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]],
+    [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]],
+    [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]],
+    [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]]
+  ]
+
+  // 四角机场 6×6 区域起点：0 左上 / 1 右上 / 2 右下 / 3 左下
+  const YARD = [[0, 0], [0, 9], [9, 9], [9, 0]]
+
+  // 中央风车四象限对应的玩家（上黄 / 右蓝 / 下绿 / 左红）
+  const WIND = { top: 1, right: 2, bottom: 3, left: 0 }
+
+  // ===== 坐标工具：与底图 1:1 对应 =====
+  function cellX(rc) { return MARGIN + (rc[1] + 0.5) * CS }
+  function cellY(rc) { return MARGIN + (rc[0] + 0.5) * CS }
+  function cellRect(rc, inset) {
+    const k = inset === undefined ? 0.06 : inset
+    return [
+      MARGIN + rc[1] * CS + CS * k,
+      MARGIN + rc[0] * CS + CS * k,
+      MARGIN + (rc[1] + 1) * CS - CS * k,
+      MARGIN + (rc[0] + 1) * CS - CS * k
+    ]
+  }
+  const CENTER = { x: MARGIN + 7.5 * CS, y: MARGIN + 7.5 * CS }
+
+  // 跑道格归属玩家：i%4，且 0/13/26/39 恰为四方起飞格 → 起飞格自动是本方色
+  function cellOwner(i) { return ((i % RING) + RING) % RING % 4 }
+
+  function ringPos(abs) { return TRACK[((abs % RING) + RING) % RING] }
+  function basePos(player, piece) {
+    const y = YARD[player]
+    const dx = (piece % 2 === 0 ? -1 : 1) * CS
+    const dy = (piece < 2 ? -1 : 1) * CS
+    return { x: cellX([y[0] + 2, y[1] + 2]) + dx, y: cellY([y[0] + 2, y[1] + 2]) + dy }
+  }
+  function planePos(player, piece, progress) {
+    if (progress < 0) return basePos(player, piece)
+    if (progress >= FINISH) {
+      const f = {
+        x: CENTER.x + (cellX([YARD[player][0] + 2, YARD[player][1] + 2]) - CENTER.x) * 0.06,
+        y: CENTER.y + (cellY([YARD[player][0] + 2, YARD[player][1] + 2]) - CENTER.y) * 0.06
+      }
+      return f
+    }
+    if (progress < MAIN) {
+      const p = ringPos(progress + START_OFFSET[player])
+      return { x: cellX(p), y: cellY(p) }
+    }
+    const h = HOME[player][progress - MAIN]
+    return { x: cellX(h), y: cellY(h) }
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath()
+    if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); return }
+    ctx.moveTo(x + r, y)
+    ctx.arcTo(x + w, y, x + w, y + h, r)
+    ctx.arcTo(x + w, y + h, x, y + h, r)
+    ctx.arcTo(x, y + h, x, y, r)
+    ctx.arcTo(x, y, x + w, y, r)
+    ctx.closePath()
+  }
+
+  // 飞机造型棋子（朝上）：机身 + 机翼 + 尾翼，颜色按方、选中高亮金边
+  function drawPlane(ctx, x, y, r, color, selected) {
+    ctx.save()
+    ctx.translate(x, y)
+    const stroke = selected ? '#F5C542' : 'rgba(255,255,255,.95)'
+    const lw = selected ? 4 : 1.8
+    ctx.beginPath()
+    ctx.moveTo(0, -r * 0.05)
+    ctx.lineTo(r * 0.95, r * 0.35)
+    ctx.lineTo(r * 0.25, r * 0.5)
+    ctx.lineTo(-r * 0.25, r * 0.5)
+    ctx.lineTo(-r * 0.95, r * 0.35)
+    ctx.closePath()
+    ctx.fillStyle = color; ctx.fill()
+    ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(0, -r * 1.05)
+    ctx.lineTo(r * 0.3, r * 0.55)
+    ctx.lineTo(0, r * 0.35)
+    ctx.lineTo(-r * 0.3, r * 0.55)
+    ctx.closePath()
+    ctx.fillStyle = color; ctx.fill()
+    ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(0, r * 0.45)
+    ctx.lineTo(r * 0.4, r * 0.85)
+    ctx.lineTo(-r * 0.4, r * 0.85)
+    ctx.closePath()
+    ctx.fillStyle = color; ctx.fill()
+    ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke()
+    ctx.restore()
+  }
+
+  // ===== 棋盘绘制（与底图 gen_ludo_cn_classic.py 同一套几何）=====
+  function drawBoard(ctx) {
+    ctx.clearRect(0, 0, SIZE, SIZE)
+    ctx.fillStyle = CREAM
+    ctx.fillRect(0, 0, SIZE, SIZE)
+    // 外框
+    ctx.strokeStyle = BROWN; ctx.lineWidth = 8
+    roundRect(ctx, 4, 4, SIZE - 8, SIZE - 8, 22); ctx.stroke()
+
+    // ---- 中央风车（上黄 / 右蓝 / 下绿 / 左红）----
+    const cx0 = MARGIN + 6 * CS, cy0 = MARGIN + 6 * CS
+    const cx1 = MARGIN + 9 * CS, cy1 = MARGIN + 9 * CS
+    const tris = {
+      top: [[cx0, cy0], [cx1, cy0], [CENTER.x, CENTER.y]],
+      right: [[cx1, cy0], [cx1, cy1], [CENTER.x, CENTER.y]],
+      bottom: [[cx1, cy1], [cx0, cy1], [CENTER.x, CENTER.y]],
+      left: [[cx0, cy1], [cx0, cy0], [CENTER.x, CENTER.y]]
+    }
+    Object.keys(tris).forEach((k) => {
+      const p = tris[k]
+      ctx.beginPath()
+      ctx.moveTo(p[0][0], p[0][1]); ctx.lineTo(p[1][0], p[1][1]); ctx.lineTo(p[2][0], p[2][1])
+      ctx.closePath()
+      ctx.fillStyle = COLORS[WIND[k]]; ctx.fill()
+      ctx.strokeStyle = WHITE; ctx.lineWidth = 2; ctx.stroke()
+    })
+    ctx.beginPath(); ctx.arc(CENTER.x, CENTER.y, CS * 0.9, 0, Math.PI * 2)
+    ctx.fillStyle = WHITE; ctx.fill()
+    ctx.strokeStyle = BROWN; ctx.lineWidth = 3; ctx.stroke()
+
+    // ---- 归航通道（各 5 格，本方色）----
+    for (let pl = 0; pl < 4; pl++) {
+      HOME[pl].forEach((cell) => {
+        const r = cellRect(cell)
+        ctx.fillStyle = COLORS[pl]
+        ctx.strokeStyle = WHITE; ctx.lineWidth = 3
+        roundRect(ctx, r[0], r[1], r[2] - r[0], r[3] - r[1], CS * 0.18); ctx.fill(); ctx.stroke()
+      })
+    }
+
+    // ---- 主跑道 52 格（四色循环）----
+    for (let i = 0; i < RING; i++) {
+      const r = cellRect(TRACK[i])
+      ctx.fillStyle = COLORS[cellOwner(i)]
+      ctx.strokeStyle = WHITE; ctx.lineWidth = 3
+      roundRect(ctx, r[0], r[1], r[2] - r[0], r[3] - r[1], CS * 0.18); ctx.fill(); ctx.stroke()
+    }
+
+    // ---- 起飞格白色方向箭头 ----
+    START_OFFSET.forEach((off) => {
+      const c1 = TRACK[off], c2 = TRACK[(off + 1) % RING]
+      const x = cellX(c1), y = cellY(c1)
+      const ang = Math.atan2(cellY(c2) - y, cellX(c2) - x)
+      const L = CS * 0.62, w = CS * 0.34
+      const ca = Math.cos(ang), sa = Math.sin(ang)
+      const rot = (px, py) => [x + px * ca - py * sa, y + px * sa + py * ca]
+      const pts = [[-L / 2, -w / 2], [L / 2 - w * 0.4, -w / 2], [L / 2 - w * 0.4, -w * 0.85],
+        [L / 2, 0], [L / 2 - w * 0.4, w * 0.85], [L / 2 - w * 0.4, w / 2], [-L / 2, w / 2]]
+      ctx.beginPath()
+      pts.forEach((p, i) => { const q = rot(p[0], p[1]); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]) })
+      ctx.closePath()
+      ctx.fillStyle = WHITE; ctx.fill()
+    })
+
+    // ---- 四角机场（本色大块 + 白色内框 + 2×2 停机圆点）----
+    for (let pl = 0; pl < 4; pl++) {
+      const y0 = MARGIN + YARD[pl][0] * CS
+      const x0 = MARGIN + YARD[pl][1] * CS
+      const bx0 = x0, by0 = y0, bx1 = x0 + 6 * CS, by1 = y0 + 6 * CS
+      ctx.fillStyle = COLORS[pl]
+      ctx.strokeStyle = WHITE; ctx.lineWidth = 4
+      roundRect(ctx, bx0, by0, bx1 - bx0, by1 - by0, CS * 0.5); ctx.fill(); ctx.stroke()
+      const fi = CS * 0.55
+      ctx.fillStyle = WHITE
+      roundRect(ctx, bx0 + fi, by0 + fi, bx1 - bx0 - 2 * fi, by1 - by0 - 2 * fi, CS * 0.35); ctx.fill()
+      const rad = CS * 0.55
+      const dots = [[1.5, 1.5], [1.5, 3.5], [3.5, 1.5], [3.5, 3.5]]
+      dots.forEach((d) => {
+        const cx = MARGIN + (YARD[pl][1] + d[1] + 0.5) * CS
+        const cy = MARGIN + (YARD[pl][0] + d[0] + 0.5) * CS
+        ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2)
+        ctx.fillStyle = COLORS[pl]; ctx.fill()
+      })
+    }
+
+    // ---- 机场 → 中央 对角虚线航线 ----
+    for (let pl = 0; pl < 4; pl++) {
+      const sx = cellX([YARD[pl][0] + 2, YARD[pl][1] + 2])
+      const sy = cellY([YARD[pl][0] + 2, YARD[pl][1] + 2])
+      const ex = CENTER.x + (sx - CENTER.x) * 0.25
+      const ey = CENTER.y + (sy - CENTER.y) * 0.25
+      ctx.setLineDash([CS * 0.32, CS * 0.26])
+      ctx.strokeStyle = COLORS[pl]; ctx.lineWidth = 4; ctx.lineCap = 'round'
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke()
+      ctx.setLineDash([])
+    }
+  }
+
+  C.register('ludo', {
+    title: '飞行棋', note: '骰子规则 · 撞子 · 连跳', players: '2-4 人', accent: '#8E44AD',
+    mount(root) {
+      let pieces = [[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]]
+      let turn = 0
+      let dice = 0
+      let options = []
+      let needPick = false
+      let count = 4
+      let over = false
+
+      const canvas = el('canvas', { width: SIZE, height: SIZE })
+      canvas.style.maxWidth = '100%'
+      const ctx = canvas.getContext('2d')
+      const status = C.status(root, '你是红方，点「掷骰子」开始')
+
+      function draw() {
+        drawBoard(ctx)
+        for (let pl = 0; pl < 4; pl++) {
+          for (let pc = 0; pc < 4; pc++) {
+            const prog = pieces[pl][pc]
+            const p = planePos(pl, pc, prog)
+            const pickable = needPick && pl === turn && C.isPlayer(turn) && options.indexOf(pc) >= 0
+            drawPlane(ctx, p.x, p.y, pickable ? CS * 0.46 : CS * 0.4, COLORS[pl], pickable)
+          }
+        }
+      }
+
+      function captureAt(abs, player) {
+        let msg = ''
+        for (let opp = 0; opp < count; opp++) {
+          if (opp === player) continue
+          for (let j = 0; j < 4; j++) {
+            const op = pieces[opp][j]
+            if (op >= 0 && op < MAIN && (op + START_OFFSET[opp]) % RING === abs) {
+              pieces[opp][j] = -1
+              msg += `，撞回${NAMES[opp]}家第 ${j + 1} 架！`
+            }
+          }
+        }
+        return msg
+      }
+
+      function legalMoves(player, d) {
+        const out = []
+        for (let i = 0; i < 4; i++) {
+          const p = pieces[player][i]
+          if (p >= FINISH) continue
+          if (p < 0 && d !== 6) continue
+          out.push(i)
+        }
+        return out
+      }
+
+      function applyMove(player, piece, d) {
+        const old = pieces[player][piece]
+        let np
+        let msg = ''
+        if (old < 0) {
+          np = 0
+          msg = `${NAMES[player]}家第 ${piece + 1} 架起飞（掷 6）`
+        } else {
+          np = old + d
+          if (np > FINISH) { np = 2 * FINISH - np; msg = `${NAMES[player]}家第 ${piece + 1} 架超程反弹` }
+          else msg = `${NAMES[player]}家第 ${piece + 1} 架前进 ${d} 格`
+        }
+        if (np >= 0 && np < MAIN) {
+          const abs = (np + START_OFFSET[player]) % RING
+          msg += captureAt(abs, player)
+          if (cellOwner(abs) === player && np + 4 < MAIN) {
+            np += 4
+            msg += '，同色连跳 4 格！'
+            if (np < MAIN) msg += captureAt((np + START_OFFSET[player]) % RING, player)
+          }
+        }
+        if (np === FINISH) msg += '，到达终点！'
+        pieces[player][piece] = np
+        status.textContent = msg
+        if (pieces[player].every((v) => v === FINISH)) {
+          over = true
+          status.textContent = `${NAMES[player]}家 4 架飞机全部到达终点，${player === 0 ? '你获胜！🏆' : '本局失利'}`
+          draw()
+          return false
+        }
+        return d === 6
+      }
+
+      function roll() {
+        if (over || needPick || !C.isPlayer(turn)) return
+        dice = C.dice()
+        const opts = legalMoves(turn, dice)
+        if (!opts.length) {
+          status.textContent = `${NAMES[turn]}方掷出 ${dice}，没有可动的飞机`
+          next()
+          return
+        }
+        if (opts.length === 1) { commit(turn, opts[0]); return }
+        options = opts
+        needPick = true
+        status.textContent = `${NAMES[turn]}方掷出 ${dice} · 点选一架飞机移动`
+        draw()
+      }
+
+      function commit(player, piece) {
+        const again = applyMove(player, piece, dice)
+        options = []
+        needPick = false
+        if (over) { draw(); return }
+        if (player === 0 && again) {
+          status.textContent += ' · 掷 6 再掷一次'
+          draw()
+          return
+        }
+        next()
+      }
+
+      function next() {
+        if (over) return
+        turn = (turn + 1) % count
+        draw()
+        if (!C.isPlayer(turn)) setTimeout(aiTurn, 620)
+        else status.textContent = `${NAMES[turn]}方行动 · 点「掷骰子」`
+      }
+
+      function aiTurn() {
+        if (over || C.isPlayer(turn)) return
+        const d = C.dice()
+        dice = d
+        const opts = legalMoves(turn, d)
+        if (!opts.length) { status.textContent = `${NAMES[turn]}家掷 ${d}，无可动飞机`; next(); return }
+        let best = opts[0]
+        let bestScore = -1
+        opts.forEach((pc) => {
+          const p = pieces[turn][pc]
+          let s = Math.random()
+          if (p < 0) s = 3
+          else {
+            let np = p + d
+            if (np > FINISH) np = 2 * FINISH - np
+            if (np >= FINISH) s = 20
+            if (np < MAIN) {
+              const abs = (np + START_OFFSET[turn]) % RING
+              for (let opp = 0; opp < count; opp++) {
+                if (opp === turn) continue
+                for (let j = 0; j < 4; j++) {
+                  const op = pieces[opp][j]
+                  if (op >= 0 && op < MAIN && (op + START_OFFSET[opp]) % RING === abs) s = 10
+                }
+              }
+            }
+          }
+          if (s > bestScore) { bestScore = s; best = pc }
+        })
+        const again = applyMove(turn, best, d)
+        if (over) { draw(); return }
+        if (again) { setTimeout(() => aiTurn(), 500); return }
+        next()
+      }
+
+      canvas.addEventListener('click', (e) => {
+        if (!needPick || !C.isPlayer(turn)) return
+        const rect = canvas.getBoundingClientRect()
+        const mx = (e.clientX - rect.left) * (SIZE / rect.width)
+        const my = (e.clientY - rect.top) * (SIZE / rect.height)
+        options.forEach((pc) => {
+          const p = planePos(turn, pc, pieces[turn][pc])
+          if (Math.hypot(p.x - mx, p.y - my) < CS * 0.6) commit(turn, pc)
+        })
+      })
+
+      const wrap = el('div', { class: 'board-wrap' })
+      wrap.appendChild(canvas)
+      root.appendChild(wrap)
+      const diceBox = C.infoRow([{ k: '骰子', v: '—' }])
+      root.appendChild(diceBox)
+      root.appendChild(C.buttonRow([
+        { text: '掷骰子', primary: true, onClick: roll },
+        { text: '2 人', onClick: () => setCount(2) },
+        { text: '3 人', onClick: () => setCount(3) },
+        { text: '4 人', onClick: () => setCount(4) }
+      ]))
+      const modes = C.modeToggle()
+      root.appendChild(C.el('div', { class: 'row' }, [modes.node]))
+      C.rules(root, '规则：中国飞行棋 52 格环形跑道，四色起点相隔 13 格；掷 6 起飞并再掷一次；落在敌机格把对方撞回机场；落在己方同色格再跳 4 格；走完 5 格终点通道到达中心风车；超过终点会反弹；4 架全部到达终点获胜。')
+      C.on('mode', () => { modes.refresh(); status.textContent = C.isLocal() ? `线下模式：${NAMES[turn]}方由你操作` : 'AI 陪练：只有红方由你操作' })
+
+      function setCount(n) {
+        count = n
+        pieces = [[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]]
+        turn = 0
+        dice = 0
+        needPick = false
+        over = false
+        status.textContent = `切换为 ${n} 人局，你是红方`
+        draw()
+      }
+
+      const origDraw = draw
+      draw = function () {
+        origDraw()
+        const v = diceBox.querySelector('.v')
+        if (v) v.textContent = dice ? dice : '—'
+      }
+      draw()
+    }
+  })
+})(window.ZZCore)
+
+</script>
+  <script>
+// 拉密 Rummikub：106 张牌（13×4色×2 + 2 百搭），顺子/刻子，首次出牌 30 分
+(function (C) {
+  const el = C.el
+  const JOKER = 99
+  const SUIT_MARK = ['●', '■', '▲', '◆']
+  const SUIT_CLASS = ['c0', 'c1', 'c2', 'c3']
+
+  function valueOf(t) { return t === JOKER ? 0 : t % 20 }
+  function colorOf(t) { return t === JOKER ? -1 : Math.floor(t / 20) }
+  function label(t) { return t === JOKER ? '🃏' : SUIT_MARK[colorOf(t)] + valueOf(t) }
+  function cls(t) { return t === JOKER ? 'joker' : SUIT_CLASS[colorOf(t)] }
+
+  function normalSet(tiles) {
+    const n = tiles.length
+    if (n < 3) return false
+    // 刻子：同数字不同色，3-4 张
+    const v0 = tiles[0] % 20
+    let same = true
+    const colors = []
+    for (let i = 0; i < n; i++) {
+      if (tiles[i] % 20 !== v0 || colors.indexOf(Math.floor(tiles[i] / 20)) >= 0) { same = false; break }
+      colors.push(Math.floor(tiles[i] / 20))
+    }
+    if (same) return true
+    // 顺子：同色连续
+    const c0 = Math.floor(tiles[0] / 20)
+    const vs = []
+    for (let i = 0; i < n; i++) {
+      if (Math.floor(tiles[i] / 20) !== c0) return false
+      vs.push(tiles[i] % 20)
+    }
+    vs.sort((a, b) => a - b)
+    for (let i = 1; i < vs.length; i++) if (vs[i] !== vs[i - 1] + 1) return false
+    return vs.length >= 3
+  }
+
+  function validSet(tiles) {
+    if (tiles.length < 3) return false
+    const jokers = tiles.filter((t) => t === JOKER)
+    if (jokers.length > 1) return false
+    if (!jokers.length) return normalSet(tiles)
+    const rest = tiles.filter((t) => t !== JOKER)
+    for (let c = 0; c < 4; c++) {
+      for (let v = 1; v <= 13; v++) {
+        if (normalSet(rest.concat([c * 20 + v]))) return true
+      }
+    }
+    return false
+  }
+
+  function scoreOf(tiles) {
+    const jokers = tiles.filter((t) => t === JOKER)
+    const rest = tiles.filter((t) => t !== JOKER)
+    if (!jokers.length) return rest.reduce((a, t) => a + (t % 20), 0)
+    let best = 0
+    for (let c = 0; c < 4; c++) {
+      for (let v = 1; v <= 13; v++) {
+        const cand = rest.concat([c * 20 + v])
+        if (normalSet(cand)) {
+          const s = cand.reduce((a, t) => a + (t % 20), 0)
+          if (s > best) best = s
+        }
+      }
+    }
+    return best
+  }
+
+  C.register('rummy', {
+    title: '拉密', note: '106 张标准牌组 · 顺子与刻子', players: '2-4 人', accent: '#2471A3',
+    mount(root) {
+      let hand = []
+      let sets = []
+      let deck = []
+      let ai = [[], []]
+      let picked = []
+      let opened = false
+      let turn = 0
+      let winner = -1
+      let selSet = -1
+
+      // 牌架行数：默认 2 行 × 每行 8 张 = 16 张位。用户可自行增减行数（1~4），
+      // 之前是一维流式铺满，换行完全由窗口宽度决定，想留出整齐的牌架做不到。
+      const COLS = 8
+      let rackRows = 2
+
+      const status = C.status(root, '首次出牌需要 ≥30 分')
+
+      function build() {
+        const tiles = []
+        for (let copy = 0; copy < 2; copy++) {
+          for (let c = 0; c < 4; c++) for (let v = 1; v <= 13; v++) tiles.push(c * 20 + v)
+        }
+        tiles.push(JOKER, JOKER)
+        const s = C.shuffle(tiles)
+        hand = s.slice(0, 14).sort((a, b) => a - b)
+        ai = [s.slice(14, 28), s.slice(28, 42)]
+        deck = s.slice(42)
+        sets = []
+        picked = []
+        opened = false
+        turn = 0
+        winner = -1
+        selSet = -1
+        status.textContent = '首次出牌需要 ≥30 分；点手牌选中，再点「出新组合」或点桌面组合并入'
+      }
+      build()
+
+      function render() {
+        C.clear(root.querySelector('.rummy-body'))
+        const body = root.querySelector('.rummy-body')
+
+        body.appendChild(C.infoRow([
+          { k: '牌堆', v: deck.length },
+          { k: '对手1', v: ai[0].length },
+          { k: '对手2', v: ai[1].length },
+          { k: '你的手牌', v: hand.length }
+        ]))
+
+        const turnLine = el('div', { class: 'status', text: winner === 0 ? '你出完了所有牌，获胜！🏆'
+          : winner > 0 ? `对手 ${winner} 出完了所有牌，本局结束`
+            : (turn === 0 ? '你的回合' : `对手 ${turn} 思考中…`) })
+        body.appendChild(turnLine)
+
+        body.appendChild(el('div', { class: 'rules', text: '公共组合区（点一组可把待出牌并入）' }))
+        const tableWrap = el('div')
+        if (!sets.length) tableWrap.appendChild(el('div', { class: 'rules', text: '还没有任何组合' }))
+        sets.forEach((set, si) => {
+          const row = el('div', { style: 'display:inline-block;padding:4px;margin:3px;border-radius:6px;background:' + (selSet === si ? 'rgba(245,197,66,.25)' : 'transparent') })
+          set.forEach((t) => {
+            row.appendChild(el('span', { class: 'tile ' + cls(t), text: label(t) }))
+          })
+          row.onclick = () => { selSet = si; addToSet(si) }
+          tableWrap.appendChild(row)
+        })
+        body.appendChild(tableWrap)
+
+        body.appendChild(el('div', { class: 'rules', text: `你的牌架 · ${hand.length} 张（已选 ${picked.length} 张）· ${rackRows} 行 × ${COLS} 张` }))
+        // 牌架按行分格渲染：行数由用户控制，空位显示占位框，方便看清牌架容量
+        const handWrap = el('div', { class: 'rack' })
+        for (let r = 0; r < rackRows; r++) {
+          const line = el('div', { class: 'rack-row' })
+          for (let c = 0; c < COLS; c++) {
+            const i = r * COLS + c
+            if (i < hand.length) {
+              const t = hand[i]
+              const tile = el('span', { class: 'tile ' + cls(t) + (picked.indexOf(t) >= 0 ? ' sel' : ''), text: label(t) })
+              tile.onclick = () => {
+                if (turn !== 0 || winner >= 0) return
+                const at = picked.indexOf(t)
+                if (at >= 0) picked.splice(at, 1)
+                else picked.push(t)
+                render()
+              }
+              line.appendChild(tile)
+            } else {
+              line.appendChild(el('span', { class: 'tile empty', text: '' }))
+            }
+          }
+          handWrap.appendChild(line)
+        }
+        body.appendChild(handWrap)
+
+        // 牌架维护：行数增减 + 整理（按颜色/数值排序）
+        body.appendChild(C.buttonRow([
+          { text: '减少一行', disabled: rackRows <= 1, onClick: () => { rackRows--; render() } },
+          { text: '增加一行', disabled: rackRows >= 4, onClick: () => { rackRows++; render() } },
+          { text: '整理牌架', onClick: () => { sortHand(); render() } }
+        ]))
+
+        body.appendChild(C.buttonRow([
+          { text: '出新组合', primary: true, disabled: turn !== 0 || winner >= 0, onClick: playNewSet },
+          { text: '清空选择', onClick: () => { picked = []; render() } }
+        ]))
+        const modes = C.modeToggle()
+        body.appendChild(C.el('div', { class: 'row' }, [modes.node]))
+        body.appendChild(C.buttonRow([
+          { text: '摸牌结束回合', disabled: turn !== 0 || winner >= 0, onClick: draw },
+          { text: '重开', onClick: () => { build(); render() } }
+        ]))
+        C.on('mode', () => {
+          modes.refresh()
+          status.textContent = C.isLocal() ? '线下模式：三位玩家都由你操作' : 'AI 陪练：两位对手由电脑出牌'
+        })
+      }
+
+      // 整理：同色成组、组内按数值升序（JOKER 排最后），便于凑顺子/刻子
+      function sortHand() {
+        hand.sort((a, b) => {
+          const ca = colorOf(a), cb = colorOf(b)
+          if (ca !== cb) {
+            if (ca === -1) return 1
+            if (cb === -1) return -1
+            return ca - cb
+          }
+          return valueOf(a) - valueOf(b)
+        })
+        status.textContent = '已按颜色与数值整理牌架'
+      }
+
+      function playNewSet() {
+        if (picked.length < 3) { status.textContent = '新组合至少要 3 张牌'; render(); return }
+        if (!validSet(picked)) { status.textContent = '牌型不合法：需要同色连续顺子，或同数字不同色的刻子'; render(); return }
+        const s = scoreOf(picked)
+        if (!opened && s < 30) { status.textContent = `首次出牌需 ≥30 分，这组只有 ${s} 分`; render(); return }
+        picked.forEach((t) => {
+          const at = hand.indexOf(t)
+          if (at >= 0) hand.splice(at, 1)
+        })
+        sets.push(picked.slice())
+        opened = true
+        picked = []
+        status.textContent = `出新组合 ${s} 分`
+        checkWin()
+        render()
+      }
+
+      function addToSet(si) {
+        if (turn !== 0 || winner >= 0 || !picked.length) {
+          if (!picked.length) status.textContent = '先在牌架上选牌，再点要并入的组合'
+          render()
+          return
+        }
+        const base = sets[si]
+        if (!opened && scoreOf(picked) + scoreOf(base) < 30) {
+          status.textContent = '首次出牌需 ≥30 分，并入后仍不足'
+          render()
+          return
+        }
+        const head = picked.concat(base)
+        const tail = base.concat(picked)
+        let merged = null
+        if (validSet(head)) merged = head
+        else if (validSet(tail)) merged = tail
+        if (!merged) { status.textContent = '并入后不是合法组合（只能接在顺子两端或补进刻子）'; render(); return }
+        picked.forEach((t) => {
+          const at = hand.indexOf(t)
+          if (at >= 0) hand.splice(at, 1)
+        })
+        sets[si] = merged
+        opened = true
+        picked = []
+        selSet = -1
+        status.textContent = `已并入组合 ${si + 1}`
+        checkWin()
+        render()
+      }
+
+      function draw() {
+        picked = []
+        if (!deck.length) {
+          let best = 0
+          let bestCount = hand.length
+          ai.forEach((h, i) => { if (h.length < bestCount) { bestCount = h.length; best = i + 1 } })
+          winner = best
+          status.textContent = best === 0 ? `牌堆摸完 · 你手牌最少（${hand.length} 张）获胜！🏆` : `牌堆摸完 · 对手 ${best} 手牌最少`
+          render()
+          return
+        }
+        hand.push(deck[0])
+        deck = deck.slice(1)
+        hand.sort((a, b) => a - b)
+        // 线下模式下不再把回合交给 AI，回合仍回到本机玩家
+        turn = C.isAi() ? 1 : 0
+        status.textContent = C.isAi() ? '摸了一张牌，轮到对手' : '摸了一张牌（线下模式：你继续操作）'
+        render()
+        if (C.isAi()) setTimeout(() => aiLoop(1), 520)
+      }
+
+      function checkWin() {
+        if (!hand.length) { winner = 0; status.textContent = '你出完了所有牌，获胜！🏆' }
+      }
+
+      function aiFindSet(h) {
+        for (let size = 5; size >= 3; size--) {
+          for (let i = 0; i < h.length; i++) {
+            const t = h[i]
+            const color = colorOf(t)
+            const value = valueOf(t)
+            if (color >= 0) {
+              const pick = [t]
+              for (let k = 1; k < size; k++) {
+                const want = color * 20 + (value + k)
+                if (h.indexOf(want) < 0) break
+                pick.push(want)
+              }
+              if (pick.length === size && validSet(pick)) return pick
+            }
+            if (value > 0) {
+              const group = [t]
+              for (let c = 0; c < 4; c++) {
+                const want = c * 20 + value
+                if (want === t) continue
+                if (h.indexOf(want) >= 0 && group.indexOf(want) < 0) group.push(want)
+              }
+              if (group.length === size && validSet(group)) return group
+            }
+          }
+        }
+        return []
+      }
+
+      function aiAct(seat) {
+        const h = ai[seat - 1].slice()
+        let played = false
+        for (let s = 0; s < sets.length && !played; s++) {
+          for (let i = 0; i < h.length && !played; i++) {
+            const base = sets[s]
+            const head = [h[i]].concat(base)
+            const tail = base.concat([h[i]])
+            if (validSet(head) || validSet(tail)) {
+              if (!opened && scoreOf([h[i]]) + scoreOf(base) < 30) continue
+              sets[s] = validSet(head) ? head : tail
+              h.splice(i, 1)
+              opened = true
+              played = true
+            }
+          }
+        }
+        if (!played) {
+          const found = aiFindSet(h)
+          if (found.length >= 3 && (opened || scoreOf(found) >= 30)) {
+            found.forEach((t) => {
+              const at = h.indexOf(t)
+              if (at >= 0) h.splice(at, 1)
+            })
+            sets.push(found)
+            opened = true
+            played = true
+            status.textContent = `对手 ${seat} 打出一组 ${found.length} 张`
+          }
+        }
+        if (!played && deck.length) {
+          h.push(deck[0])
+          deck = deck.slice(1)
+        }
+        ai[seat - 1] = h
+        if (!h.length) winner = seat
+      }
+
+      function aiLoop(seat) {
+        if (seat > 2 || winner >= 0) { turn = 0; render(); return }
+        aiAct(seat)
+        render()
+        if (winner >= 0) return
+        const next = seat + 1
+        if (next > 2) { turn = 0; render(); return }
+        turn = next
+        setTimeout(() => aiLoop(next), 480)
+      }
+
+      const body = el('div', { class: 'rummy-body' })
+      root.appendChild(body)
+      C.rules(root, '规则：3 张以上同色连续为顺子，3-4 张同数字不同色为刻子；百搭可替代任意一张；首次出牌需 ≥30 分；每回合没出牌就要摸一张。')
+      render()
+    }
+  })
+})(window.ZZCore)
+
+</script>
+  <script>
+// 大富翁：24 格中国城市 · 买地 / 租金 / 盖房 / 抵押 / 破产
+(function (C) {
+  const el = C.el
+  const SQUARES = ['起点', '北京', '机会', '上海', '所得税', '广州', '监狱', '深圳', '命运', '杭州',
+    '火车站', '南京', '免费停车', '成都', '机会', '重庆', '奢侈税', '武汉', '去监狱', '西安',
+    '命运', '天津', '火车站', '青岛']
+  const PRICE = [0, 1200, 0, 1400, 0, 1600, 0, 1800, 0, 2000, 0, 2200, 0, 2400, 0, 2600, 0, 2800, 0, 3000, 0, 3200, 0, 3600]
+  const COLORS = ['#E94B3C', '#F5A623', '#3B7DD8', '#229B54']
+
+  C.register('monopoly', {
+    title: '大富翁', note: '地产经营 · 盖房与抵押', players: '2-4 人', accent: '#B7791F',
+    mount(root) {
+      let cash = [15000, 15000, 15000, 15000]
+      let owner = new Array(24).fill(-1)
+      let pos = [0, 0, 0, 0]
+      let house = new Array(24).fill(0)
+      let mortgaged = new Array(24).fill(false)
+      let turn = 0
+      let pending = -1
+      let over = false
+
+      const status = C.status(root, '四位玩家各有 ¥15,000，你是玩家 1')
+      const body = el('div')
+      root.appendChild(body)
+
+      function rent(i) {
+        const price = PRICE[i]
+        if (!price) return 0
+        let same = 0
+        owner.forEach((o) => { if (o === owner[i] && PRICE[owner.indexOf(o) * 0 + 0] >= 0 && o >= 0) same++ })
+        same = 0
+        for (let k = 0; k < 24; k++) if (owner[k] === owner[i] && PRICE[k] > 0) same++
+        let r = Math.round(price * 0.18 * (1 + (same - 1) * 0.4) * (1 + house[i] * 0.8))
+        if (mortgaged[i]) r = Math.round(r / 2)
+        return r
+      }
+
+      function render() {
+        C.clear(body)
+        body.appendChild(C.infoRow([0, 1, 2, 3].map((i) => ({
+          k: `玩家 ${i + 1}${i === 0 ? '（你）' : ''}`,
+          v: '¥' + cash[i]
+        }))))
+
+        const grid = el('div', { style: 'display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin:12px 0' })
+        SQUARES.forEach((name, i) => {
+          const cell = el('div', {
+            style: `padding:6px;text-align:center;font-size:11px;border-radius:6px;border:2px solid ${
+              pos.indexOf(i) >= 0 ? '#A4453A' : '#E3DDD2'
+            };background:${owner[i] >= 0 ? COLORS[owner[i]] : '#F7F3EA'};color:${owner[i] >= 0 ? '#fff' : '#172033'}`,
+            text: name + (PRICE[i] ? ` ¥${PRICE[i]}` : '') + (house[i] ? ` 🏠${house[i]}` : '') +
+              (mortgaged[i] ? ' ⛔' : '') + (owner[i] >= 0 ? ` P${owner[i] + 1}` : '')
+          })
+          grid.appendChild(cell)
+        })
+        body.appendChild(grid)
+
+        if (pending >= 0) {
+          body.appendChild(C.buttonRow([
+            { text: `买下 ${SQUARES[pending]} ¥${PRICE[pending]}`, good: true, onClick: () => buy(true) },
+            { text: '放弃', onClick: () => buy(false) }
+          ]))
+        }
+
+        body.appendChild(C.buttonRow([
+          { text: '掷骰前进', primary: true, disabled: turn !== 0 || over || pending >= 0, onClick: roll },
+          { text: '盖房', disabled: turn !== 0 || over || pending >= 0, onClick: build },
+          {
+            text: mortgaged[pos[0]] ? '赎回地产' : '抵押地产',
+            disabled: turn !== 0 || over,
+            onClick: mortgage
+          },
+          { text: '重开本局', onClick: () => {
+            cash = [15000, 15000, 15000, 15000]
+            owner = new Array(24).fill(-1)
+            pos = [0, 0, 0, 0]
+            house = new Array(24).fill(0)
+            mortgaged = new Array(24).fill(false)
+            turn = 0
+            pending = -1
+            over = false
+            status.textContent = '新的一局'
+            render()
+          } }
+        ]))
+      }
+
+      function roll() {
+        if (over || turn !== 0 || pending >= 0) return
+        const d = C.dice()
+        const prev = pos[0]
+        const next = (prev + d) % 24
+        pos[0] = next
+        if (next < prev) {
+          cash[0] += 2000
+          status.textContent = `掷 ${d}，经过起点领 ¥2000 · `
+        } else status.textContent = `掷 ${d} · `
+        landing(0, next)
+      }
+
+      function landing(p, i) {
+        const price = PRICE[i]
+        const name = SQUARES[i]
+        const own = owner[i]
+        if (!price) {
+          event(p, i)
+          nextTurn()
+          return
+        }
+        if (own < 0) {
+          if (cash[p] >= price) {
+            pending = i
+            status.textContent += `${name} 售价 ¥${price}，要买下吗？`
+          } else {
+            status.textContent += `${name} 要 ¥${price}，资金不足`
+            nextTurn()
+          }
+          return
+        }
+        if (own === p) {
+          status.textContent += `回到自己的${name}，可盖房升级`
+          nextTurn()
+          return
+        }
+        const r = rent(i)
+        cash[p] -= r
+        cash[own] += r
+        status.textContent += `在${name}付租金 ¥${r} 给玩家 ${own + 1}`
+        if (cash[p] < 0) {
+          over = true
+          status.textContent = `玩家 ${p + 1} 资金见底破产，本局结束`
+        }
+        nextTurn()
+      }
+
+      function event(p, i) {
+        const name = SQUARES[i]
+        if (name === '所得税') { cash[p] -= 1200; status.textContent += '缴纳所得税 ¥1200' }
+        else if (name === '奢侈税') { cash[p] -= 800; status.textContent += '缴纳奢侈税 ¥800' }
+        else if (name === '去监狱') { pos[p] = 6; status.textContent += '被送去监狱（探监）' }
+        else if (name === '免费停车') status.textContent += '免费停车，休息一回合'
+        else if (name === '机会' || name === '命运') {
+          const delta = [1500, 1000, 500, -500, -800, 2000][Math.floor(Math.random() * 6)]
+          cash[p] += delta
+          status.textContent += `${name}：${delta >= 0 ? '获得' : '支付'} ¥${Math.abs(delta)}`
+        } else status.textContent += `停在${name}`
+      }
+
+      function buy(yes) {
+        const i = pending
+        pending = -1
+        if (yes && cash[0] >= PRICE[i]) {
+          cash[0] -= PRICE[i]
+          owner[i] = 0
+          status.textContent = `买下${SQUARES[i]}，花了 ¥${PRICE[i]}`
+        } else if (yes) {
+          status.textContent = '资金不足'
+        } else {
+          status.textContent = `放弃购买${SQUARES[i]}`
+        }
+        nextTurn()
+      }
+
+      function build() {
+        const i = pos[0]
+        if (owner[i] !== 0) { status.textContent = '只能给自己名下的地产盖房'; render(); return }
+        if (house[i] >= 3) { status.textContent = '这里已经是酒店了'; render(); return }
+        const cost = Math.round(PRICE[i] * 0.5)
+        if (cash[0] < cost) { status.textContent = `盖房需要 ¥${cost}，资金不足`; render(); return }
+        cash[0] -= cost
+        house[i]++
+        status.textContent = `${SQUARES[i]}盖到 ${house[i]} 级，租金提升到 ¥${rent(i)}`
+        render()
+      }
+
+      function mortgage() {
+        const i = pos[0]
+        if (owner[i] !== 0) { status.textContent = '只能抵押自己名下的地产'; render(); return }
+        if (mortgaged[i]) {
+          const pay = Math.round(PRICE[i] * 0.55)
+          if (cash[0] < pay) { status.textContent = `赎回需要 ¥${pay}，资金不足`; render(); return }
+          cash[0] -= pay
+          mortgaged[i] = false
+          status.textContent = `赎回${SQUARES[i]}，花了 ¥${pay}`
+        } else {
+          cash[0] += Math.round(PRICE[i] * 0.5)
+          mortgaged[i] = true
+          status.textContent = `抵押${SQUARES[i]}，获得 ¥${Math.round(PRICE[i] * 0.5)}（租金减半）`
+        }
+        render()
+      }
+
+      function nextTurn() {
+        if (over) { render(); return }
+        turn = (turn + 1) % 4
+        if (turn === 0) { status.textContent += ' · 轮到你了'; render(); return }
+        render()
+        setTimeout(aiTurn, 620)
+      }
+
+      function aiTurn() {
+        if (over || turn === 0) return
+        const p = turn
+        const d = C.dice()
+        const prev = pos[p]
+        const i = (prev + d) % 24
+        pos[p] = i
+        if (i < prev) cash[p] += 2000
+        const price = PRICE[i]
+        if (!price) {
+          event(p, i)
+        } else if (owner[i] < 0 && cash[p] >= price) {
+          cash[p] -= price
+          owner[i] = p
+          status.textContent = `玩家 ${p + 1} 掷 ${d} 买下${SQUARES[i]}`
+        } else if (owner[i] >= 0 && owner[i] !== p) {
+          const r = rent(i)
+          cash[p] -= r
+          cash[owner[i]] += r
+          status.textContent = `玩家 ${p + 1} 掷 ${d} 在${SQUARES[i]}付租金 ¥${r}`
+        } else if (house[i] < 3 && cash[p] > Math.round(price * 0.9)) {
+          cash[p] -= Math.round(price * 0.5)
+          house[i]++
+          status.textContent = `玩家 ${p + 1} 给${SQUARES[i]}加盖到 ${house[i]} 级`
+        } else {
+          status.textContent = `玩家 ${p + 1} 掷 ${d} 停在${SQUARES[i]}`
+        }
+        if (cash[p] < 0) {
+          over = true
+          status.textContent = `玩家 ${p + 1} 破产，本局结束`
+        }
+        nextTurn()
+      }
+
+      C.rules(root, '规则：经过起点领 ¥2000；买地后可盖房（最高 3 级，租金最高 3.4 倍）；缺钱可抵押（租金减半）；现金跌破 0 即破产。')
+      render()
+    }
+  })
+})(window.ZZCore)
+
+</script>
+  <script>
+// 牌类：斗地主 / 麻将 / 扑克（炸金花）
+(function (C) {
+  const el = C.el
+
+  // ================= 斗地主 =================
+  const RANKS = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2', 'w', 'W']
+  const RANK_VALUE = { '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, J: 11, Q: 12, K: 13, A: 14, '2': 15, w: 16, W: 17 }
+  const SUITS = ['♠', '♥', '♣', '♦']
+
+  function deck54() {
+    const d = []
+    SUITS.forEach((s) => RANKS.slice(0, 13).forEach((r) => d.push(s + r)))
+    d.push('🃏小', '🃏大')
+    return d
+  }
+  function rankOf(card) {
+    const raw = card.replace('🃏', '')
+    if (raw === '小') return 16
+    if (raw === '大') return 17
+    return RANK_VALUE[card.slice(1)]
+  }
+  function labelOf(card) {
+    return card
+  }
+  function isRed(card) {
+    return card.indexOf('♥') >= 0 || card.indexOf('♦') >= 0 || card.indexOf('🃏') >= 0
+  }
+
+  // 牌型：{ type, value, len } type: 1单 2对 3三 4三带一 5三带二 6顺子 7连对 8飞机 9四带二 10炸弹 11王炸
+  function parseCombo(cards) {
+    const n = cards.length
+    if (!n) return null
+    const vals = cards.map(rankOf).sort((a, b) => a - b)
+    const counts = {}
+    vals.forEach((v) => counts[v] = (counts[v] || 0) + 1)
+    const groups = Object.keys(counts).map((k) => ({ v: parseInt(k, 10), c: counts[k] }))
+      .sort((a, b) => b.c - a.c || b.v - a.v)
+    if (n === 2 && vals[0] === 16 && vals[1] === 17) return { type: 11, value: 100, len: 1 }
+    if (n === 4 && groups.length === 1) return { type: 10, value: groups[0].v, len: 1 }
+    if (n === 1) return { type: 1, value: vals[0], len: 1 }
+    if (n === 2 && groups.length === 1) return { type: 2, value: groups[0].v, len: 1 }
+    if (n === 3 && groups.length === 1) return { type: 3, value: groups[0].v, len: 1 }
+    if (n === 4 && groups.length === 2 && groups[0].c === 3) return { type: 4, value: groups[0].v, len: 1 }
+    if (n === 5 && groups.length === 2 && groups[0].c === 3 && groups[1].c === 2) return { type: 5, value: groups[0].v, len: 1 }
+    if (n === 6 && groups.length === 2 && groups[0].c === 4) return { type: 9, value: groups[0].v, len: 1 }
+    if (n === 8 && groups.length === 2 && groups[0].c === 4 && groups[1].c === 4) return { type: 10, value: groups[0].v, len: 1 }
+    // 顺子
+    if (n >= 5 && groups.length === n && groups.every((g) => g.c === 1)) {
+      const vs = groups.map((g) => g.v).sort((a, b) => a - b)
+      let ok = true
+      for (let i = 1; i < vs.length; i++) if (vs[i] !== vs[i - 1] + 1) ok = false
+      if (ok && vs[vs.length - 1] <= 14) return { type: 6, value: vs[vs.length - 1], len: n }
+    }
+    // 连对
+    if (n >= 6 && n % 2 === 0 && groups.length === n / 2 && groups.every((g) => g.c === 2)) {
+      const vs = groups.map((g) => g.v).sort((a, b) => a - b)
+      let ok = true
+      for (let i = 1; i < vs.length; i++) if (vs[i] !== vs[i - 1] + 1) ok = false
+      if (ok && vs[vs.length - 1] <= 14) return { type: 7, value: vs[vs.length - 1], len: n / 2 }
+    }
+    // 飞机（连续三张）
+    if (n >= 6 && n % 3 === 0 && groups.length === n / 3 && groups.every((g) => g.c === 3)) {
+      const vs = groups.map((g) => g.v).sort((a, b) => a - b)
+      let ok = true
+      for (let i = 1; i < vs.length; i++) if (vs[i] !== vs[i - 1] + 1) ok = false
+      if (ok && vs[vs.length - 1] <= 14) return { type: 8, value: vs[vs.length - 1], len: n / 3 }
+    }
+    return null
+  }
+
+  function beats(a, b) {
+    if (!a) return false
+    if (!b) return true
+    if (a.type === 11) return true
+    if (b.type === 11) return false
+    if (a.type === 10 && b.type !== 10) return true
+    if (b.type === 10 && a.type !== 10) return false
+    return a.type === b.type && a.len === b.len && a.value > b.value
+  }
+
+  C.register('landlord', {
+    title: '斗地主', note: '叫抢地主 · 完整牌型 · 炸弹', players: '3 人', accent: '#C05621',
+    mount(root) {
+      let hands = [[], [], []]
+      let bottom = []
+      let landlord = -1
+      let turn = 0
+      let lastCombo = null
+      let lastPlayer = -1
+      let selected = []
+      let over = false
+      let multiplier = 1
+
+      const status = C.status(root, '发牌完成，点「叫地主」抢地主')
+      const body = el('div')
+      root.appendChild(body)
+
+      function deal() {
+        const d = C.shuffle(deck54())
+        hands = [sortCards(d.slice(0, 17)), sortCards(d.slice(17, 34)), sortCards(d.slice(34, 51))]
+        bottom = d.slice(51)
+        landlord = -1
+        turn = 0
+        lastCombo = null
+        lastPlayer = -1
+        selected = []
+        over = false
+        multiplier = 1
+        status.textContent = '发牌完成 · 你是 1 号位，是否叫地主？'
+      }
+      function sortCards(arr) {
+        return arr.slice().sort((a, b) => rankOf(a) - rankOf(b))
+      }
+      deal()
+
+      function render() {
+        C.clear(body)
+        body.appendChild(C.infoRow([
+          { k: '地主', v: landlord >= 0 ? `${landlord + 1} 号` : '未定' },
+          { k: '底牌', v: landlord >= 0 ? bottom.map(labelOf).join(' ') : '???' },
+          { k: '倍数', v: '×' + multiplier },
+          { k: '剩余', v: `${hands[1].length} / ${hands[2].length}` }
+        ]))
+        if (landlord < 0) {
+          body.appendChild(C.buttonRow([
+            { text: '叫地主', primary: true, onClick: () => becomeLandlord(0) },
+            { text: '不叫', onClick: () => { becomeLandlord(1) } }
+          ]))
+        }
+
+        // 对手手牌（背面）
+        const oppRow = el('div', { style: 'display:flex;gap:10px;margin:8px 0' })
+        ;[1, 2].forEach((i) => {
+          const box = el('div', { style: 'flex:1;padding:8px;border:1px solid #E3DDD2;border-radius:8px;background:#F7F3EA' })
+          box.appendChild(el('div', { style: 'font-size:12px;color:#6B7280', text: `${i + 1} 号 · ${hands[i].length} 张` }))
+          const cards = el('div')
+          for (let k = 0; k < Math.min(hands[i].length, 10); k++) {
+            cards.appendChild(el('span', { class: 'card-face back', text: '🂠', style: 'width:26px;height:36px;font-size:12px;margin:1px' }))
+          }
+          box.appendChild(cards)
+          oppRow.appendChild(box)
+        })
+        body.appendChild(oppRow)
+
+        // 我的手牌
+        const mine = el('div', { style: 'margin:8px 0' })
+        hands[0].forEach((card) => {
+          const face = el('div', {
+            class: 'card-face ' + (isRed(card) ? 'red' : '') + (selected.indexOf(card) >= 0 ? ' sel' : ''),
+            text: labelOf(card)
+          })
+          face.onclick = () => {
+            if (over || turn !== 0 || landlord < 0) return
+            const at = selected.indexOf(card)
+            if (at >= 0) selected.splice(at, 1)
+            else selected.push(card)
+            render()
+          }
+          mine.appendChild(face)
+        })
+        body.appendChild(mine)
+
+        if (landlord >= 0 && !over) {
+          body.appendChild(C.buttonRow([
+            { text: '出牌', primary: true, disabled: turn !== 0, onClick: play },
+            { text: '不要（过）', disabled: turn !== 0 || !lastCombo, onClick: pass },
+            { text: '提示', disabled: turn !== 0, onClick: hint },
+            { text: '重开', onClick: () => { deal(); render() } }
+          ]))
+        }
+      }
+
+      function becomeLandlord(who) {
+        landlord = who
+        hands[who] = sortCards(hands[who].concat(bottom))
+        turn = who
+        status.textContent = who === 0 ? '你成为地主，拿到 3 张底牌，请出牌' : `${who + 1} 号成为地主`
+        render()
+        if (who !== 0) setTimeout(aiTurn, 700)
+      }
+
+      function removeCards(who, cards) {
+        cards.forEach((c) => {
+          const at = hands[who].indexOf(c)
+          if (at >= 0) hands[who].splice(at, 1)
+        })
+      }
+
+      function play() {
+        if (turn !== 0 || over) return
+        const combo = parseCombo(selected)
+        if (!combo) { status.textContent = '牌型不合法'; return }
+        if (lastCombo && lastPlayer !== 0 && !beats(combo, lastCombo)) {
+          status.textContent = '压不过上家的牌'
+          return
+        }
+        if (combo.type === 10 || combo.type === 11) multiplier *= 2
+        removeCards(0, selected)
+        lastCombo = combo
+        lastPlayer = 0
+        selected = []
+        if (!hands[0].length) {
+          over = true
+          status.textContent = landlord === 0 ? `你出完了牌，地主获胜！🏆（倍数 ×${multiplier}）` : `你出完了牌，农民获胜！🏆（倍数 ×${multiplier}）`
+          render()
+          return
+        }
+        status.textContent = '你出牌：' + comboName(combo)
+        turn = 1
+        render()
+        setTimeout(aiTurn, 720)
+      }
+
+      function comboName(c) {
+        const names = { 1: '单张', 2: '对子', 3: '三张', 4: '三带一', 5: '三带二', 6: '顺子', 7: '连对', 8: '飞机', 9: '四带二', 10: '炸弹', 11: '王炸' }
+        return names[c.type] || '牌'
+      }
+
+      function pass() {
+        if (turn !== 0 || !lastCombo) return
+        status.textContent = '你选择不要'
+        turn = 1
+        render()
+        setTimeout(aiTurn, 620)
+      }
+
+      function hint() {
+        const beat = findBeat(hands[0], lastCombo && lastPlayer !== 0 ? lastCombo : null)
+        if (!beat) { status.textContent = '没有能压过的牌，可以点「不要」'; return }
+        selected = beat.slice()
+        render()
+      }
+
+      // 从手牌找出能压过 target 的最小组合
+      function findBeat(hand, target) {
+        const counts = {}
+        hand.forEach((c) => { const v = rankOf(c); counts[v] = (counts[v] || 0) + 1 })
+        const vs = Object.keys(counts).map((k) => parseInt(k, 10)).sort((a, b) => a - b)
+        function take(v, n) {
+          const out = []
+          hand.forEach((c) => { if (rankOf(c) === v && out.length < n) out.push(c) })
+          return out.length === n ? out : null
+        }
+        function kickers(size, exclude, need) {
+          const out = []
+          const pool = []
+          vs.forEach((v) => {
+            if (v === exclude) return
+            for (let k = 0; k < counts[v]; k++) pool.push(v)
+          })
+          // 优先用散牌
+          const sorted = pool.slice().sort((a, b) => counts[a] - counts[b])
+          for (let i = 0; i < sorted.length && out.length < need; i++) {
+            const v = sorted[i]
+            const used = out.filter((x) => rankOf(x) === v).length
+            if (used + 1 > counts[v]) continue
+            const c = hand.find((x) => rankOf(x) === v && out.indexOf(x) < 0)
+            if (c) out.push(c)
+          }
+          return out.length === need ? out : null
+        }
+        if (!target) {
+          // 自由出牌：出最小的单张
+          const v = vs[0]
+          return take(v, 1)
+        }
+        if (target.type === 1) {
+          for (const v of vs) if (v > target.value && counts[v] >= 1) return take(v, 1)
+        } else if (target.type === 2) {
+          for (const v of vs) if (v > target.value && counts[v] >= 2) return take(v, 2)
+        } else if (target.type === 3) {
+          for (const v of vs) if (v > target.value && counts[v] >= 3) return take(v, 3)
+        } else if (target.type === 4) {
+          for (const v of vs) {
+            if (v > target.value && counts[v] >= 3) {
+              const k = kickers(1, v, 1)
+              if (k) return take(v, 3).concat(k)
+            }
+          }
+        } else if (target.type === 5) {
+          for (const v of vs) {
+            if (v > target.value && counts[v] >= 3) {
+              // 找一对
+              for (const p of vs) {
+                if (p !== v && counts[p] >= 2) return take(v, 3).concat(take(p, 2))
+              }
+            }
+          }
+        } else if (target.type === 6 || target.type === 7 || target.type === 8) {
+          const need = target.type === 6 ? 1 : (target.type === 7 ? 2 : 3)
+          const len = target.len
+          for (let start = 0; start + len <= vs.length; start++) {
+            let ok = true
+            for (let i = 0; i < len; i++) {
+              const v = vs[start + i]
+              if (v > 15 || counts[v] < need) { ok = false; break }
+              if (i > 0 && v !== vs[start + i - 1] + 1) { ok = false; break }
+            }
+            if (!ok) continue
+            if (vs[start + len - 1] <= target.value) continue
+            const out = []
+            for (let i = 0; i < len; i++) out.push(...take(vs[start + i], need))
+            return out
+          }
+        } else if (target.type === 10) {
+          for (const v of vs) if (v > target.value && counts[v] === 4) return take(v, 4)
+          if (counts[16] && counts[17]) {
+            return hand.filter((c) => rankOf(c) === 16 || rankOf(c) === 17)
+          }
+        }
+        // 炸弹/王炸兜底
+        for (const v of vs) if (counts[v] === 4) return take(v, 4)
+        if (counts[16] && counts[17]) return hand.filter((c) => rankOf(c) === 16 || rankOf(c) === 17)
+        return null
+      }
+
+      function aiTurn() {
+        if (over || turn === 0) return
+        const p = turn
+        const need = (lastCombo && lastPlayer !== p) ? lastCombo : null
+        const beat = findBeat(hands[p], need)
+        if (beat) {
+          const combo = parseCombo(beat)
+          if (combo && (combo.type === 10 || combo.type === 11)) multiplier *= 2
+          removeCards(p, beat)
+          lastCombo = combo
+          lastPlayer = p
+          status.textContent = `${p + 1} 号出牌：${comboName(combo)}`
+          if (!hands[p].length) {
+            over = true
+            const farmerWin = landlord !== p
+            status.textContent = farmerWin ? '农民获胜！🏆' : '地主获胜！'
+            render()
+            return
+          }
+        } else {
+          status.textContent = `${p + 1} 号不要`
+          if (lastPlayer === (p + 1) % 3 || lastPlayer === (p + 2) % 3) {
+            // 两家都不要，重新自由出牌
+            lastCombo = null
+            lastPlayer = -1
+          }
+        }
+        turn = (p + 1) % 3
+        if (turn === 0) {
+          status.textContent += ' · 轮到你'
+          render()
+          return
+        }
+        render()
+        setTimeout(aiTurn, 640)
+      }
+
+      C.rules(root, '规则：三人对局，叫地主者拿 3 张底牌并先出牌；牌型含单张、对子、三带、顺子、连对、飞机、四带二、炸弹与王炸；炸弹与王炸倍数翻倍。')
+      render()
+    }
+  })
+
+  // ================= 麻将 =================
+  const MJ_SUIT = ['万', '筒', '条']
+  function mjLabel(t) { return `${t % 10 + 1}${MJ_SUIT[Math.floor(t / 10)]}` }
+  function mjCounts(hand) {
+    const c = new Array(27).fill(0)
+    hand.forEach((t) => { if (t >= 0 && t < 27) c[t]++ })
+    return c
+  }
+  function mjDecompose(hand, hasPair) {
+    if (!hand.length) return hasPair
+    if (hand.length >= 3 && hand[0] === hand[1] && hand[1] === hand[2]) {
+      if (mjDecompose(hand.slice(3), hasPair)) return true
+    }
+    if (!hasPair && hand.length >= 2 && hand[0] === hand[1]) {
+      if (mjDecompose(hand.slice(2), true)) return true
+    }
+    if (hand[0] % 10 <= 6) {
+      const a = hand[0] + 1
+      const b = hand[0] + 2
+      const rest = hand.slice(1)
+      const ia = rest.indexOf(a)
+      if (ia >= 0) {
+        const r2 = rest.slice()
+        r2.splice(ia, 1)
+        const ib = r2.indexOf(b)
+        if (ib >= 0) {
+          const r3 = r2.slice()
+          r3.splice(ib, 1)
+          if (mjDecompose(r3, hasPair)) return true
+        }
+      }
+    }
+    return false
+  }
+  function mjCanWin(hand) {
+    const s = hand.slice().sort((a, b) => a - b)
+    if (s.length === 14) {
+      const c = mjCounts(s)
+      let pairs = 0
+      let ok = true
+      for (let i = 0; i < 27; i++) {
+        if (!c[i]) continue
+        if (c[i] === 2) pairs++
+        else { ok = false; break }
+      }
+      if (ok && pairs === 7) return true
+    }
+    return mjDecompose(s, false)
+  }
+
+  C.register('mahjong', {
+    title: '麻将', note: '摸打 · 吃碰杠胡 · AI 三家', players: '4 人', accent: '#2F855A',
+    mount(root) {
+      let hand = []
+      let melds = []
+      let pool = []
+      let wal = []
+      let ai = [[], [], []]
+      let turn = 0
+      let drawn = -1
+      let claim = -1
+      let flags = { pon: false, kan: false, chi: false, hu: false }
+      let winner = -1
+
+      const status = C.status(root, '麻将开局 · 点「摸牌」开始')
+      const body = el('div')
+      root.appendChild(body)
+
+      function deal() {
+        const w = []
+        for (let s = 0; s < 3; s++) for (let v = 0; v < 9; v++) for (let c = 0; c < 4; c++) w.push(s * 10 + v)
+        const s = C.shuffle(w)
+        hand = s.slice(0, 13).sort((a, b) => a - b)
+        ai = [s.slice(13, 26).sort((a, b) => a - b), s.slice(26, 39).sort((a, b) => a - b), s.slice(39, 52).sort((a, b) => a - b)]
+        wal = s.slice(52)
+        melds = []
+        pool = []
+        turn = 0
+        drawn = -1
+        claim = -1
+        flags = { pon: false, kan: false, chi: false, hu: false }
+        winner = -1
+        status.textContent = '麻将开局 · 点「摸牌」开始你的回合'
+      }
+      deal()
+
+      function render() {
+        C.clear(body)
+        body.appendChild(C.infoRow([
+          { k: '牌墙', v: wal.length },
+          { k: '下家', v: ai[0].length },
+          { k: '对家', v: ai[1].length },
+          { k: '上家', v: ai[2].length }
+        ]))
+        if (melds.length) {
+          const m = el('div', { style: 'margin:8px 0' })
+          melds.forEach((t) => m.appendChild(el('span', { class: 'mahjong-tile small', text: mjLabel(t) })))
+          body.appendChild(m)
+        }
+        const poolBox = el('div', { style: 'min-height:70px;margin:8px 0' })
+        poolBox.appendChild(el('div', { class: 'rules', text: '牌河' }))
+        pool.forEach((t, i) => poolBox.appendChild(el('span', { class: 'mahjong-tile small', text: mjLabel(t) })))
+        body.appendChild(poolBox)
+
+        const handBox = el('div', { style: 'margin:8px 0' })
+        hand.forEach((t, i) => {
+          const tile = el('span', { class: 'mahjong-tile' + (t === drawn ? ' drawn' : ''), text: mjLabel(t) })
+          tile.onclick = () => discard(i)
+          handBox.appendChild(tile)
+        })
+        body.appendChild(handBox)
+
+        body.appendChild(C.buttonRow([
+          { text: '摸牌', primary: true, disabled: turn !== 0 || winner >= 0 || claim >= 0 || drawn >= 0, onClick: draw },
+          { text: '碰', good: flags.pon, disabled: !flags.pon, onClick: pon },
+          { text: '杠', good: flags.kan, disabled: !flags.kan, onClick: kan },
+          { text: '吃', good: flags.chi, disabled: !flags.chi, onClick: chi }
+        ]))
+        body.appendChild(C.buttonRow([
+          { text: '胡', warn: true, disabled: !flags.hu, onClick: hu },
+          { text: '过', disabled: claim < 0, onClick: pass },
+          { text: '重开', onClick: () => { deal(); render() } }
+        ]))
+      }
+
+      function draw() {
+        if (turn !== 0 || winner >= 0 || claim >= 0) return
+        if (!wal.length) { status.textContent = '牌墙摸完，流局'; render(); return }
+        const t = wal[0]
+        wal = wal.slice(1)
+        hand = hand.concat([t]).sort((a, b) => a - b)
+        drawn = t
+        flags.hu = mjCanWin(hand)
+        const c = mjCounts(hand)
+        flags.kan = c.indexOf(4) >= 0
+        status.textContent = flags.hu ? `摸到 ${mjLabel(t)} · 可以自摸胡！` : `摸到 ${mjLabel(t)}，点一张牌打出`
+        render()
+      }
+
+      function discard(i) {
+        if (turn !== 0 || winner >= 0) return
+        const t = hand[i]
+        hand.splice(i, 1)
+        pool.push(t)
+        drawn = -1
+        flags = { pon: false, kan: false, chi: false, hu: false }
+        status.textContent = `你打出 ${mjLabel(t)}`
+        render()
+        setTimeout(() => aiLoop(1), 600)
+      }
+
+      function aiChoose(h) {
+        let best = h[0]
+        let bestScore = Infinity
+        h.forEach((t) => {
+          let score = 0
+          let same = 0
+          let near = 0
+          h.forEach((x) => {
+            if (x === t) same++
+            const d = Math.abs(x - t)
+            if ((d === 1 || d === 2) && Math.floor(x / 10) === Math.floor(t / 10)) near++
+          })
+          score -= same * 6
+          score -= near * 3
+          if (score < bestScore) { bestScore = score; best = t }
+        })
+        return best
+      }
+
+      function chiOptions(t) {
+        const out = []
+        if (t % 10 >= 2 && hand.indexOf(t - 2) >= 0 && hand.indexOf(t - 1) >= 0) out.push([t - 2, t - 1, t])
+        if (t % 10 >= 1 && t % 10 <= 7 && hand.indexOf(t - 1) >= 0 && hand.indexOf(t + 1) >= 0) out.push([t - 1, t, t + 1])
+        if (t % 10 <= 6 && hand.indexOf(t + 1) >= 0 && hand.indexOf(t + 2) >= 0) out.push([t, t + 1, t + 2])
+        return out
+      }
+
+      function aiLoop(seat) {
+        if (winner >= 0) return
+        if (seat > 3) { turn = 0; status.textContent = '轮到你摸牌'; render(); return }
+        const idx = seat - 1
+        if (!wal.length) { status.textContent = '牌墙摸完，流局'; render(); return }
+        const t = wal[0]
+        wal = wal.slice(1)
+        const h = ai[idx].concat([t]).sort((a, b) => a - b)
+        if (mjCanWin(h)) {
+          winner = seat
+          status.textContent = `${seat} 号自摸胡牌，本局结束`
+          render()
+          return
+        }
+        const d = aiChoose(h)
+        const rest = h.slice()
+        rest.splice(rest.indexOf(d), 1)
+        ai[idx] = rest
+        pool.push(d)
+        const mine = mjCounts(hand)
+        claim = d
+        flags.pon = mine[d] >= 2
+        flags.kan = mine[d] >= 3
+        flags.hu = mjCanWin(hand.concat([d]).sort((a, b) => a - b))
+        flags.chi = seat === 3 && chiOptions(d).length > 0
+        if (flags.pon || flags.kan || flags.hu || flags.chi) {
+          turn = 0
+          status.textContent = `${seat} 号打出 ${mjLabel(d)} · 你可以碰/杠/吃/胡，或点「过」`
+          render()
+          return
+        }
+        render()
+        setTimeout(() => aiLoop(seat + 1), 580)
+      }
+
+      function clearClaim() {
+        claim = -1
+        flags = { pon: false, kan: false, chi: false, hu: false }
+      }
+
+      function pon() {
+        const t = claim
+        if (t < 0) return
+        hand.splice(hand.indexOf(t), 1)
+        hand.splice(hand.indexOf(t), 1)
+        hand = hand.sort((a, b) => a - b)
+        melds = melds.concat([t, t, t])
+        const at = pool.lastIndexOf(t)
+        if (at >= 0) pool.splice(at, 1)
+        clearClaim()
+        status.textContent = `碰 ${mjLabel(t)}，请打出一张牌`
+        render()
+      }
+
+      function kan() {
+        const t = claim
+        let target = t
+        if (t < 0 || mjCounts(hand)[t] < 3) {
+          const c = mjCounts(hand)
+          target = c.indexOf(4)
+          if (target < 0) return
+        }
+        for (let k = 0; k < 3; k++) {
+          const at = hand.indexOf(target)
+          if (at >= 0) hand.splice(at, 1)
+        }
+        if (t >= 0) {
+          const at = pool.lastIndexOf(t)
+          if (at >= 0) pool.splice(at, 1)
+        }
+        melds = melds.concat([target, target, target, target])
+        if (wal.length) {
+          const d = wal[0]
+          wal = wal.slice(1)
+          hand.push(d)
+          drawn = d
+        }
+        hand = hand.sort((a, b) => a - b)
+        clearClaim()
+        status.textContent = `杠 ${mjLabel(target)}，请打出一张牌`
+        render()
+      }
+
+      function chi() {
+        const t = claim
+        if (t < 0) return
+        const opts = chiOptions(t)
+        if (!opts.length) return
+        const meld = opts[0]
+        hand.splice(hand.indexOf(meld[0]), 1)
+        hand.splice(hand.indexOf(meld[1]), 1)
+        hand = hand.sort((a, b) => a - b)
+        melds = melds.concat(meld)
+        const at = pool.lastIndexOf(t)
+        if (at >= 0) pool.splice(at, 1)
+        clearClaim()
+        status.textContent = `吃 ${meld.map(mjLabel).join(' ')}，请打出一张牌`
+        render()
+      }
+
+      function hu() {
+        const t = claim
+        const h = t >= 0 ? hand.concat([t]) : hand
+        if (!mjCanWin(h.slice().sort((a, b) => a - b))) { status.textContent = '这副牌还不能胡'; render(); return }
+        winner = 0
+        const c = mjCounts(h)
+        let triples = 0
+        let pairs = 0
+        for (let i = 0; i < 27; i++) { if (c[i] >= 3) triples++; if (c[i] === 2) pairs++ }
+        const first = Math.floor(h[0] / 10)
+        const oneSuit = h.every((x) => Math.floor(x / 10) === first)
+        const fan = pairs === 7 ? '七对' : oneSuit ? '清一色' : triples === 4 ? '碰碰胡' : '平胡'
+        status.textContent = `胡牌！🏆 ${fan}`
+        render()
+      }
+
+      function pass() {
+        clearClaim()
+        render()
+        setTimeout(() => aiLoop(1), 520)
+      }
+
+      C.rules(root, '规则：万筒条 108 张，四人麻将。摸牌后打出一张；别家打出的牌可以碰、杠、胡，上家打出的还可以吃；凑成 4 副面子 + 1 对将即可胡牌，另有七对。')
+      render()
+    }
+  })
+
+  // ================= 扑克：炸金花 =================
+  function pkRank(t) { const r = t % 13; return r === 0 ? 14 : r }
+  function pkLabel(t) {
+    const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+    const suits = ['♠', '♥', '♣', '♦']
+    return ranks[t % 13] + suits[Math.floor(t / 13)]
+  }
+  function pkType(h) {
+    const vs = h.map(pkRank).sort((a, b) => a - b)
+    const flush = Math.floor(h[0] / 13) === Math.floor(h[1] / 13) && Math.floor(h[1] / 13) === Math.floor(h[2] / 13)
+    const straight = (vs[1] === vs[0] + 1 && vs[2] === vs[1] + 1) || (vs[0] === 2 && vs[1] === 3 && vs[2] === 14)
+    const triple = vs[0] === vs[1] && vs[1] === vs[2]
+    const pair = !triple && (vs[0] === vs[1] || vs[1] === vs[2])
+    if (triple) return 5
+    if (flush && straight) return 4
+    if (flush) return 3
+    if (straight) return 2
+    if (pair) return 1
+    return 0
+  }
+  const PK_TYPE_NAME = ['散牌', '对子', '顺子', '金花', '顺金', '豹子']
+  function pkScore(h) {
+    const type = pkType(h)
+    const vs = h.map(pkRank).sort((a, b) => a - b)
+    let power = 0
+    if (type === 5) power = vs[2] * 10000
+    else if (type === 1) {
+      const pv = vs[0] === vs[1] ? vs[0] : vs[1]
+      power = pv * 10000 + (vs[0] + vs[1] + vs[2] - pv * 2)
+    } else if (type === 2 || type === 4) {
+      const top = (vs[0] === 2 && vs[1] === 3 && vs[2] === 14) ? 3 : vs[2]
+      power = top * 10000
+    } else power = vs[2] * 10000 + vs[1] * 100 + vs[0]
+    return type * 1000000 + power
+  }
+
+  C.register('poker', {
+    title: '扑克牌', note: '炸金花 · 下注与开牌', players: '2-6 人', accent: '#8A3E45',
+    mount(root) {
+      let hand = []
+      let ai = [[], [], []]
+      let pot = 0
+      let chip = 1000
+      let bet = 20
+      let round = 1
+      let alive = [true, true, true, true]
+      let winner = -1
+      let reveal = false
+
+      const status = C.status(root, '炸金花：3 张比牌型，比大小')
+      const body = el('div')
+      root.appendChild(body)
+
+      function deal() {
+        const d = C.shuffle(Array.from({ length: 52 }, (_, i) => i))
+        hand = d.slice(0, 3)
+        ai = [d.slice(3, 6), d.slice(6, 9), d.slice(9, 12)]
+        pot = 80
+        chip = 980
+        bet = 20
+        round = 1
+        alive = [true, true, true, true]
+        winner = -1
+        reveal = false
+        status.textContent = '底注已下，选择跟注 / 加注 / 开牌 / 弃牌'
+      }
+      deal()
+
+      function render() {
+        C.clear(body)
+        body.appendChild(C.infoRow([
+          { k: '底池', v: '¥' + pot },
+          { k: '我的筹码', v: '¥' + chip },
+          { k: '当前注', v: '¥' + bet },
+          { k: '我的牌型', v: PK_TYPE_NAME[pkType(hand)] }
+        ]))
+        const mine = el('div', { style: 'margin:10px 0' })
+        hand.forEach((c) => {
+          const face = el('div', { class: 'card-face ' + (Math.floor(c / 13) === 1 || Math.floor(c / 13) === 3 ? 'red' : ''), text: pkLabel(c) })
+          mine.appendChild(face)
+        })
+        body.appendChild(mine)
+
+        const oppRow = el('div', { style: 'display:flex;gap:8px;margin:10px 0' })
+        ai.forEach((h, i) => {
+          const box = el('div', { style: 'flex:1;padding:8px;border:1px solid #E3DDD2;border-radius:8px;background:#F7F3EA;text-align:center' })
+          box.appendChild(el('div', { style: 'font-size:12px;color:#6B7280', text: `对手 ${i + 1}` }))
+          if (reveal && alive[i + 1]) {
+            box.appendChild(el('div', { style: 'font-size:13px', text: h.map(pkLabel).join(' ') }))
+            box.appendChild(el('div', { style: 'font-size:11px;color:#A4453A', text: PK_TYPE_NAME[pkType(h)] }))
+          } else {
+            box.appendChild(el('div', { text: alive[i + 1] ? '🂠 🂠 🂠' : '已弃牌' }))
+          }
+          oppRow.appendChild(box)
+        })
+        body.appendChild(oppRow)
+
+        body.appendChild(C.buttonRow([
+          { text: `跟注 ¥${bet}`, primary: true, disabled: winner >= 0, onClick: call },
+          { text: '加注 +40', good: true, disabled: winner >= 0, onClick: raise },
+          { text: '开牌', warn: true, disabled: winner >= 0, onClick: showdown },
+          { text: '弃牌', disabled: winner >= 0, onClick: fold }
+        ]))
+        body.appendChild(C.buttonRow([{ text: '重开一局', onClick: () => { deal(); render() } }]))
+      }
+
+      function afterPlayer() {
+        // AI 决策
+        for (let i = 1; i < 4; i++) {
+          if (!alive[i]) continue
+          const type = pkType(ai[i - 1])
+          if (type === 0 && Math.random() < 0.55) alive[i] = false
+          else if (type <= 1 && bet > 60 && Math.random() < 0.35) alive[i] = false
+        }
+        round++
+        if (round > 3) showdown()
+        else status.textContent = `第 ${round} 轮 · 底池 ¥${pot}`
+      }
+
+      function call() {
+        if (chip < bet) { status.textContent = '筹码不足'; return }
+        chip -= bet
+        pot += bet
+        afterPlayer()
+        render()
+      }
+      function raise() {
+        if (chip < bet + 40) { status.textContent = '筹码不足'; return }
+        chip -= bet + 40
+        pot += bet + 40
+        bet += 40
+        afterPlayer()
+        render()
+      }
+      function fold() {
+        alive[0] = false
+        winner = 1
+        reveal = true
+        status.textContent = '你弃牌了'
+        render()
+      }
+      function showdown() {
+        reveal = true
+        let best = -1
+        let bestScore = -1
+        for (let i = 0; i < 4; i++) {
+          if (!alive[i]) continue
+          const h = i === 0 ? hand : ai[i - 1]
+          const s = pkScore(h)
+          if (s > bestScore) { bestScore = s; best = i }
+        }
+        winner = best
+        if (best === 0) {
+          chip += pot
+          status.textContent = `你赢下底池 ¥${pot}！🏆 ${PK_TYPE_NAME[pkType(hand)]}`
+        } else if (best > 0) {
+          status.textContent = `对手 ${best} 以${PK_TYPE_NAME[pkType(ai[best - 1])]}赢下底池 ¥${pot}`
+        } else status.textContent = '所有人都弃牌了'
+        render()
+      }
+
+      C.rules(root, '牌型：豹子 > 顺金 > 金花 > 顺子 > 对子 > 散牌；A 最大，A23 也算顺子。可跟注、加注、开牌（双倍注）或弃牌。')
+      render()
+    }
+  })
+})(window.ZZCore)
+
+</script>
+  <script>
+// 聚会类：狼人杀（流程引擎）与谁是卧底
+(function (C) {
+  const el = C.el
+
+  // ================= 狼人杀 =================
+  const WOLF_ROLES = [
+    { id: 'wolf', name: '狼人', camp: '狼', desc: '每晚共同击倒一名玩家' },
+    { id: 'seer', name: '预言家', camp: '神', desc: '每晚查验一名玩家的身份' },
+    { id: 'witch', name: '女巫', camp: '神', desc: '拥有一瓶解药与一瓶毒药' },
+    { id: 'hunter', name: '猎人', camp: '神', desc: '出局时可开枪带走一人' },
+    { id: 'guard', name: '守卫', camp: '神', desc: '每晚守护一名玩家' },
+    { id: 'vil1', name: '村民', camp: '民', desc: '白天通过讨论找出狼人' },
+    { id: 'vil2', name: '村民', camp: '民', desc: '白天通过讨论找出狼人' },
+    { id: 'vil3', name: '村民', camp: '民', desc: '白天通过讨论找出狼人' },
+    { id: 'vil4', name: '村民', camp: '民', desc: '白天通过讨论找出狼人' }
+  ]
+
+  C.register('werewolf', {
+    title: '狼人杀', note: '身份 · 发言 · 投票', players: '6-12 人', accent: '#34495E',
+    mount(root) {
+      let seats = []
+      let phase = 'night'
+      let day = 1
+      let selected = -1
+      let log = []
+      let over = false
+
+      const status = C.status(root, '夜晚：狼人请选择要击倒的玩家')
+
+      function setup(n) {
+        const roles = C.shuffle(WOLF_ROLES).slice(0, n)
+        // 保证至少 2 狼 2 神
+        seats = roles.map((r, i) => ({ seat: i + 1, role: r, alive: true, revealed: false }))
+        phase = 'night'
+        day = 1
+        selected = -1
+        log = ['游戏开始：天黑请闭眼']
+        over = false
+      }
+      setup(9)
+
+      function aliveList() { return seats.filter((s) => s.alive) }
+      function wolves() { return seats.filter((s) => s.alive && s.role.camp === '狼') }
+      function gods() { return seats.filter((s) => s.alive && s.role.camp === '神') }
+
+      function checkEnd() {
+        const w = wolves().length
+        const g = aliveList().filter((s) => s.role.camp !== '狼').length
+        if (w === 0) { over = true; log.push('所有狼人出局，好人阵营获胜！🏆') }
+        else if (w >= g) { over = true; log.push('狼人数量达到好人数量，狼人阵营获胜') }
+      }
+
+      function render() {
+        C.clear(root.querySelector('.party-body'))
+        const body = root.querySelector('.party-body')
+        body.appendChild(C.infoRow([
+          { k: '阶段', v: phase === 'night' ? `第 ${day} 夜` : `第 ${day} 天` },
+          { k: '存活', v: aliveList().length },
+          { k: '狼人', v: wolves().length },
+          { k: '神职', v: gods().length }
+        ]))
+
+        const wrap = el('div', { style: 'display:flex;flex-wrap:wrap;gap:8px;margin:10px 0' })
+        seats.forEach((s) => {
+          const card = el('div', {
+            style: `width:118px;padding:10px;border-radius:8px;cursor:pointer;border:2px solid ${
+              selected === s.seat - 1 ? '#A4453A' : '#E3DDD2'
+            };background:${s.alive ? '#F7F3EA' : '#E6E1D7'};opacity:${s.alive ? 1 : .55}`,
+            onclick: () => { if (s.alive && !over) { selected = s.seat - 1; render() } }
+          }, [
+            el('div', { style: 'font-weight:700;font-size:14px', text: `${s.seat} 号` }),
+            el('div', { style: 'font-size:12px;color:#6B7280;margin-top:2px', text: s.alive ? (s.revealed ? s.role.name : '身份未公开') : '已出局' }),
+            s.revealed || !s.alive ? el('div', { style: 'font-size:11px;margin-top:4px', text: s.role.desc }) : null
+          ])
+          wrap.appendChild(card)
+        })
+        body.appendChild(wrap)
+
+        if (!over) {
+          if (phase === 'night') {
+            body.appendChild(C.buttonRow([
+              { text: '狼人击倒', primary: true, disabled: selected < 0, onClick: () => nightKill() },
+              { text: '预言家查验', disabled: selected < 0, onClick: () => seerCheck() },
+              { text: '进入白天', onClick: () => { phase = 'day'; log.push('天亮了，进入讨论与投票'); render() } }
+            ]))
+          } else {
+            body.appendChild(C.buttonRow([
+              { text: '投票出局', primary: true, disabled: selected < 0, onClick: () => voteOut() },
+              { text: '进入夜晚', onClick: () => { phase = 'night'; day++; log.push('天黑请闭眼'); render() } }
+            ]))
+          }
+        }
+        body.appendChild(C.buttonRow([
+          { text: '亮明身份', disabled: selected < 0, onClick: () => { seats[selected].revealed = true; render() } },
+          { text: '重开', onClick: () => { setup(9); status.textContent = '夜晚：狼人请选择要击倒的玩家'; render() } }
+        ]))
+
+        const logBox = el('div', { class: 'status', style: 'min-height:120px;max-height:160px;overflow:auto' })
+        log.forEach((l) => logBox.appendChild(el('div', { text: '· ' + l, style: 'font-size:12px' })))
+        body.appendChild(logBox)
+      }
+
+      function nightKill() {
+        const s = seats[selected]
+        s.alive = false
+        log.push(`第 ${day} 夜：${s.seat} 号被狼人击倒（身份：${s.role.name}）`)
+        selected = -1
+        checkEnd()
+        render()
+      }
+      function seerCheck() {
+        const s = seats[selected]
+        log.push(`预言家查验 ${s.seat} 号：${s.role.camp === '狼' ? '是狼人 🐺' : '不是狼人'}`)
+        render()
+      }
+      function voteOut() {
+        const s = seats[selected]
+        s.alive = false
+        log.push(`第 ${day} 天：${s.seat} 号被投票出局（身份：${s.role.name}）`)
+        selected = -1
+        checkEnd()
+        render()
+      }
+
+      const body = el('div', { class: 'party-body' })
+      root.appendChild(body)
+      C.rules(root, '这是线下聚会的流程助手：由主持人操作夜晚与白天的流程，座位身份默认不公开，点「亮明身份」可公示。')
+      render()
+    }
+  })
+
+  // ================= 谁是卧底 =================
+  const SPY_WORDS = [
+    ['矿泉水', '气泡水'], ['汉堡', '三明治'], ['微信', 'QQ'], ['电影', '电视剧'],
+    ['篮球', '足球'], ['咖啡', '奶茶'], ['火锅', '烧烤'], ['空调', '风扇'],
+    ['苹果', '梨'], ['地铁', '公交'], ['医生', '护士'], ['钢琴', '小提琴']
+  ]
+
+  C.register('spy', {
+    title: '谁是卧底', note: '词语推理与投票', players: '4-10 人', accent: '#D35400',
+    mount(root) {
+      let players = []
+      let pair = ['', '']
+      let round = 1
+      let votes = {}
+      let over = false
+
+      const status = C.status(root, '设置人数后发词，每人记住自己的词，轮流描述')
+
+      function setup(n) {
+        pair = SPY_WORDS[Math.floor(Math.random() * SPY_WORDS.length)]
+        const spyIndex = Math.floor(Math.random() * n)
+        players = []
+        for (let i = 0; i < n; i++) {
+          players.push({ seat: i + 1, word: i === spyIndex ? pair[1] : pair[0], spy: i === spyIndex, alive: true, shown: false })
+        }
+        round = 1
+        votes = {}
+        over = false
+        status.textContent = '词语已发放，依次描述自己的词（不要直接说出）'
+      }
+      setup(6)
+
+      function render() {
+        C.clear(root.querySelector('.spy-body'))
+        const body = root.querySelector('.spy-body')
+        body.appendChild(C.infoRow([
+          { k: '人数', v: players.length },
+          { k: '当前轮次', v: round },
+          { k: '存活', v: players.filter((p) => p.alive).length }
+        ]))
+
+        const wrap = el('div', { style: 'display:flex;flex-wrap:wrap;gap:8px;margin:10px 0' })
+        players.forEach((p, i) => {
+          const card = el('div', {
+            style: `width:120px;padding:10px;border-radius:8px;cursor:pointer;border:2px solid ${
+              votes[p.seat] ? '#A4453A' : '#E3DDD2'
+            };background:${p.alive ? '#F7F3EA' : '#E6E1D7'};opacity:${p.alive ? 1 : .55}`,
+            onclick: () => {
+              if (!p.alive || over) return
+              if (votes[p.seat]) delete votes[p.seat]
+              else votes[p.seat] = true
+              render()
+            }
+          }, [
+            el('div', { style: 'font-weight:700', text: `${p.seat} 号` }),
+            el('div', { style: 'font-size:12px;color:#6B7280;margin-top:3px', text: p.alive ? (p.shown ? p.word : '点击查看词语') : '已出局' }),
+            votes[p.seat] ? el('div', { style: 'font-size:11px;color:#A4453A', text: '已投给 TA' }) : null
+          ])
+          wrap.appendChild(card)
+        })
+        body.appendChild(wrap)
+
+        body.appendChild(C.buttonRow([
+          { text: '查看/隐藏词语', onClick: () => {
+            const idx = Object.keys(votes).map(Number)[0]
+            status.textContent = '请在卡片上点击自己对应的号码查看（主持人协助）'
+            render()
+          } },
+          { text: '本轮投票', primary: true, disabled: Object.keys(votes).length === 0, onClick: () => doVote() },
+          { text: '公布身份', onClick: () => {
+            over = true
+            const spy = players.find((p) => p.spy)
+            status.textContent = `卧底是 ${spy.seat} 号，词语「${pair[1]}」，平民词「${pair[0]}」`
+            render()
+          } }
+        ]))
+        body.appendChild(C.buttonRow([
+          { text: '4 人', onClick: () => { setup(4); render() } },
+          { text: '6 人', onClick: () => { setup(6); render() } },
+          { text: '8 人', onClick: () => { setup(8); render() } },
+          { text: '重开', onClick: () => { setup(players.length); render() } }
+        ]))
+      }
+
+      function doVote() {
+        const keys = Object.keys(votes).map((k) => parseInt(k, 10))
+        const target = keys[0]
+        const p = players.find((x) => x.seat === target)
+        p.alive = false
+        round++
+        votes = {}
+        if (p.spy) {
+          over = true
+          status.textContent = `${p.seat} 号就是卧底，平民获胜！🏆`
+        } else if (players.filter((x) => x.alive).length <= 2) {
+          over = true
+          const spy = players.find((x) => x.spy)
+          status.textContent = `卧底 ${spy.seat} 号存活到最后，卧底获胜`
+        } else {
+          status.textContent = `${p.seat} 号出局（不是卧底），进入第 ${round} 轮`
+        }
+        render()
+      }
+
+      const body = el('div', { class: 'spy-body' })
+      root.appendChild(body)
+      C.rules(root, '玩法：除卧底外所有人拿到同一个词，卧底拿到相近词。每轮各用一句话描述，投票淘汰疑似卧底；卧底被投出则平民胜，卧底撑到剩 2 人则卧底胜。')
+      render()
+    }
+  })
+})(window.ZZCore)
+
+</script>
+  <script>
+// 大厅路由 + WinUI NavigationView 侧栏
+(function (C) {
+  const el = C.el
+  const grid = document.getElementById('game-grid')
+  const lobby = document.getElementById('lobby')
+  const stage = document.getElementById('stage')
+  const root = document.getElementById('game-root')
+  const titleEl = document.getElementById('stage-title')
+  const noteEl = document.getElementById('stage-note')
+  const crumbTitle = document.getElementById('crumb-title')
+  const crumbNote = document.getElementById('crumb-note')
+  const navList = document.getElementById('nav-list')
+  const btnBack = document.getElementById('btn-back')
+  const btnHome = document.getElementById('btn-home')
+
+  const ORDER = ['gobang', 'reversi', 'tictactoe', 'go', 'chinese-chess', 'world-chess', 'jump',
+    'junqi', 'minesweeper', 'ludo', 'rummy', 'monopoly', 'landlord', 'mahjong', 'poker', 'werewolf', 'spy']
+
+  const ICONS = {
+    gobang: '⚫', reversi: '🌗', tictactoe: '✕', go: '⚪',
+    'chinese-chess': '♟️', 'world-chess': '♞', jump: '🔺', junqi: '🎖️',
+    minesweeper: '💣', ludo: '🎲', rummy: '🔢', monopoly: '🏨',
+    landlord: '🃏', mahjong: '🀇', poker: '♠️', werewolf: '🐺', spy: '🕵️'
+  }
+
+  const navItems = new Map()
+  let homeItem = null
+
+  function buildLobby() {
+    C.clear(grid)
+    ORDER.forEach((id) => {
+      const def = C.games[id]
+      if (!def) return
+      grid.appendChild(el('div', { class: 'game-card', onclick: () => open(id) }, [
+        el('span', { class: 'badge', style: `background:${def.accent}`, text: def.players }),
+        el('h3', { text: def.title }),
+        el('p', { text: def.note })
+      ]))
+    })
+  }
+
+  function buildNav() {
+    C.clear(navList)
+    navItems.clear()
+
+    navList.appendChild(el('div', { class: 'nav-section', text: '开始' }))
+    homeItem = el('div', { class: 'nav-item', onclick: backToLobby }, [
+      el('span', { class: 'ico', text: '🏠' }),
+      el('span', { class: 'txt', text: '大厅' })
+    ])
+    navList.appendChild(homeItem)
+
+    navList.appendChild(el('div', { class: 'nav-section', text: '棋牌' }))
+    ORDER.forEach((id) => {
+      const def = C.games[id]
+      if (!def) return
+      const item = el('div', { class: 'nav-item', onclick: () => open(id) }, [
+        el('span', { class: 'ico', text: ICONS[id] || '🎮' }),
+        el('span', { class: 'txt', text: def.title })
+      ])
+      navItems.set(id, item)
+      navList.appendChild(item)
+    })
+  }
+
+  function setActive(id) {
+    navItems.forEach((node, key) => node.classList.toggle('active', key === id))
+    if (homeItem) homeItem.classList.toggle('active', !id)
+  }
+
+  function open(id) {
+    const def = C.games[id]
+    if (!def) return
+    lobby.classList.add('hidden')
+    stage.classList.remove('hidden')
+    btnBack.classList.remove('hidden')
+    btnHome.classList.add('hidden')
+    titleEl.textContent = def.title
+    noteEl.textContent = def.note + ' · ' + def.players
+    crumbTitle.textContent = def.title
+    crumbNote.textContent = def.note
+    C.clear(root)
+    def.mount(root)
+    window.__currentGame = id
+    setActive(id)
+  }
+
+  function backToLobby() {
+    lobby.classList.remove('hidden')
+    stage.classList.add('hidden')
+    btnBack.classList.add('hidden')
+    btnHome.classList.remove('hidden')
+    crumbTitle.textContent = '大厅'
+    crumbNote.textContent = '全部游戏均为单机版，内置 AI 对手，无需联网'
+    C.clear(root)
+    window.__currentGame = null
+    setActive(null)
+    if (location.hash) history.replaceState(null, '', location.pathname)
+  }
+
+  window.__backToLobby = backToLobby
+
+  btnBack.onclick = backToLobby
+  btnHome.onclick = backToLobby
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && window.__currentGame) backToLobby()
+  })
+
+  // 版本号统一由 src/core.js 提供，桌面端来自 package.json，改一处即可全局生效
+  const versionTag = document.getElementById('version-tag')
+  if (versionTag) {
+    versionTag.textContent = 'v' + C.version
+    versionTag.title = `铮铮桌游合集 v${C.version} · ${C.runtime}`
+  }
+  const brandSub = document.getElementById('brand-sub')
+  if (brandSub) brandSub.textContent = `17 种棋牌 · 单机畅玩 · ${C.runtime}`
+
+  buildNav()
+  buildLobby()
+  setActive(null)
+
+  // 支持 index.html#ludo 直达某游戏
+  const hash = decodeURIComponent(location.hash.replace('#', ''))
+  if (hash && C.games[hash]) open(hash)
+})(window.ZZCore)
+
+</script>
+</body>
+</html>

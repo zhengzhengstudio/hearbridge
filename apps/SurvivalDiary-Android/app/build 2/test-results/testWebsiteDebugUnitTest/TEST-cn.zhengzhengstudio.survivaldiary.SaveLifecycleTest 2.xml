@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-09-04T08:57:34" hostname="LJGdeMacBook-Pro.local" time="1.437">
+  <properties/>
+  <testcase name="saving after interrupted current keeps last valid previous" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.152"/>
+  <testcase name="absolute wildlife warning deadline survives save and restart" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.036"/>
+  <testcase name="empty current save falls back to previous" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.07"/>
+  <testcase name="new survival worlds use runtime schema four" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.001"/>
+  <testcase name="nonlethal action retry stays idempotent after save and restart" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.017"/>
+  <testcase name="starter world promises visible essential resources" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.002"/>
+  <testcase name="non object current save falls back to previous" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.134"/>
+  <testcase name="corrupted current save falls back to atomically replaced previous" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.098"/>
+  <testcase name="canonical v3 player survives migration save and reload" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.014"/>
+  <testcase name="wildlife fields survive atomic save round trip and restart" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.044"/>
+  <testcase name="decimal movement preserves custom player identity and inventory after restart" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.023"/>
+  <testcase name="saved world wins over the fresh factory on launch" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.002"/>
+  <testcase name="json parser rejects unescaped c0 control characters in strings" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.005"/>
+  <testcase name="legacy save keeps progress and gains empty wildlife before initialization" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.007"/>
+  <testcase name="concurrent repository instances serialize shared slot without corrupting current or previous" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.62"/>
+  <testcase name="wrong required field types fall back to previous" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.043"/>
+  <testcase name="json parser rejects non-json whitespace between tokens and falls back" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.022"/>
+  <testcase name="malformed canonical v4 wildlife falls back to previous" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.078"/>
+  <testcase name="migrated v3 save continues advancing after repository recreation" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.015"/>
+  <testcase name="wrong nested field types fall back to previous" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.025"/>
+  <testcase name="unsupported save versions fall back to previous" classname="cn.zhengzhengstudio.survivaldiary.SaveLifecycleTest" time="0.022"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

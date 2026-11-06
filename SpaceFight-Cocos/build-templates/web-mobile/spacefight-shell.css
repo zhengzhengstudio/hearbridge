@@ -1,0 +1,1482 @@
+:root {
+  color-scheme: dark;
+  --ink: #05090c;
+  --panel: rgba(7, 14, 18, 0.9);
+  --panel-strong: rgba(5, 10, 13, 0.96);
+  --line: rgba(174, 210, 218, 0.24);
+  --line-strong: rgba(174, 210, 218, 0.5);
+  --text: #edf4f5;
+  --muted: #8fa3a8;
+  --accent: #62ced7;
+  --accent-ink: #041215;
+  --danger: #d9695c;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+* { box-sizing: border-box; }
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  background: var(--ink);
+  color: var(--text);
+  font-family: "Avenir Next", "SF Pro Display", "PingFang SC", sans-serif;
+  touch-action: none;
+  user-select: none;
+}
+
+button,
+kbd,
+output { font: inherit; }
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+#SafeAreaProbe {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#GameDiv,
+#Cocos3dGameContainer,
+#GameCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#GameCanvas {
+  display: block;
+  outline: 0;
+  background: var(--ink);
+  /* 保比例：画布缓冲已是等比（SubFrame），避免 CSS 把 16:9 缓冲拉伸到非 16:9 屏导致画面扭曲 */
+  object-fit: contain;
+}
+
+#LaunchGate {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 25rem);
+  grid-template-rows: auto 1fr auto;
+  gap: 0 7vw;
+  min-height: 100dvh;
+  padding: calc(24px + var(--safe-top)) calc(34px + var(--safe-right))
+    calc(18px + var(--safe-bottom)) calc(34px + var(--safe-left));
+  background: rgba(3, 8, 11, 0.9);
+}
+
+#LaunchGate::before,
+#LaunchGate::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+#LaunchGate::before {
+  top: 0;
+  bottom: 0;
+  left: 58%;
+  width: 1px;
+  background: rgba(174, 210, 218, 0.12);
+}
+
+#LaunchGate::after {
+  right: 0;
+  bottom: 11%;
+  width: 18vw;
+  height: 1px;
+  background: var(--accent);
+  opacity: 0.45;
+}
+
+.launch-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 54px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand-lockup,
+.build-readout,
+.mission-readout,
+.control-brief p,
+.launch-footer,
+.hud-brand,
+.vital-row,
+.weapon-readout,
+.camera-readout {
+  font-variant-numeric: tabular-nums;
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-lockup img {
+  width: 38px;
+  height: 38px;
+  object-fit: cover;
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+}
+
+.brand-lockup span { display: grid; gap: 1px; }
+.brand-lockup b { font-size: 15px; font-weight: 700; }
+.brand-lockup small { color: var(--muted); font: 600 9px/1.2 ui-monospace, monospace; }
+
+.build-readout {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--muted);
+  font: 600 11px/1 ui-monospace, monospace;
+}
+
+.build-readout i {
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+  box-shadow: 0 0 12px rgba(98, 206, 215, 0.65);
+}
+
+.build-readout b { color: var(--text); font-weight: 600; }
+
+.launch-briefing {
+  align-self: center;
+  max-width: 48rem;
+  padding: clamp(24px, 7vh, 72px) 0 28px;
+}
+
+.sector-label {
+  margin: 0 0 20px;
+  color: var(--accent);
+  font: 700 11px/1 ui-monospace, monospace;
+}
+
+.launch-briefing h1 {
+  max-width: 13ch;
+  margin: 0;
+  font-size: clamp(40px, 5.7vw, 88px);
+  font-weight: 650;
+  line-height: 0.96;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.mission-copy {
+  max-width: 35rem;
+  margin: clamp(20px, 4vh, 38px) 0 0;
+  color: #b6c4c7;
+  font-size: clamp(14px, 1.3vw, 18px);
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.mission-readout {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 39rem;
+  margin-top: clamp(22px, 4vh, 38px);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.mission-readout span {
+  display: grid;
+  gap: 8px;
+  padding: 13px 16px 14px 0;
+}
+
+.mission-readout span + span {
+  padding-left: 16px;
+  border-left: 1px solid var(--line);
+}
+
+.mission-readout small {
+  color: var(--muted);
+  font: 600 10px/1 ui-monospace, monospace;
+}
+
+.mission-readout b { font-size: 13px; font-weight: 600; }
+
+.launch-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(148px, 176px);
+  align-items: end;
+  gap: 8px;
+  width: min(100%, 36rem);
+  max-inline-size: 100%;
+  margin-top: clamp(22px, 4.2vh, 42px);
+}
+
+.graphics-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  height: 44px;
+  max-inline-size: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  background: #0b1418;
+  overflow: hidden;
+}
+
+.graphics-choice button {
+  min-width: 0;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.graphics-choice button:last-child { border-right: 0; }
+.graphics-choice button[data-selected="true"] {
+  background: #dcecee;
+  color: #071114;
+}
+
+#LaunchButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 68px;
+  margin: 0;
+  padding: 0 18px 0 20px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+#LaunchButton:hover { background: #81dce2; }
+#LaunchButton:active { transform: scale(0.985); }
+#LaunchButton:disabled {
+  border-color: var(--line-strong);
+  background: #132126;
+  color: var(--muted);
+  cursor: wait;
+  transform: none;
+}
+#LaunchButton span { display: grid; gap: 4px; text-align: left; }
+#LaunchButton small { font: 700 9px/1 ui-monospace, monospace; opacity: 0.72; }
+#LaunchButton b { font-size: 18px; font-weight: 750; }
+#LaunchButton i { font: 300 42px/1 sans-serif; }
+
+#RotateMessage {
+  display: none;
+  width: min(100%, 24rem);
+  margin: 22px 0 0;
+  padding: 16px;
+  border: 1px solid var(--accent);
+  color: var(--text);
+  font-size: 14px;
+  text-align: center;
+}
+
+.control-brief {
+  align-self: center;
+  padding-top: 38px;
+}
+
+.control-brief h2 {
+  margin: 0 0 20px;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.control-brief p {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  align-items: center;
+  gap: 18px;
+  min-height: 62px;
+  margin: 0;
+  border-top: 1px solid var(--line);
+}
+
+.control-brief p:last-child { border-bottom: 1px solid var(--line); }
+.control-brief kbd {
+  color: var(--accent);
+  font: 700 12px/1 ui-monospace, monospace;
+  text-align: center;
+}
+
+.control-brief p span { display: grid; gap: 5px; }
+.control-brief p b { font-size: 13px; font-weight: 600; }
+.control-brief p small { color: var(--muted); font-size: 11px; }
+.touch-controls-copy { display: none; }
+
+.launch-footer {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 24px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+  color: #677b80;
+  font: 600 9px/1 ui-monospace, monospace;
+}
+
+body[data-playing="true"] #LaunchGate { display: none; }
+
+#CombatHud {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: none;
+  pointer-events: none;
+}
+
+body[data-playing="true"] #CombatHud { display: block; }
+
+.hud-brand {
+  position: absolute;
+  top: calc(22px + var(--safe-top));
+  left: calc(24px + var(--safe-left));
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.hud-brand b { font: 750 18px/1 ui-monospace, monospace; }
+.hud-brand span { color: var(--muted); font: 650 9px/1 ui-monospace, monospace; }
+
+.vital-stack {
+  position: absolute;
+  top: calc(62px + var(--safe-top));
+  left: calc(24px + var(--safe-left));
+  display: grid;
+  gap: 7px;
+  width: clamp(230px, 20vw, 330px);
+}
+
+.vital-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font: 650 9px/1 ui-monospace, monospace;
+}
+
+.vital-row > i {
+  height: 4px;
+  background: rgba(210, 231, 234, 0.14);
+  overflow: hidden;
+}
+
+.vital-row > i > b {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+  transition: width 160ms linear;
+}
+
+.vital-row.hull > i > b { background: #d7e3e5; }
+.vital-row.energy > i > b { background: #9bbac0; }
+.vital-row output { color: var(--text); text-align: right; }
+
+.mission-track {
+  position: absolute;
+  top: calc(22px + var(--safe-top));
+  right: calc(24px + var(--safe-right));
+  display: grid;
+  gap: 4px;
+  min-width: 220px;
+  padding: 11px 0 11px 16px;
+  border-left: 2px solid var(--accent);
+  text-align: left;
+}
+
+.mission-track span,
+.mission-track small {
+  color: var(--muted);
+  font: 600 9px/1.2 ui-monospace, monospace;
+}
+
+.mission-track b { font-size: 14px; font-weight: 650; }
+
+.camera-readout {
+  position: absolute;
+  right: calc(24px + var(--safe-right));
+  top: calc(102px + var(--safe-top));
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--muted);
+  font: 600 9px/1 ui-monospace, monospace;
+}
+
+.camera-readout b { color: var(--text); font-weight: 700; }
+.camera-readout small { padding: 3px 5px; border: 1px solid var(--line); }
+
+.weapon-readout {
+  position: absolute;
+  bottom: calc(24px + var(--safe-bottom));
+  left: 50%;
+  display: grid;
+  grid-template-columns: auto 44px 1fr auto;
+  align-items: center;
+  gap: 13px;
+  min-width: 250px;
+  padding: 11px 13px;
+  border-top: 1px solid var(--line-strong);
+  border-bottom: 1px solid var(--line);
+  background: rgba(4, 11, 15, 0.72);
+  transform: translateX(-50%);
+}
+
+.weapon-readout > span { color: var(--accent); font: 750 18px/1 ui-monospace, monospace; }
+.weapon-readout > img { width: 44px; height: 34px; object-fit: contain; }
+.weapon-readout div { display: grid; gap: 3px; }
+.weapon-readout small { color: var(--muted); font: 600 8px/1 ui-monospace, monospace; }
+.weapon-readout b { font-size: 13px; font-weight: 650; }
+.weapon-readout > i { color: var(--accent); font: 700 9px/1 ui-monospace, monospace; }
+
+.desktop-flight-hint {
+  position: absolute;
+  right: calc(24px + var(--safe-right));
+  bottom: calc(24px + var(--safe-bottom));
+  color: rgba(202, 221, 224, 0.62);
+  font: 600 9px/1 ui-monospace, monospace;
+}
+
+#CombatReticle {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 9;
+  display: none;
+  width: 48px;
+  height: 48px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(98, 206, 215, 0.85);
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(67, 187, 196, 0.45));
+}
+
+#CombatReticle::before,
+#CombatReticle::after,
+#CombatReticle i {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: var(--accent);
+  transform: translate(-50%, -50%);
+}
+
+#CombatReticle::before { width: 15px; height: 1px; }
+#CombatReticle::after { width: 2px; height: 2px; }
+#CombatReticle i { width: 1px; height: 15px; opacity: 0.45; }
+body[data-playing="true"] #CombatReticle { display: block; }
+
+#TouchHud { display: none; pointer-events: none; }
+body[data-playing="true"][data-input-mode="touch"] #TouchHud { display: block; }
+body[data-input-mode="desktop"] #TouchHud { display: none !important; }
+body[data-input-mode="touch"] .desktop-flight-hint,
+body[data-input-mode="touch"] .desktop-only { display: none; }
+
+.touch-control {
+  position: fixed;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(140, 213, 219, 0.42);
+  border-radius: 50%;
+  background: rgba(5, 16, 21, 0.5);
+  color: rgba(231, 245, 246, 0.92);
+  font: 650 10px/1 ui-monospace, monospace;
+  box-shadow: inset 0 0 18px rgba(98, 206, 215, 0.08);
+}
+
+.touch-control small { color: var(--accent); font-size: 8px; }
+.touch-control b { font-size: 10px; font-weight: 650; }
+
+#MoveStick {
+  --stick-x: 0px;
+  --stick-y: 0px;
+  left: calc(24px + var(--safe-left));
+  bottom: calc(24px + var(--safe-bottom));
+  width: 192px;
+  height: 192px;
+  border-color: rgba(140, 213, 219, 0.2);
+}
+
+#MoveStick::before,
+#MoveStick::after {
+  content: "";
+  position: absolute;
+  background: rgba(140, 213, 219, 0.22);
+}
+
+#MoveStick::before { width: 72%; height: 1px; }
+#MoveStick::after { width: 1px; height: 72%; }
+#MoveStick i {
+  width: 72px;
+  height: 72px;
+  border: 1px solid rgba(140, 213, 219, 0.58);
+  border-radius: 50%;
+  background: rgba(34, 131, 148, 0.12);
+  transform: translate3d(var(--stick-x), var(--stick-y), 0);
+  transition: transform 90ms ease-out, background-color 90ms ease-out;
+}
+
+#MoveStick[data-active="true"] i {
+  background: rgba(98, 206, 215, 0.22);
+  transition: none;
+}
+
+#AimSurface {
+  position: fixed;
+  z-index: 9;
+  right: calc(184px + var(--safe-right));
+  top: 48%;
+  display: grid;
+  place-items: center;
+  width: 132px;
+  height: 88px;
+  border: 1px solid rgba(140, 213, 219, 0.2);
+  border-left-color: transparent;
+  border-right-color: transparent;
+  color: rgba(202, 228, 231, 0.52);
+  font: 650 9px/1 ui-monospace, monospace;
+  transform: translateY(-50%);
+}
+
+#AimSurface i {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(98, 206, 215, 0.45);
+  border-radius: 50%;
+}
+
+#PrimaryControl {
+  right: calc(34px + var(--safe-right));
+  bottom: calc(34px + var(--safe-bottom));
+  width: 116px;
+  height: 116px;
+  border: 2px solid var(--accent);
+}
+
+#SecondaryControl {
+  right: calc(152px + var(--safe-right));
+  bottom: calc(58px + var(--safe-bottom));
+  width: 92px;
+  height: 92px;
+}
+
+#BoostControl {
+  right: calc(46px + var(--safe-right));
+  bottom: calc(160px + var(--safe-bottom));
+  width: 92px;
+  height: 92px;
+}
+
+#CameraControl,
+#PauseControl {
+  top: calc(20px + var(--safe-top));
+  width: 76px;
+  height: 76px;
+  background: rgba(5, 16, 21, 0.76);
+}
+
+#CameraControl { right: calc(54px + var(--safe-right)); }
+#PauseControl { right: calc(136px + var(--safe-right)); }
+.utility-control span { color: var(--accent); font: 700 18px/1 ui-monospace, monospace; }
+
+#PauseOverlay,
+#MissionComplete,
+#MissionFailed {
+  position: fixed;
+  z-index: 20;
+  display: none;
+  color: var(--text);
+}
+
+#PauseOverlay {
+  inset: 0;
+  place-items: center;
+  background: rgba(3, 8, 11, 0.9);
+}
+
+body[data-playing="true"][data-paused="true"] #PauseOverlay { display: grid; }
+
+#PauseOverlay > div {
+  width: min(88vw, 440px);
+  padding: 26px 0;
+  border-top: 1px solid var(--line-strong);
+  border-bottom: 1px solid var(--line);
+  text-align: center;
+}
+
+#PauseOverlay span,
+#MissionComplete > span,
+#MissionFailed span { color: var(--accent); font: 700 10px/1 ui-monospace, monospace; }
+#PauseOverlay h2 { margin: 13px 0 6px; font-size: 34px; font-weight: 650; }
+#PauseOverlay p { margin: 0; color: var(--muted); font-size: 13px; }
+#ResumeButton {
+  min-width: 180px;
+  min-height: 48px;
+  margin-top: 22px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#MissionComplete {
+  top: 26%;
+  left: calc(24px + var(--safe-left));
+  width: min(360px, 48vw);
+  padding: 18px 0 18px 18px;
+  border-left: 2px solid var(--accent);
+  background: rgba(4, 11, 15, 0.76);
+}
+
+body[data-mission="complete"] #MissionComplete { display: block; }
+#MissionComplete h2 { margin: 8px 0 5px; font-size: 22px; }
+#MissionComplete p { margin: 0; color: var(--muted); font-size: 12px; }
+
+#MissionFailed {
+  inset: 0;
+  place-items: center;
+  background: rgba(3, 8, 11, 0.92);
+}
+body[data-mission="failed"] #MissionFailed { display: grid; }
+#MissionFailed > div { width: min(86vw, 430px); padding: 28px 0; border-top: 1px solid #d85048; border-bottom: 1px solid var(--line); text-align: center; }
+#MissionFailed h2 { margin: 12px 0 6px; font-size: 30px; }
+#MissionFailed p { margin: 0; color: var(--muted); font-size: 13px; }
+#RestartButton { min-width: 180px; min-height: 48px; margin-top: 20px; border: 1px solid var(--accent); border-radius: 3px; background: var(--accent); color: var(--accent-ink); font-weight: 700; cursor: pointer; }
+
+/* ==========================================================================
+   TACTICAL SKIN / 战术界面皮肤
+   参考「三角洲 / 腾讯系战术射击」视觉语言：编号分区、切角面板、分段状态条、
+   四角锁定框、雷达环、琥珀警戒色 + 青蓝数据色。
+   仅做视觉增强，不改任何尺寸布局；后续响应式 @media 仍然最后生效。
+   ========================================================================== */
+
+:root {
+  --ink: #050c11;
+  --panel: rgba(9, 22, 28, 0.9);
+  --panel-strong: rgba(6, 15, 20, 0.96);
+  --line: rgba(96, 160, 172, 0.26);
+  --line-strong: rgba(96, 190, 205, 0.52);
+  --text: #e9f3f4;
+  --muted: #7f9aa2;
+  --accent: #4fd6e0;
+  --amber: #f0a83c;
+  --danger: #e05a4f;
+  --accent-ink: #04161a;
+  --grid: rgba(79, 214, 224, 0.042);
+  --cut: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+
+/* 战术网格底纹 */
+#LaunchGate,
+#LoadoutPanel {
+  background-color: rgba(3, 9, 13, 0.94);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 46px 46px;
+}
+
+#LaunchGate::before { background: rgba(79, 214, 224, 0.16); }
+#LaunchGate::after { background: var(--amber); opacity: 0.6; }
+
+/* 顶部品牌栏：细双线 + 环形状态灯 */
+.launch-bar {
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 0 rgba(79, 214, 224, 0.07);
+}
+.brand-lockup img {
+  border-color: rgba(240, 168, 60, 0.55);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+.brand-lockup b { letter-spacing: 0.13em; }
+.brand-lockup small { color: var(--amber); letter-spacing: 0.18em; }
+.build-readout { letter-spacing: 0.12em; }
+.build-readout i {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--amber);
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+}
+.build-readout b { color: var(--amber); }
+
+/* 编号徽章：01 简报 / 02 操作 */
+.sector-label {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  letter-spacing: 0.17em;
+  color: var(--amber);
+}
+.sector-label::before {
+  content: "01";
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--amber);
+  color: var(--amber);
+  font: 700 12px/1 ui-monospace, monospace;
+  letter-spacing: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 72% 100%, 0 100%);
+}
+.launch-briefing h1 { letter-spacing: -0.015em; }
+.mission-copy { color: #b9c9cc; }
+
+/* 任务参数：三格切角数据卡 */
+.mission-readout {
+  border-top: 1px solid var(--line-strong);
+  border-bottom: 1px solid var(--line-strong);
+}
+.mission-readout span { position: relative; }
+.mission-readout small { color: var(--amber); letter-spacing: 0.14em; }
+.mission-readout b { letter-spacing: 0.04em; }
+.mission-readout span + span { border-left-color: rgba(96, 160, 172, 0.3); }
+
+/* 主出击按钮：琥珀切角 */
+#LaunchButton {
+  border-color: var(--amber);
+  background: var(--amber);
+  color: #1a1206;
+  clip-path: var(--cut);
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+#LaunchButton:hover { background: #ffc261; }
+#LaunchButton:disabled { border-color: var(--line-strong); background: #13262c; color: var(--muted); }
+#LaunchButton small { letter-spacing: 0.14em; }
+#LaunchButton b { letter-spacing: 0.06em; }
+.graphics-choice { border-color: var(--line-strong); background: #08161c; }
+.graphics-choice button[data-selected="true"] { background: var(--amber); color: #1a1206; }
+#LoadoutOpen {
+  border-color: var(--line-strong);
+  background: rgba(8, 20, 26, 0.94);
+  clip-path: var(--cut);
+}
+#LoadoutOpen span { color: var(--amber); letter-spacing: 0.14em; }
+
+/* 操作说明：编号 02 + 键位角标 */
+.control-brief h2 {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  letter-spacing: 0.06em;
+}
+.control-brief h2::before {
+  content: "02";
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--amber);
+  color: var(--amber);
+  font: 700 12px/1 ui-monospace, monospace;
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 72% 100%, 0 100%);
+}
+.control-brief p { border-top-color: rgba(96, 160, 172, 0.2); }
+.control-brief kbd {
+  padding: 7px 4px;
+  border: 1px solid rgba(79, 214, 224, 0.42);
+  background: rgba(10, 28, 34, 0.85);
+  color: var(--accent);
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}
+.launch-footer { color: #6e8c93; letter-spacing: 0.18em; }
+.launch-footer span:last-child { color: var(--amber); }
+
+/* ---------------- 战斗 HUD ---------------- */
+.hud-brand b { color: var(--text); letter-spacing: 0.12em; }
+.hud-brand span { color: var(--amber); letter-spacing: 0.16em; }
+.hud-brand { border-bottom-color: rgba(240, 168, 60, 0.5); }
+
+/* 01 / FLIGHT STATUS：分段刻度条 */
+.vital-stack { /* 保持 absolute；absolute 自身即可作为伪元素定位上下文 */ }
+.vital-stack::before {
+  content: "01 / FLIGHT STATUS";
+  position: absolute;
+  top: -17px;
+  left: 0;
+  color: var(--amber);
+  font: 700 9px/1 ui-monospace, monospace;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+}
+.vital-row { font-size: 10px; letter-spacing: 0.06em; }
+.vital-row > i {
+  position: relative;
+  height: 9px;
+  border: 1px solid rgba(96, 160, 172, 0.28);
+  background: rgba(210, 231, 234, 0.09);
+}
+.vital-row > i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent 0 15px, rgba(3, 11, 15, 0.92) 15px 17px);
+  pointer-events: none;
+}
+.vital-row.shield > i > b { background: var(--accent); }
+.vital-row.hull > i > b { background: #d7e3e5; }
+.vital-row.energy > i > b { background: var(--amber); }
+.vital-row output { color: var(--text); font-size: 11px; }
+
+/* 01 / OBJECTIVE：切角任务卡 */
+.mission-track {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--amber);
+  background: linear-gradient(135deg, rgba(9, 25, 31, 0.94), rgba(5, 14, 19, 0.88));
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+}
+.mission-track span { color: var(--amber); letter-spacing: 0.16em; }
+.mission-track span::before { content: "01 / "; }
+.mission-track b { letter-spacing: 0.04em; }
+.camera-readout small { border-color: rgba(240, 168, 60, 0.5); color: var(--amber); }
+
+/* 03 / PRIMARY：切角武器卡 */
+.weapon-readout {
+  /* 保持原 absolute 定位 */
+  border: 1px solid var(--line-strong);
+  border-top: 2px solid var(--amber);
+  background: linear-gradient(160deg, rgba(9, 25, 31, 0.95), rgba(5, 14, 19, 0.9));
+  clip-path: var(--cut);
+}
+.weapon-readout::before {
+  content: "03 / PRIMARY";
+  position: absolute;
+  top: -16px;
+  left: 0;
+  color: var(--amber);
+  font: 700 9px/1 ui-monospace, monospace;
+  letter-spacing: 0.16em;
+}
+.weapon-readout > span { color: var(--amber); }
+.weapon-readout > i {
+  padding: 4px 7px;
+  border: 1px solid rgba(79, 214, 224, 0.5);
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+.desktop-flight-hint { color: rgba(185, 214, 218, 0.72); letter-spacing: 0.09em; }
+
+/* 四角锁定准星 */
+#CombatReticle {
+  width: 84px;
+  height: 84px;
+  border: 0;
+  border-radius: 0;
+  filter: none;
+  background:
+    linear-gradient(var(--accent), var(--accent)) left top / 16px 2px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) left top / 2px 16px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) right top / 16px 2px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) right top / 2px 16px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) left bottom / 16px 2px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) left bottom / 2px 16px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) right bottom / 16px 2px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) right bottom / 2px 16px no-repeat;
+}
+#CombatReticle::before { width: 14px; height: 1px; background: rgba(233, 243, 244, 0.72); }
+#CombatReticle::after { width: 3px; height: 3px; background: var(--amber); }
+#CombatReticle i { width: 1px; height: 14px; background: rgba(233, 243, 244, 0.5); opacity: 1; }
+
+/* 右下角雷达环 + 扫描扇（纯装饰，不占 DOM） */
+#CombatHud::before,
+#CombatHud::after {
+  content: "";
+  position: absolute;
+  right: calc(28px + var(--safe-right));
+  bottom: calc(62px + var(--safe-bottom));
+  width: 92px;
+  height: 92px;
+  border: 1px solid rgba(79, 214, 224, 0.34);
+  border-radius: 50%;
+  pointer-events: none;
+}
+#CombatHud::before {
+  background:
+    radial-gradient(circle at center, transparent 0 17px, rgba(79, 214, 224, 0.2) 17px 18px, transparent 18px 32px, rgba(79, 214, 224, 0.14) 32px 33px, transparent 33px),
+    linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(79, 214, 224, 0.18) 50%, transparent calc(50% + 0.5px)),
+    linear-gradient(0deg, transparent calc(50% - 0.5px), rgba(79, 214, 224, 0.18) 50%, transparent calc(50% + 0.5px)),
+    rgba(5, 18, 24, 0.62);
+  box-shadow: inset 0 0 20px rgba(79, 214, 224, 0.09);
+}
+#CombatHud::after {
+  border: 0;
+  background: conic-gradient(from 0deg, rgba(79, 214, 224, 0.24), transparent 72deg);
+  animation: sf-sector-sweep 7s linear infinite;
+}
+@keyframes sf-sector-sweep { to { transform: rotate(360deg); } }
+
+/* 触屏战斗键：切角 + 键位角标（摇杆保持圆形） */
+.touch-control:not(#MoveStick) {
+  border-color: rgba(79, 214, 224, 0.46);
+  border-radius: 0;
+  background: rgba(7, 22, 28, 0.76);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  box-shadow: inset 0 0 18px rgba(79, 214, 224, 0.1);
+}
+.touch-control small { color: var(--amber); letter-spacing: 0.12em; }
+#PrimaryControl { border: 2px solid var(--amber); }
+#MoveStick { border-color: rgba(79, 214, 224, 0.26); }
+#MoveStick i { border-color: rgba(240, 168, 60, 0.66); background: rgba(240, 168, 60, 0.1); }
+.utility-control span { color: var(--amber); }
+
+/* 暂停 / 结算 / 装配台 */
+#PauseOverlay > div,
+#MissionFailed > div {
+  border-top-color: var(--amber);
+  border-bottom-color: var(--line);
+}
+#PauseOverlay span,
+#MissionComplete > span,
+#MissionFailed span { color: var(--amber); letter-spacing: 0.18em; }
+#ResumeButton, #RestartButton, #LoadoutApply {
+  border-color: var(--amber);
+  background: var(--amber);
+  color: #1a1206;
+  letter-spacing: 0.06em;
+  clip-path: var(--cut);
+}
+#MissionComplete { border-left-color: var(--amber); background: rgba(5, 16, 21, 0.86); }
+#LoadoutPanel > header { border-bottom-color: var(--line-strong); }
+#LoadoutPanel header small, #LoadoutPanel footer small { color: var(--amber); letter-spacing: 0.16em; }
+.loadout-grid > section {
+  border-left: 3px solid var(--amber);
+  background: rgba(9, 22, 28, 0.86);
+}
+.loadout-grid h3 span { color: var(--amber); }
+.loadout-options button { border-color: var(--line); background: #0a171d; }
+.loadout-options button[data-selected="true"] {
+  border-color: var(--amber);
+  background: #2a2113;
+  box-shadow: inset 3px 0 0 var(--amber);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #CombatHud::after { animation: none; }
+}
+
+
+@media (orientation: portrait) and (pointer: coarse) {
+  #LaunchGate { grid-template-columns: 1fr; }
+  #LaunchButton { display: none; }
+  #RotateMessage { display: block; }
+  .control-brief { display: none; }
+}
+
+@media (max-width: 900px), (max-height: 620px) {
+  #LaunchGate {
+    grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);
+    gap: 0 5vw;
+    padding: calc(14px + var(--safe-top)) calc(20px + var(--safe-right))
+      calc(12px + var(--safe-bottom)) calc(20px + var(--safe-left));
+  }
+  .launch-bar { min-height: 44px; padding-bottom: 10px; }
+  .brand-lockup img { width: 30px; height: 30px; }
+  .launch-briefing { padding: 18px 0 12px; }
+  .launch-briefing h1 { font-size: clamp(30px, 7.2vh, 54px); }
+  .sector-label { margin-bottom: 11px; }
+  .mission-copy { margin-top: 13px; font-size: 12px; line-height: 1.5; }
+  .mission-readout { margin-top: 14px; }
+  .mission-readout span { gap: 5px; padding-top: 9px; padding-bottom: 9px; }
+  .launch-actions { margin-top: 15px; }
+  #LaunchButton { min-height: 52px; }
+  #LaunchButton b { font-size: 15px; }
+  .control-brief { padding-top: 18px; }
+  .control-brief h2 { margin-bottom: 11px; font-size: 15px; }
+  .control-brief p { min-height: 46px; grid-template-columns: 62px 1fr; gap: 12px; }
+  .control-brief p small { font-size: 9px; }
+  .launch-footer { padding-top: 9px; }
+}
+
+@media (max-height: 540px) and (orientation: landscape) {
+  body[data-input-mode="touch"] .desktop-controls { display: none; }
+  body[data-input-mode="touch"] .touch-controls-copy { display: block; }
+  .touch-controls-copy p { grid-template-columns: 1fr; gap: 4px; min-height: 44px; }
+  .touch-controls-copy p span { color: var(--muted); font-size: 9px; }
+  .build-readout { font-size: 9px; }
+  .mission-copy { max-width: 30rem; }
+  .mission-readout { max-width: 32rem; }
+  .mission-readout b { font-size: 11px; }
+  #MoveStick {
+    left: calc(18px + var(--safe-left));
+    bottom: calc(18px + var(--safe-bottom));
+    width: 136px;
+    height: 136px;
+  }
+  #MoveStick i { width: 52px; height: 52px; }
+  #AimSurface {
+    right: calc(104px + var(--safe-right));
+    top: 48%;
+    width: 104px;
+    height: 64px;
+  }
+  #PrimaryControl {
+    right: calc(22px + var(--safe-right));
+    bottom: calc(22px + var(--safe-bottom));
+    width: 88px;
+    height: 88px;
+  }
+  #SecondaryControl {
+    right: calc(116px + var(--safe-right));
+    bottom: calc(42px + var(--safe-bottom));
+    width: 68px;
+    height: 68px;
+  }
+  #BoostControl {
+    right: calc(32px + var(--safe-right));
+    bottom: calc(115px + var(--safe-bottom));
+    width: 68px;
+    height: 68px;
+  }
+  #CameraControl,
+  #PauseControl {
+    top: calc(14px + var(--safe-top));
+    width: 56px;
+    height: 56px;
+  }
+  #CameraControl { right: calc(38px + var(--safe-right)); }
+  #PauseControl { right: calc(95px + var(--safe-right)); }
+  .hud-brand { top: calc(14px + var(--safe-top)); left: calc(18px + var(--safe-left)); }
+  .vital-stack { top: calc(49px + var(--safe-top)); left: calc(18px + var(--safe-left)); width: 190px; }
+  .mission-track {
+    top: calc(14px + var(--safe-top));
+    right: calc(164px + var(--safe-right));
+    min-width: 180px;
+    padding: 7px 0 7px 10px;
+  }
+  .mission-track b { font-size: 11px; }
+  .camera-readout { display: none; }
+  .weapon-readout { bottom: calc(13px + var(--safe-bottom)); min-width: 210px; padding: 8px 10px; }
+  .weapon-readout > span { font-size: 14px; }
+  .weapon-readout b { font-size: 11px; }
+  #MissionComplete { top: 34%; width: 260px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; }
+}
+
+#LoadoutOpen {
+  display: grid;
+  width: min(100%, 36rem);
+  margin-top: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  background: rgba(8, 16, 20, 0.92);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+#LoadoutOpen:hover { border-color: var(--accent); background: rgba(12, 27, 31, 0.96); }
+#LoadoutOpen:active { transform: translateY(1px); }
+#LoadoutOpen span { color: var(--accent); font: 700 9px/1.2 ui-monospace, monospace; }
+#LoadoutOpen b { margin-top: 5px; overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+
+#LoadoutPanel {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 18px;
+  padding: calc(22px + var(--safe-top)) calc(28px + var(--safe-right)) calc(18px + var(--safe-bottom)) calc(28px + var(--safe-left));
+  background: rgba(4, 9, 12, 0.98);
+  overflow: hidden;
+}
+body[data-loadout-open="true"] #LoadoutPanel { display: grid; }
+#LoadoutPanel > header, #LoadoutPanel > footer { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+#LoadoutPanel > header { padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+#LoadoutPanel h2 { margin: 3px 0 0; font-size: clamp(23px, 3vw, 38px); line-height: 1; }
+#LoadoutPanel header small, #LoadoutPanel footer small { color: var(--accent); font: 700 9px/1 ui-monospace, monospace; }
+#LoadoutClose { width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 3px; background: #10181c; color: var(--text); font-size: 25px; cursor: pointer; }
+.loadout-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; min-height: 0; overflow: auto; }
+.loadout-grid > section { min-width: 0; padding: 16px; border-left: 2px solid rgba(98, 206, 215, 0.42); background: rgba(10, 18, 22, 0.78); }
+.loadout-grid h3 { display: flex; gap: 10px; margin: 0; font-size: 16px; }
+.loadout-grid h3 span { color: var(--accent); font: 700 11px/1.5 ui-monospace, monospace; }
+.loadout-grid section > p { min-height: 34px; margin: 8px 0 12px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.loadout-options { display: grid; gap: 6px; }
+.loadout-options button { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; min-width: 0; min-height: 45px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 2px; background: #0d1519; color: var(--text); text-align: left; cursor: pointer; transition: border-color 140ms ease, background-color 140ms ease, transform 140ms ease; }
+.loadout-options button:hover { border-color: var(--line-strong); background: #111d22; }
+.loadout-options button:active { transform: translateY(1px); }
+.loadout-options button[data-selected="true"] { border-color: var(--accent); background: #153239; box-shadow: inset 3px 0 0 var(--accent); }
+.loadout-options button.weapon-option { grid-template-columns: 58px minmax(0, 1fr); gap: 9px; }
+.weapon-option img { width: 58px; height: 38px; object-fit: contain; filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.34)); }
+.weapon-option span { display: grid; min-width: 0; gap: 4px; }
+.weapon-option small { margin-left: 0; }
+.loadout-options b { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.loadout-options small { margin-left: 8px; color: var(--muted); font: 600 9px/1 ui-monospace, monospace; white-space: nowrap; }
+#LoadoutPanel > footer { padding-top: 12px; border-top: 1px solid var(--line); }
+#LoadoutPanel footer p { display: grid; gap: 4px; min-width: 0; margin: 0; }
+#LoadoutPanel footer b { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+#LoadoutApply { min-width: 170px; min-height: 48px; border: 1px solid var(--accent); border-radius: 3px; background: var(--accent); color: var(--accent-ink); font-weight: 700; cursor: pointer; }
+
+#LandscapeGuard { position: fixed; inset: 0; z-index: 80; display: none; place-content: center; justify-items: center; padding: 32px; background: #050b0e; text-align: center; }
+#LandscapeGuard img { width: 58px; height: 58px; border: 1px solid var(--line-strong); border-radius: 4px; }
+#LandscapeGuard small { margin-top: 18px; color: var(--accent); font: 700 9px/1 ui-monospace, monospace; }
+#LandscapeGuard h2 { margin: 8px 0 6px; font-size: 28px; }
+#LandscapeGuard p { max-width: 26rem; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+body[data-orientation-blocked="true"] #LandscapeGuard { display: grid; }
+body[data-orientation-blocked="true"] #CombatHud,
+body[data-orientation-blocked="true"] #LaunchGate,
+body[data-orientation-blocked="true"] #LoadoutPanel,
+body[data-orientation-blocked="true"] #CombatReticle,
+body[data-orientation-blocked="true"] #TouchHud,
+body[data-orientation-blocked="true"] #PauseOverlay,
+body[data-orientation-blocked="true"] #MissionComplete,
+body[data-orientation-blocked="true"] #MissionFailed { display: none !important; }
+
+@media (max-height: 540px) and (orientation: landscape) {
+  #LoadoutPanel { gap: 8px; padding-top: calc(8px + var(--safe-top)); padding-bottom: calc(8px + var(--safe-bottom)); }
+  #LoadoutPanel > header { padding-bottom: 7px; }
+  #LoadoutPanel h2 { font-size: 21px; }
+  .loadout-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .loadout-grid > section { padding: 8px; }
+  .loadout-grid section > p { display: none; }
+  .loadout-options { gap: 3px; margin-top: 7px; }
+  .loadout-options button { min-height: 34px; padding: 4px 7px; }
+  #LoadoutPanel > footer { padding-top: 7px; }
+  #LoadoutApply { min-height: 38px; }
+}
+
+@media (max-width: 760px) and (orientation: landscape) {
+  #LaunchGate {
+    grid-template-columns: 1fr;
+    gap: 0;
+    overflow: hidden;
+  }
+  #LaunchGate::before,
+  #LaunchGate::after,
+  .control-brief { display: none; }
+  .launch-briefing { width: min(100%, 31rem); }
+  .launch-footer { max-width: 31rem; }
+  #LoadoutPanel { padding-left: calc(10px + var(--safe-left)); padding-right: calc(10px + var(--safe-right)); }
+  .loadout-grid h3 { font-size: 12px; }
+  .loadout-options b { font-size: 10px; }
+  .loadout-options small { display: none; }
+  .loadout-options button.weapon-option { grid-template-columns: 42px minmax(0, 1fr); gap: 5px; }
+  .weapon-option img { width: 42px; height: 30px; }
+}
+
+@media (max-height: 420px) and (orientation: landscape) {
+  #LaunchGate { grid-template-rows: auto minmax(0, 1fr) auto; }
+  .launch-bar { min-height: 36px; }
+  .launch-briefing { align-self: start; padding: 8px 0 4px; }
+  .launch-briefing h1 { font-size: clamp(30px, 11vh, 42px); line-height: .96; }
+  .sector-label { margin-bottom: 7px; }
+  .mission-copy { display: none; }
+  .mission-readout { margin-top: 10px; }
+  .mission-readout span { gap: 3px; padding-top: 6px; padding-bottom: 6px; }
+  .launch-actions { grid-template-columns: minmax(0, 1fr) 158px; margin-top: 10px; }
+  #LaunchButton { min-height: 46px; }
+  #LoadoutOpen { min-height: 38px; margin-top: 6px; padding-top: 6px; padding-bottom: 6px; }
+  #LoadoutOpen b { margin-top: 3px; }
+  .launch-footer { padding-top: 5px; }
+  .loadout-options button.weapon-option { min-height: 34px; }
+  .weapon-option img { width: 36px; height: 27px; }
+}
+
+/* ==========================================================================
+   LAUNCHER DENSITY PASS / 首页信息密度平衡
+   只加两处轻模块：一条三段出击流程 + 一张机体档案卡（小雷达环与武器读数）。
+   不堆叠武器卡阵列、不放大雷达，保留原有留白节奏。
+   ========================================================================== */
+
+/* 三段出击流程：与任务参数同宽，单行高度 */
+.ops-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 39rem;
+  margin: 13px 0 0;
+  padding: 0;
+  border-top: 1px solid rgba(96, 160, 172, 0.18);
+  list-style: none;
+}
+.ops-flow li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 36px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.ops-flow li + li {
+  padding-left: 14px;
+  border-left: 1px solid rgba(96, 160, 172, 0.18);
+}
+.ops-flow li::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-top: 1px solid rgba(96, 160, 172, 0.55);
+  border-right: 1px solid rgba(96, 160, 172, 0.55);
+  transform: translateY(-50%) rotate(45deg);
+}
+.ops-flow li:last-child::after { display: none; }
+.ops-flow li > span {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 21px;
+  height: 21px;
+  border: 1px solid rgba(96, 160, 172, 0.42);
+  color: var(--muted);
+  font: 700 9px/1 ui-monospace, monospace;
+}
+.ops-flow li > b { font-weight: 600; }
+.ops-flow li.is-current { color: var(--text); }
+.ops-flow li.is-current > span {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: rgba(240, 168, 60, 0.09);
+}
+
+/* 机体档案卡：右列顶部，编号 03 + 三段刻度 + 主武器读数 + 小雷达环 */
+.craft-card {
+  position: relative;
+  margin: 0 0 22px;
+  padding: 13px 14px 12px;
+  padding-right: 104px;
+  border: 1px solid rgba(96, 160, 172, 0.28);
+  border-top: 2px solid var(--amber);
+  background: linear-gradient(150deg, rgba(9, 24, 30, 0.92), rgba(5, 14, 19, 0.86));
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+}
+.craft-card__head { display: grid; gap: 3px; }
+.craft-card__head small {
+  color: var(--amber);
+  font: 700 9px/1 ui-monospace, monospace;
+  letter-spacing: 0.16em;
+}
+.craft-card__head b { font-size: 19px; font-weight: 700; letter-spacing: 0.08em; line-height: 1.1; }
+.craft-card__head span {
+  color: var(--muted);
+  font: 600 9px/1 ui-monospace, monospace;
+  letter-spacing: 0.14em;
+}
+.craft-card__stats { display: grid; gap: 6px; margin: 11px 0 10px; }
+.craft-card__stats p {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 7px;
+  min-height: 0;
+  margin: 0;
+  border: 0;
+  color: var(--muted);
+  font: 600 9px/1 ui-monospace, monospace;
+}
+.craft-card__stats p > span { display: inline; gap: 0; }
+.craft-card__stats p > i {
+  position: relative;
+  height: 5px;
+  border: 1px solid rgba(96, 160, 172, 0.3);
+  background: rgba(210, 231, 234, 0.08);
+}
+.craft-card__stats p > i > b {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+}
+.craft-card__stats p > i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent 0 9px, rgba(4, 12, 16, 0.9) 9px 11px);
+}
+.craft-card__stats p:nth-child(1) > i > b { width: 80%; }
+.craft-card__stats p:nth-child(2) > i > b { width: 100%; background: #d7e3e5; }
+.craft-card__stats p:nth-child(3) > i > b { width: 96%; background: var(--amber); }
+.craft-card__stats output { color: var(--text); text-align: right; }
+.craft-card__weapon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(96, 160, 172, 0.2);
+  font-size: 11px;
+}
+.craft-card__weapon > span {
+  padding: 3px 5px;
+  border: 1px solid rgba(240, 168, 60, 0.6);
+  color: var(--amber);
+  font: 700 8px/1 ui-monospace, monospace;
+  letter-spacing: 0.1em;
+}
+.craft-card__weapon > b { font-weight: 600; letter-spacing: 0.04em; }
+.craft-card__weapon > i {
+  margin-left: auto;
+  padding: 3px 6px;
+  border: 1px solid rgba(79, 214, 224, 0.5);
+  color: var(--accent);
+  font: 700 8px/1 ui-monospace, monospace;
+  font-style: normal;
+  letter-spacing: 0.12em;
+}
+.craft-card__radar {
+  position: absolute;
+  top: 14px;
+  right: 10px;
+  width: 82px;
+  height: 82px;
+  border: 1px solid rgba(79, 214, 224, 0.34);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, transparent 0 15px, rgba(79, 214, 224, 0.22) 15px 16px, transparent 16px 28px, rgba(79, 214, 224, 0.14) 28px 29px, transparent 29px),
+    linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(79, 214, 224, 0.2) 50%, transparent calc(50% + 0.5px)),
+    linear-gradient(0deg, transparent calc(50% - 0.5px), rgba(79, 214, 224, 0.2) 50%, transparent calc(50% + 0.5px)),
+    rgba(5, 18, 24, 0.72);
+  overflow: hidden;
+}
+.craft-card__radar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(79, 214, 224, 0.26), transparent 70deg);
+  animation: sf-sector-sweep 7s linear infinite;
+}
+.craft-card__radar > i {
+  position: absolute;
+  z-index: 1;
+  top: 27%;
+  left: 66%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 7px var(--amber);
+}
+
+@media (max-width: 900px), (max-height: 620px) {
+  .craft-card { padding-right: 14px; margin-bottom: 14px; }
+  .craft-card__radar { display: none; }
+  .ops-flow { margin-top: 9px; }
+  .ops-flow li { min-height: 30px; font-size: 10px; }
+}
+@media (max-height: 540px) and (orientation: landscape) {
+  .craft-card, .ops-flow { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .craft-card__radar::after { animation: none; }
+}
+
+/* 提高优先级：避免 .control-brief p / p:last-child 的响应式规则顶掉档案卡内三段刻度 */
+.control-brief .craft-card__stats p,
+.control-brief .craft-card__stats p:last-child {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 7px;
+  min-height: 0;
+  margin: 0;
+  border: 0;
+  color: var(--muted);
+  font: 600 9px/1 ui-monospace, monospace;
+}
+
+/* ===== SHIP SELECT + DEVICE FORM FACTOR (2026-11-04) ===== */
+:root {
+  --sf-columns: 2;
+  --sf-hud-scale: 1;
+  --sf-content-max: 1280px;
+  --sf-seam: 0px;
+  --sf-letterbox-y: 0vh;
+}
+.craft-card__stats p:nth-child(n) > i[data-stat] > b { width: var(--fill, 60%); }
+.craft-card__ships {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+  margin: 2px -90px 10px 0;
+}
+.craft-card__ships button {
+  display: grid;
+  gap: 2px;
+  padding: 6px 3px;
+  border: 1px solid rgba(79, 214, 224, 0.18);
+  border-radius: 3px;
+  background: rgba(10, 24, 34, 0.42);
+  color: var(--muted);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .16s ease, background .16s ease, color .16s ease;
+}
+.craft-card__ships button b { font: 700 10px/1.1 ui-monospace, monospace; letter-spacing: .04em; white-space: nowrap; }
+.craft-card__ships button small { font-size: 9px; line-height: 1.1; opacity: .78; }
+.craft-card__ships button:hover { border-color: rgba(79, 214, 224, .52); color: var(--text); }
+.craft-card__ships button[data-selected="true"] {
+  border-color: #4fd6e0;
+  background: rgba(79, 214, 224, .12);
+  color: #e9f3f4;
+  box-shadow: inset 0 0 0 1px rgba(240, 168, 60, .18);
+}
+/* 近方形：阔折叠外屏、三折叠双屏态 —— 按钮改 3 列，卡片不被压扁 */
+body[data-aspect-class="square"] .craft-card__ships { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+body[data-aspect-class="square"] .craft-card__ships button { padding: 5px 2px; }
+body[data-aspect-class="square"] #LaunchGate { padding-block: var(--sf-letterbox-y); }
+/* 超宽：折叠外屏横置、iPhone 横屏 —— 内容限宽，避免文字拉成一行 */
+body[data-aspect-class="ultrawide"] #LaunchGate,
+body[data-aspect-class="tall"] #LaunchGate { max-width: var(--sf-content-max); margin-inline: auto; }
+/* 双屏铰链：HUD 与操作区两侧留出物理遮挡区，按键不压在折痕上 */
+body[data-form-factor="dual-screen"] #CombatHud,
+body[data-form-factor="dual-screen"] #LaunchGate {
+  padding-left: var(--sf-seam);
+  padding-right: var(--sf-seam);
+}
+/* 三折叠 / 折叠展开态：短边变大后收紧卡片，避免控件显得过小 */
+body[data-form-factor="fold-open"] .craft-card,
+body[data-form-factor="tri-fold-triple"] .craft-card { max-width: calc(340px * var(--sf-hud-scale)); }
+@media (max-width: 620px) {
+  .craft-card__ships { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-right: 0; }
+  .craft-card__ships button { padding: 5px 2px; }
+}

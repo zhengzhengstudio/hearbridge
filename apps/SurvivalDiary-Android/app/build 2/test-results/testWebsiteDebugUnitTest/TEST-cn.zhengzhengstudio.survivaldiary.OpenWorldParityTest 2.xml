@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.OpenWorldParityTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-04T08:57:34" hostname="LJGdeMacBook-Pro.local" time="0.039">
+  <properties/>
+  <testcase name="terrainSampleMatchesTheSharedReferenceGenerator" classname="cn.zhengzhengstudio.survivaldiary.OpenWorldParityTest" time="0.002"/>
+  <testcase name="neighbouringChunksShareTheExactSameTerrainEdge" classname="cn.zhengzhengstudio.survivaldiary.OpenWorldParityTest" time="0.037"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

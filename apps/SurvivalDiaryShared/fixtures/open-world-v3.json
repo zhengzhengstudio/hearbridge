@@ -1,0 +1,277 @@
+{
+  "schemaVersion": 3,
+  "seed": "open-world-20260731",
+  "coordinates": [
+    {
+      "x": 0,
+      "y": 0
+    },
+    {
+      "x": 1,
+      "y": 0
+    },
+    {
+      "x": -3,
+      "y": 7
+    }
+  ],
+  "signatures": {
+    "0,0": "938153c0cce0d2196ab4489055cbe3c1bd8e170b3fe168b9505b7abe57f51b12",
+    "1,0": "2f8d740df28ad34446751efd376fda30f9e15195733dd3e1ebb1b53e4dfd89ec",
+    "-3,7": "1bfe5deebd712b80f1029f3c96e892997dd28104bf3292baf84ba866750c9535"
+  },
+  "sharedEdge": {
+    "from": "0,0:east",
+    "to": "1,0:west",
+    "signature": "9afa9a3560bff9b0415517814bea9457510c03a87eb91cdf25a7e855c6fffbea"
+  },
+  "resourceNodes": [
+    {
+      "id": "broadleaf-bush@7,1",
+      "resourceId": "broadleaf-bush",
+      "itemId": "leaf",
+      "position": {
+        "x": 7.0315,
+        "y": 1.2226
+      },
+      "state": "full",
+      "remaining": 6,
+      "recoveryMinutes": 180
+    },
+    {
+      "id": "broadleaf-bush@9,1",
+      "resourceId": "broadleaf-bush",
+      "itemId": "leaf",
+      "position": {
+        "x": 9.3133,
+        "y": 1.1814
+      },
+      "state": "full",
+      "remaining": 5,
+      "recoveryMinutes": 180
+    },
+    {
+      "id": "coral-wash@11,1",
+      "resourceId": "coral-wash",
+      "itemId": "coral-fragment",
+      "position": {
+        "x": 10.9364,
+        "y": 0.7463
+      },
+      "state": "full",
+      "remaining": 1,
+      "recoveryMinutes": 960
+    },
+    {
+      "id": "coral-wash@7,3",
+      "resourceId": "coral-wash",
+      "itemId": "coral-fragment",
+      "position": {
+        "x": 7.0585,
+        "y": 3.0622
+      },
+      "state": "full",
+      "remaining": 3,
+      "recoveryMinutes": 960
+    },
+    {
+      "id": "coral-wash@11,3",
+      "resourceId": "coral-wash",
+      "itemId": "coral-fragment",
+      "position": {
+        "x": 11.2534,
+        "y": 2.9291
+      },
+      "state": "full",
+      "remaining": 2,
+      "recoveryMinutes": 960
+    },
+    {
+      "id": "copper-vein@15,3",
+      "resourceId": "copper-vein",
+      "itemId": "copper-ore",
+      "position": {
+        "x": 14.9536,
+        "y": 2.7277
+      },
+      "state": "full",
+      "remaining": 3,
+      "recoveryMinutes": 0
+    },
+    {
+      "id": "quartz-vein@3,5",
+      "resourceId": "quartz-vein",
+      "itemId": "quartz",
+      "position": {
+        "x": 3.2175,
+        "y": 4.7655
+      },
+      "state": "full",
+      "remaining": 1,
+      "recoveryMinutes": 0
+    },
+    {
+      "id": "stone-outcrop@5,5",
+      "resourceId": "stone-outcrop",
+      "itemId": "stone",
+      "position": {
+        "x": 4.6084,
+        "y": 4.7724
+      },
+      "state": "full",
+      "remaining": 5,
+      "recoveryMinutes": 0
+    },
+    {
+      "id": "quartz-vein@11,5",
+      "resourceId": "quartz-vein",
+      "itemId": "quartz",
+      "position": {
+        "x": 11.3904,
+        "y": 5.1029
+      },
+      "state": "full",
+      "remaining": 3,
+      "recoveryMinutes": 0
+    },
+    {
+      "id": "stone-outcrop@13,5",
+      "resourceId": "stone-outcrop",
+      "itemId": "stone",
+      "position": {
+        "x": 12.8069,
+        "y": 5.126
+      },
+      "state": "full",
+      "remaining": 5,
+      "recoveryMinutes": 0
+    },
+    {
+      "id": "stone-outcrop@15,5",
+      "resourceId": "stone-outcrop",
+      "itemId": "stone",
+      "position": {
+        "x": 15.3713,
+        "y": 5.3166
+      },
+      "state": "full",
+      "remaining": 5,
+      "recoveryMinutes": 0
+    },
+    {
+      "id": "palm-fiber-clump@1,7",
+      "resourceId": "palm-fiber-clump",
+      "itemId": "palm-fiber",
+      "position": {
+        "x": 1.1911,
+        "y": 7.1486
+      },
+      "state": "full",
+      "remaining": 4,
+      "recoveryMinutes": 240
+    },
+    {
+      "id": "coconut-palm@7,7",
+      "resourceId": "coconut-palm",
+      "itemId": "coconut",
+      "position": {
+        "x": 7.0614,
+        "y": 6.7913
+      },
+      "state": "full",
+      "remaining": 4,
+      "recoveryMinutes": 720
+    },
+    {
+      "id": "tin-vein@9,7",
+      "resourceId": "tin-vein",
+      "itemId": "tin-ore",
+      "position": {
+        "x": 8.7666,
+        "y": 6.7394
+      },
+      "state": "full",
+      "remaining": 1,
+      "recoveryMinutes": 0
+    },
+    {
+      "id": "stone-outcrop@11,7",
+      "resourceId": "stone-outcrop",
+      "itemId": "stone",
+      "position": {
+        "x": 10.7027,
+        "y": 6.7533
+      },
+      "state": "full",
+      "remaining": 2,
+      "recoveryMinutes": 0
+    },
+    {
+      "id": "coconut-palm@1,9",
+      "resourceId": "coconut-palm",
+      "itemId": "coconut",
+      "position": {
+        "x": 0.6787,
+        "y": 9.3459
+      },
+      "state": "full",
+      "remaining": 3,
+      "recoveryMinutes": 720
+    },
+    {
+      "id": "fallen-branches@7,9",
+      "resourceId": "fallen-branches",
+      "itemId": "branch",
+      "position": {
+        "x": 6.6206,
+        "y": 9.364
+      },
+      "state": "full",
+      "remaining": 3,
+      "recoveryMinutes": 120
+    },
+    {
+      "id": "broadleaf-bush@1,11",
+      "resourceId": "broadleaf-bush",
+      "itemId": "leaf",
+      "position": {
+        "x": 1.1469,
+        "y": 11.2189
+      },
+      "state": "full",
+      "remaining": 4,
+      "recoveryMinutes": 180
+    },
+    {
+      "id": "coconut-palm@3,11",
+      "resourceId": "coconut-palm",
+      "itemId": "coconut",
+      "position": {
+        "x": 3.3379,
+        "y": 11.1133
+      },
+      "state": "full",
+      "remaining": 2,
+      "recoveryMinutes": 720
+    },
+    {
+      "id": "palm-fiber-clump@5,11",
+      "resourceId": "palm-fiber-clump",
+      "itemId": "palm-fiber",
+      "position": {
+        "x": 5.3395,
+        "y": 11.0807
+      },
+      "state": "full",
+      "remaining": 3,
+      "recoveryMinutes": 240
+    }
+  ],
+  "discoveredMap": {
+    "0,0": {
+      "x": 0,
+      "y": 0,
+      "visibility": "discovered"
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "ver": "4.0.24",
+  "importer": "typescript",
+  "imported": true,
+  "uuid": "a91639c8-4e31-4f7b-b452-7f293c727612",
+  "files": [],
+  "subMetas": {},
+  "userData": {
+    "moduleId": "project:///assets/scripts/game/CombatBootstrap.js",
+    "importerSettings": 7,
+    "simulateGlobals": []
+  }
+}

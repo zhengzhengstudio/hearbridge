@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "biomes": ["deep-water", "lagoon", "beach", "grassland", "palm-grove", "mangrove", "rockland", "upland"],
+  "tileSize": 256,
+  "projection": "2.5d-35deg",
+  "variantsPerBiome": 6,
+  "transitions": [
+    { "from": "lagoon", "to": "beach", "edges": ["n", "e", "s", "w", "ne", "se", "sw", "nw"], "variants": 4 }
+  ]
+}

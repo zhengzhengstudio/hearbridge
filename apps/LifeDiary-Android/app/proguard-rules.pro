@@ -1,0 +1,1 @@
+-keepclassmembers class cn.zhengzhengstudio.lifediary.LifeBridge { @android.webkit.JavascriptInterface <methods>; }

@@ -1,0 +1,110 @@
+[
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_gather.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_gather.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_rain_collector_v1.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/rain_collector_v1.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_weather_snow.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_weather_snow.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_map.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_map.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_time.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_time.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_water.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_water.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_palisade_v1.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/palisade_v1.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_shelter_v1.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/shelter_v1.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_energy.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_energy.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_app_icon.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/app_icon.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_build.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_build.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_campfire_v1.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/campfire_v1.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_workbench_v1.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/workbench_v1.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_storage_crate_v1.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/storage_crate_v1.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_sleep.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_sleep.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_garden_plot_v1.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/garden_plot_v1.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_fish_rack_v1.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/fish_rack_v1.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_backpack.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_backpack.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_food.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_food.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_survivor_directions_v1.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/survivor_directions_v1.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/xml_file_paths.xml.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/xml/file_paths.xml"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_health.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_health.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_chat.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_chat.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_weather_clear.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_weather_clear.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_weather_rain.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_weather_rain.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_journal.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_journal.png"
+    },
+    {
+        "merged": "cn.zhengzhengstudio.survivaldiary.app-websiteDebug-45:/drawable-nodpi_game_ui_crafting.png.flat",
+        "source": "cn.zhengzhengstudio.survivaldiary.app-main-47:/drawable-nodpi/game_ui_crafting.png"
+    }
+]

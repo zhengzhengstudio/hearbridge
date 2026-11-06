@@ -1,0 +1,5 @@
+/build/
+/library/
+/profiles/
+/temp/
+.DS_Store

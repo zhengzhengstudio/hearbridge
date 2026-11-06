@@ -1,0 +1,19 @@
+{
+  "version": 3,
+  "chapter": "潮退之后",
+  "estimatedMinutes": "12–15",
+  "steps": [
+    { "id": "wake_and_observe", "title": "醒在潮线旁", "body": "潮水正在回涨。先站起来，确认自己还能行动。", "detail": "轻点附近空地移动。指南针会一直指向角色。", "action": "focus-wreck", "actionLabel": "检查残骸" },
+    { "id": "meet_atuo", "title": "有人在呼喊", "body": "阿拓受了伤，他就在残骸另一侧。", "detail": "沿沙滩脚印靠近阿拓。进入交谈距离后会自动记住这次会合。", "action": "find-atuo", "actionLabel": "找到阿拓" },
+    { "id": "gather_starter_supplies", "title": "天黑前要有火", "body": "阿拓需要你找来 1 根树枝、2 块海蚀石和 4 份散落纤维。", "detail": "这些材料固定生成在出生海湾，不需要工具，也不会依赖随机运气。", "action": "find-starter-supply", "actionLabel": "循着亮点寻找" },
+    { "id": "craft_first_tool", "title": "做一把能用的工具", "body": "先把纤维搓成绳，再制作石片砍刀。", "detail": "已经提前做出的工具会直接追认，不需要重复制作。", "action": "track-first-tool", "actionLabel": "追踪石片砍刀" },
+    { "id": "secure_water_and_food", "title": "阿拓需要缓一缓", "body": "带回一份淡水和一份椰子或浆果。", "detail": "发现、采集或饮用淡水都算真实进展。食物必须确实取得过。", "action": "find-water-food", "actionLabel": "寻找水和食物" },
+    { "id": "harvest_first_fiber", "title": "割下结实的纤维", "body": "用刚做好的工具采集一丛棕榈纤维。", "detail": "靠近纤维丛后，主动作会变为采集。工具命中和产出都必须发生。", "action": "find-fiber", "actionLabel": "采集纤维" },
+    { "id": "light_first_fire", "title": "风里已经有雨味", "body": "制作并放置营火，然后真正把它点亮。", "detail": "未点燃的营火不算完成。火能取暖、烹饪，也会在远处留下信号。", "action": "track-campfire", "actionLabel": "准备营火" },
+    { "id": "place_first_shelter", "title": "给暴雨留一道屋顶", "body": "和阿拓搭起简易庇护所或床铺。", "detail": "放置成功后，住处会成为可使用设施，并提供休息位置。", "action": "track-shelter", "actionLabel": "搭建住处" },
+    { "id": "eat_and_recover", "title": "先把力气找回来", "body": "吃下一份食物，让生命或体力获得实际恢复。", "detail": "只有状态数值真的变化才算完成，不能只显示使用了食物。", "action": "find-food", "actionLabel": "进食恢复" },
+    { "id": "rest_first_night", "title": "守住第一夜", "body": "两个人都靠近住处后，休息到清晨。", "detail": "营火、饱腹和饮水会影响恢复。必要资源卡住时会在海湾补充。", "action": "find-shelter", "actionLabel": "休息到清晨" },
+    { "id": "discover_morning_signal", "title": "雾后有一缕烟", "body": "清晨，旧路尽头升起了陌生烟柱。", "detail": "看向烟柱或踏上旧路，第一章就会结束。之后由你决定去哪里。", "action": "focus-signal", "actionLabel": "看向远方" }
+  ],
+  "completion": { "id": "opening_complete", "title": "开放生存", "body": "旧路伸向迷雾，搁浅船仍停在潮湾。活下来只是开始。", "action": "focus-world", "actionLabel": "决定下一程" }
+}

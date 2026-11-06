@@ -1,0 +1,13 @@
+{
+  "ver": "4.0.24",
+  "importer": "typescript",
+  "imported": true,
+  "uuid": "516289ef-10be-4ec9-9f26-5e70cc1a09ef",
+  "files": [],
+  "subMetas": {},
+  "userData": {
+    "moduleId": "project:///assets/scripts/game/CombatFeedbackPresenter.js",
+    "importerSettings": 7,
+    "simulateGlobals": []
+  }
+}

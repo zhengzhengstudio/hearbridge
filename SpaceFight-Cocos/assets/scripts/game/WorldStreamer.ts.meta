@@ -1,0 +1,13 @@
+{
+  "ver": "4.0.24",
+  "importer": "typescript",
+  "imported": true,
+  "uuid": "d2787016-09ae-460f-8794-2092483ed12b",
+  "files": [],
+  "subMetas": {},
+  "userData": {
+    "moduleId": "project:///assets/scripts/game/WorldStreamer.js",
+    "importerSettings": 7,
+    "simulateGlobals": []
+  }
+}

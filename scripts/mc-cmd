@@ -1,0 +1,107 @@
+#!/bin/bash
+#
+# TraeBot 命令行工具
+# 用法: mc-cmd <命令>
+#
+# 示例:
+#   mc-cmd help
+#   mc-cmd goto 100 64 200
+#   mc-cmd follow
+#   mc-cmd bedwars
+#
+
+API_URL="http://localhost:3001"
+
+if [ -z "$1" ]; then
+    echo "TraeBot 命令行工具"
+    echo ""
+    echo "用法: mc-cmd <命令> [参数...]"
+    echo ""
+    echo "命令:"
+    echo "  help              显示帮助"
+    echo "  status            查看状态"
+    echo "  inv               查看背包"
+    echo "  players           查看在线玩家"
+    echo "  goto x y z        移动到坐标"
+    echo "  follow [玩家]     跟着玩家"
+    echo "  come              来我这里"
+    echo "  stop              停止所有动作"
+    echo "  attack [目标]     攻击敌人"
+    echo "  eat               吃东西"
+    echo "  bedwars           起床战争模式"
+    echo "  build [建筑]      建造模式"
+    echo "  mine [矿物]       挖矿模式"
+    echo "  chat <消息>       发送聊天消息"
+    echo ""
+    echo "示例:"
+    echo "  mc-cmd goto 100 64 200"
+    echo "  mc-cmd follow Steve"
+    echo "  mc-cmd bedwars"
+    echo "  mc-cmd chat 大家好！"
+    exit 0
+fi
+
+CMD="$1"
+shift
+
+case "$CMD" in
+    help|status|inv|players|stop|eat|bedwars|farm)
+        curl -s -X POST "$API_URL/action" -H "Content-Type: application/json" \
+            -d "{\"type\": \"chat\", \"payload\": {\"message\": \"traebot $CMD\"}}" | python3 -m json.tool
+        ;;
+    goto)
+        if [ $# -lt 3 ]; then
+            echo "用法: mc-cmd goto x y z"
+            exit 1
+        fi
+        curl -s -X POST "$API_URL/action" -H "Content-Type: application/json" \
+            -d "{\"type\": \"chat\", \"payload\": {\"message\": \"traebot goto $1 $2 $3\"}}" | python3 -m json.tool
+        ;;
+    follow)
+        TARGET="${1:-}"
+        curl -s -X POST "$API_URL/action" -H "Content-Type: application/json" \
+            -d "{\"type\": \"chat\", \"payload\": {\"message\": \"traebot follow $TARGET\"}}" | python3 -m json.tool
+        ;;
+    come)
+        curl -s -X POST "$API_URL/action" -H "Content-Type: application/json" \
+            -d "{\"type\": \"chat\", \"payload\": {\"message\": \"traebot come\"}}" | python3 -m json.tool
+        ;;
+    attack)
+        TARGET="${1:-}"
+        curl -s -X POST "$API_URL/action" -H "Content-Type: application/json" \
+            -d "{\"type\": \"chat\", \"payload\": {\"message\": \"traebot attack $TARGET\"}}" | python3 -m json.tool
+        ;;
+    build)
+        BUILDING="${1:-house}"
+        curl -s -X POST "$API_URL/action" -H "Content-Type: application/json" \
+            -d "{\"type\": \"chat\", \"payload\": {\"message\": \"traebot build $BUILDING\"}}" | python3 -m json.tool
+        ;;
+    mine)
+        ORE="${1:-diamond}"
+        curl -s -X POST "$API_URL/action" -H "Content-Type: application/json" \
+            -d "{\"type\": \"chat\", \"payload\": {\"message\": \"traebot mine $ORE\"}}" | python3 -m json.tool
+        ;;
+    chat)
+        if [ -z "$1" ]; then
+            echo "用法: mc-cmd chat <消息>"
+            exit 1
+        fi
+        MSG="$*"
+        curl -s -X POST "$API_URL/action" -H "Content-Type: application/json" \
+            -d "{\"type\": \"chat\", \"payload\": {\"message\": \"$MSG\"}}" | python3 -m json.tool
+        ;;
+    state)
+        curl -s "$API_URL/state" | python3 -m json.tool
+        ;;
+    events)
+        curl -s "$API_URL/events" | python3 -m json.tool
+        ;;
+    health)
+        curl -s "$API_URL/health" | python3 -m json.tool
+        ;;
+    *)
+        echo "未知命令: $CMD"
+        echo "输入 mc-cmd 查看帮助"
+        exit 1
+        ;;
+esac

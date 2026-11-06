@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "fresh-guided-save",
+      "input": {},
+      "expected": {
+        "enabled": true,
+        "version": 1,
+        "completedStepIds": [],
+        "currentStepId": "wake_and_observe",
+        "completed": false
+      }
+    },
+    {
+      "id": "water-secured-next-tool",
+      "input": {
+        "milestones": {
+          "wake_and_observe": true,
+          "secure_fresh_water": true
+        },
+        "inventory": {
+          "branch": 1,
+          "stone": 2,
+          "palm-fiber": 4
+        }
+      },
+      "expected": {
+        "enabled": true,
+        "version": 1,
+        "completedStepIds": [
+          "wake_and_observe",
+          "gather_starter_supplies",
+          "secure_fresh_water"
+        ],
+        "currentStepId": "craft_first_tool",
+        "completed": false
+      }
+    },
+    {
+      "id": "guidance-disabled",
+      "input": {
+        "onboarding": {
+          "enabled": false,
+          "version": 1
+        }
+      },
+      "expected": {
+        "enabled": false,
+        "version": 1,
+        "completedStepIds": [],
+        "currentStepId": "wake_and_observe",
+        "completed": false
+      }
+    }
+  ]
+}

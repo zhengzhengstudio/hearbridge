@@ -1,0 +1,4 @@
+// 由 gen_board_artwork.py 生成，请勿手改
+// gobang_board.png 交叉点百分比坐标
+export const GOBANG_POINTS_PCT: number[] = [8.5000, 14.4286, 20.3571, 26.2857, 32.2143, 38.1429, 44.0714, 50.0000, 55.9286, 61.8571, 67.7857, 73.7143, 79.6429, 85.5714, 91.5000]
+export const GOBANG_GRID_WIDTH_PCT: number = 83.7857

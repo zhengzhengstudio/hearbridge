@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zhengzhengstudio.cn/schemas/survival-diary/save-v1.json",
+  "title": "Survival Diary Save",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "seed", "day", "time", "regions", "players", "milestones"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "seed": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "day": { "type": "integer", "minimum": 1 },
+    "time": { "type": "integer", "minimum": 0, "maximum": 1439 },
+    "regions": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/region" }
+    },
+    "players": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/player" }
+    },
+    "milestones": {
+      "type": "object",
+      "additionalProperties": { "type": "boolean" }
+    }
+  },
+  "$defs": {
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "x", "y", "biomeId", "elevation", "moisture", "resources"],
+      "properties": {
+        "id": { "type": "string" },
+        "x": { "type": "integer" },
+        "y": { "type": "integer" },
+        "biomeId": { "type": "string" },
+        "elevation": { "type": "number", "minimum": 0, "maximum": 1 },
+        "moisture": { "type": "number", "minimum": 0, "maximum": 1 },
+        "resources": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "player": {
+      "type": "object",
+      "required": ["id", "inventory", "position"],
+      "properties": {
+        "id": { "type": "string" },
+        "inventory": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "position": {
+          "type": "object",
+          "required": ["x", "y"],
+          "properties": { "x": { "type": "number" }, "y": { "type": "number" } }
+        }
+      }
+    }
+  }
+}

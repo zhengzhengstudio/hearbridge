@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "seed": "20260726",
+  "commands": [
+    { "type": "discover_region", "coordinates": { "x": 0, "y": 0 } },
+    { "type": "discover_region", "coordinates": { "x": 1, "y": 0 } },
+    { "type": "discover_region", "coordinates": { "x": -2, "y": 3 } },
+    { "type": "advance_time", "minutes": 1080 },
+    { "type": "discover_region", "coordinates": { "x": 42, "y": -17 } }
+  ],
+  "expectedDigest": "275e9100355b0c6c6f21340a038dd5831d7babebf346094f81767e0b4ec99378"
+}

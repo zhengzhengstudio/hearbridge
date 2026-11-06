@@ -1,0 +1,18 @@
+{
+  "world": {
+    "bounds": { "minX": 0, "minY": 0, "maxX": 12, "maxY": 12 },
+    "terrain": {
+      "default": { "walkable": true, "waterDepth": 0, "slope": 0.05 },
+      "deepWater": { "minX": 9, "minY": 0, "maxX": 12, "maxY": 12, "waterDepth": 0.8 },
+      "bridge": { "minX": 9, "minY": 5, "maxX": 12, "maxY": 7, "waterDepth": 0.8, "bridge": true }
+    },
+    "obstacles": [
+      { "id": "cliff", "x": 5, "y": 4, "width": 2, "height": 4, "collision": true, "heightLayer": 2 },
+      { "id": "shelter", "x": 3, "y": 9, "width": 4, "height": 3, "collision": true, "heightLayer": 1,
+        "entrances": [{ "x": 3, "y": 6.75, "width": 2, "height": 1.5 }] }
+    ]
+  },
+  "actor": { "position": { "x": 3.5, "y": 3.5 }, "radius": 0.4, "mode": "walking" },
+  "crate": { "id": "storage-crate", "footprint": { "width": 1, "height": 1 }, "maxSlope": 0.25, "maxWaterDepth": 0.1 },
+  "blockedDoorPose": { "x": 3, "y": 6.75, "rotation": 0 }
+}

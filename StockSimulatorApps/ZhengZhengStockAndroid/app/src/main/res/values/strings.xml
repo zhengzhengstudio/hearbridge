@@ -1,0 +1,5 @@
+<resources>
+    <!-- 合规：应用名避免"炒股""投资""证券"等易触发金融风控审核的词 -->
+    <string name="app_name">铮铮交易练习</string>
+    <string name="app_desc">模拟交易流程练习工具，数据均为虚构，不构成投资建议</string>
+</resources>

@@ -1,0 +1,10 @@
+{
+  "app": {
+    "bundleName": "cn.zhengzhengstudio.survivaldiary.hmos",
+    "vendor": "铮铮实验室",
+    "versionCode": 60204,
+    "versionName": "0.6.2",
+    "icon": "$media:app_icon",
+    "label": "$string:app_name"
+  }
+}

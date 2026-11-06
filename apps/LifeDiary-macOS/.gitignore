@@ -1,0 +1,6 @@
+.build/
+.swiftpm/
+dist/
+*.dmg
+*.pkg
+*.p12

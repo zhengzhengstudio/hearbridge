@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-version="1.6.0">
+<head>
+  <meta charset="UTF-8">
+  <title>铮铮桌游合集 · Windows 版</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="app">
+    <!-- WinUI NavigationView：左侧分栏 -->
+    <aside class="navview">
+      <div class="nav-brand">
+        <span class="logo">铮</span>
+        <div>
+          <h1>铮铮桌游合集</h1>
+          <p id="brand-sub">17 种棋牌 · 单机畅玩</p>
+        </div>
+      </div>
+      <nav id="nav-list" class="nav-list"></nav>
+      <div class="nav-foot">
+        <span id="version-tag" class="tag">v—</span>
+      </div>
+    </aside>
+
+    <div class="content">
+      <!-- 顶部命令栏 -->
+      <header class="topbar">
+        <div class="crumb">
+          <h2 id="crumb-title">大厅</h2>
+          <span id="crumb-note">全部游戏均为单机版，内置 AI 对手，无需联网</span>
+        </div>
+        <div class="topbar-actions">
+          <button id="btn-home" class="ghost">返回大厅</button>
+          <button id="btn-back" class="ghost hidden">← 返回</button>
+        </div>
+      </header>
+
+      <main id="lobby" class="lobby">
+        <section class="hero">
+          <h2>想玩点什么？</h2>
+          <p>点左侧导航或下面任意一张卡片即可开局；Esc 可随时回到大厅。</p>
+        </section>
+        <div id="game-grid" class="grid"></div>
+      </main>
+
+      <section id="stage" class="stage hidden">
+        <div class="stage-head">
+          <h2 id="stage-title">游戏</h2>
+          <span id="stage-note" class="tag"></span>
+        </div>
+        <div id="game-root" class="game-root"></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="src/core.js"></script>
+  <script src="src/games/board.js"></script>
+  <script src="src/games/chess.js"></script>
+  <script src="src/games/junqi.js"></script>
+  <script src="src/games/ludo.js"></script>
+  <script src="src/games/rummy.js"></script>
+  <script src="src/games/monopoly.js"></script>
+  <script src="src/games/cards.js"></script>
+  <script src="src/games/party.js"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+[
+  { "id": "bleeding", "name": "流血", "kind": "harmful", "maxStacks": 3, "modifiers": { "healthPerMinute": -1.5, "staminaRecovery": -0.15 }, "remedies": ["bandage", "strong-bandage"] },
+  { "id": "infected", "name": "感染", "kind": "harmful", "maxStacks": 3, "modifiers": { "healthPerMinute": -0.5, "temperatureTarget": 38.5 }, "remedies": ["antiseptic", "infection-salve", "fever-tonic"] },
+  { "id": "wet", "name": "潮湿", "kind": "harmful", "maxStacks": 4, "modifiers": { "temperaturePerMinute": -0.2, "staminaRecovery": -0.1 }, "remedies": ["campfire", "shelter", "raincoat"] },
+  { "id": "cold", "name": "寒冷", "kind": "harmful", "maxStacks": 4, "modifiers": { "healthPerMinute": -0.4, "staminaRecovery": -0.2 }, "remedies": ["campfire", "warm-coat", "warming-tonic", "wooden-bed"] },
+  { "id": "overheated", "name": "过热", "kind": "harmful", "maxStacks": 4, "modifiers": { "thirstPerMinute": -0.8, "staminaRecovery": -0.15 }, "remedies": ["fresh-water", "shelter"] },
+  { "id": "dehydrated", "name": "脱水", "kind": "harmful", "maxStacks": 3, "modifiers": { "healthPerMinute": -1, "staminaRecovery": -0.5 }, "remedies": ["fresh-water", "boiled-water", "coconut-water"] },
+  { "id": "starving", "name": "饥饿", "kind": "harmful", "maxStacks": 3, "modifiers": { "healthPerMinute": -0.7, "staminaRecovery": -0.4 }, "remedies": ["grilled-fish", "crab-meal", "fruit-bowl", "mushroom-stew"] },
+  { "id": "exhausted", "name": "精疲力竭", "kind": "harmful", "maxStacks": 2, "modifiers": { "moveSpeed": -0.35, "harvestSpeed": -0.3 }, "remedies": ["straw-mat", "hammock", "simple-bed", "camp-bed", "wooden-bed"] },
+  { "id": "overloaded", "name": "超重", "kind": "harmful", "maxStacks": 5, "modifiers": { "moveSpeed": -0.12, "staminaPerStep": -0.25 }, "remedies": ["small-backpack", "frame-backpack", "storage-crate"] },
+  { "id": "sheltered", "name": "庇护", "kind": "helpful", "maxStacks": 1, "modifiers": { "wetResistance": 0.8, "temperatureRecovery": 0.3 }, "remedies": [] },
+  { "id": "warm", "name": "温暖", "kind": "helpful", "maxStacks": 2, "modifiers": { "temperatureRecovery": 0.5, "healthRecovery": 0.1 }, "remedies": [] },
+  { "id": "well-fed", "name": "饱足", "kind": "helpful", "maxStacks": 2, "modifiers": { "healthRecovery": 0.2, "staminaRecovery": 0.25 }, "remedies": [] },
+  { "id": "rested", "name": "休息充分", "kind": "helpful", "maxStacks": 1, "modifiers": { "staminaRecovery": 0.5, "moveSpeed": 0.08 }, "remedies": [] }
+]

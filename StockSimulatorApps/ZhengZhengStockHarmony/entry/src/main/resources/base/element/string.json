@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "铮铮模拟炒股原生 HarmonyOS 客户端"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "铮铮模拟炒股"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "铮铮模拟炒股"
+    }
+  ]
+}

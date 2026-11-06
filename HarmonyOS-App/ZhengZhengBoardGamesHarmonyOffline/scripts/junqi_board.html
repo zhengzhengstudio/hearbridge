@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 520px; height: 1298px; overflow: hidden; background: #FFFFFF; }
+  #board { position: relative; width: 520px; height: 1298px; border-radius: 22px;
+    background: radial-gradient(circle at 50% 42%, #FFFDF4 0%, #F7ECD0 62%, #E8D8B2 100%); }
+  .zone { position: absolute; left: 24px; width: 472px; border-radius: 16px; }
+  .frame { position: absolute; left: 12px; top: 12px; width: 496px; height: 1274px;
+    border: 5px solid #C79A3C; border-radius: 18px; opacity: .85; }
+  /* 公路：细实线（画在落点之下，从落点间隙露出） */
+  .line { position: absolute; z-index: 1; background: #A6926E; transform-origin: 0 50%; height: 3px; }
+  /* 行营斜线公路：淡实线，画在落点之上 */
+  .diag { position: absolute; z-index: 3; transform-origin: 0 50%; height: 0; border-top: 2px solid #C6B58E; }
+  /* 铁路：细双线 + 稀疏枕木，贯通所有落点（真实军棋即如此） */
+  .rail  { position: absolute; z-index: 3; transform-origin: 0 50%; height: 9px; margin-top: -4.5px;
+    border-top: 2px solid #4A4A4A; border-bottom: 2px solid #4A4A4A;
+    background: repeating-linear-gradient(90deg, #4A4A4A 0 2.5px, transparent 2.5px 15px); }
+  /* 落点用小圆点，线条从点下穿过，符合实物军棋观感 */
+  .node { position: absolute; z-index: 2; width: 30px; height: 30px; border-radius: 50%;
+    background: #FFFFFF; border: 3px solid #7A6A4F; transform: translate(-50%, -50%);
+    box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+  .camp { position: absolute; z-index: 2; width: 52px; height: 52px; border-radius: 50%;
+    background: #F0E2BE; border: 3px dashed #B0862F; transform: translate(-50%, -50%); }
+  .base { position: absolute; z-index: 2; width: 56px; height: 56px; border-radius: 12px;
+    background: #F2E4C4; border: 4px solid #8A6A2F; transform: translate(-50%, -50%);
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,.75); }
+  .tag { position: absolute; z-index: 5; transform: translate(-50%, -50%); text-align: center;
+    font-family: "PingFang SC", "Heiti SC", sans-serif; font-weight: 800; white-space: nowrap;
+    padding: 1px 5px; border-radius: 5px; background: rgba(255,255,255,.82); }
+  .ghost { background: none; }
+  .mountain { position: absolute; z-index: 0; }
+</style></head><body><div id="board">
+  <div class="zone" style="top:10px;height:550px;background:rgba(90,130,180,.13)"></div>
+  <div class="zone" style="top:688px;height:550px;background:rgba(190,80,70,.13)"></div>
+  <div class="frame"></div>
+  <div class="line" style="left:160.0px;top:60.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:260.0px;top:60.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:360.0px;top:60.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:60.0px;top:160.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:160.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:160.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:260.0px;top:160.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:260.0px;top:160.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:360.0px;top:160.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:360.0px;top:160.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:60.0px;top:260.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:260.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:260.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:260.0px;top:260.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:260.0px;top:260.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:360.0px;top:260.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:360.0px;top:260.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:60.0px;top:360.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:360.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:360.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:260.0px;top:360.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:260.0px;top:360.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:360.0px;top:360.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:360.0px;top:360.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:60.0px;top:460.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:460.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:460.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:260.0px;top:460.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:260.0px;top:460.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:360.0px;top:460.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:360.0px;top:460.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:160.0px;top:560.0px;width:178.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:260.0px;top:560.0px;width:178.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:360.0px;top:560.0px;width:178.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:160.0px;top:738.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:260.0px;top:738.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:360.0px;top:738.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:60.0px;top:838.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:838.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:838.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:260.0px;top:838.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:260.0px;top:838.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:360.0px;top:838.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:360.0px;top:838.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:60.0px;top:938.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:938.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:938.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:260.0px;top:938.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:260.0px;top:938.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:360.0px;top:938.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:360.0px;top:938.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:60.0px;top:1038.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:1038.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:1038.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:260.0px;top:1038.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:260.0px;top:1038.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:360.0px;top:1038.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:360.0px;top:1038.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:60.0px;top:1138.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:1138.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:160.0px;top:1138.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:260.0px;top:1138.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:260.0px;top:1138.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="line" style="left:360.0px;top:1138.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="line" style="left:360.0px;top:1138.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="diag" style="left:160.0px;top:60.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:160.0px;top:60.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:360.0px;top:60.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:360.0px;top:60.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:60.0px;top:160.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:260.0px;top:160.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:260.0px;top:160.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:460.0px;top:160.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:60.0px;top:260.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:260.0px;top:260.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:260.0px;top:260.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:460.0px;top:260.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:160.0px;top:360.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:160.0px;top:360.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:360.0px;top:360.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:360.0px;top:360.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:60.0px;top:838.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:260.0px;top:838.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:260.0px;top:838.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:460.0px;top:838.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:160.0px;top:938.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:160.0px;top:938.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:360.0px;top:938.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:360.0px;top:938.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:160.0px;top:1038.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:160.0px;top:1038.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:360.0px;top:1038.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:360.0px;top:1038.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:60.0px;top:1138.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:260.0px;top:1138.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="diag" style="left:260.0px;top:1138.0px;width:141.4px;transform:rotate(45.00deg)"></div>
+  <div class="diag" style="left:460.0px;top:1138.0px;width:141.4px;transform:rotate(135.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:55.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:55.0px;width:200.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:55.0px;width:300.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:55.0px;width:400.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:55.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:160.0px;top:55.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:160.0px;top:55.0px;width:200.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:160.0px;top:55.0px;width:300.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:260.0px;top:55.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:260.0px;top:55.0px;width:200.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:360.0px;top:55.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:460.0px;top:55.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:155.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:460.0px;top:155.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:255.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:460.0px;top:255.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:355.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:460.0px;top:355.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:455.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:460.0px;top:455.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:555.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:555.0px;width:200.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:555.0px;width:300.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:555.0px;width:400.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:555.0px;width:178.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:160.0px;top:555.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:160.0px;top:555.0px;width:200.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:160.0px;top:555.0px;width:300.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:260.0px;top:555.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:260.0px;top:555.0px;width:200.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:360.0px;top:555.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:460.0px;top:555.0px;width:178.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:733.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:733.0px;width:200.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:733.0px;width:300.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:733.0px;width:400.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:733.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:160.0px;top:733.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:160.0px;top:733.0px;width:200.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:160.0px;top:733.0px;width:300.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:260.0px;top:733.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:260.0px;top:733.0px;width:200.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:360.0px;top:733.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:460.0px;top:733.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:833.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:460.0px;top:833.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:933.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:460.0px;top:933.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:1033.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:460.0px;top:1033.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:1133.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:460.0px;top:1133.0px;width:100.0px;transform:rotate(90.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:1233.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:1233.0px;width:200.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:1233.0px;width:300.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:60.0px;top:1233.0px;width:400.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:160.0px;top:1233.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:160.0px;top:1233.0px;width:200.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:160.0px;top:1233.0px;width:300.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:260.0px;top:1233.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:260.0px;top:1233.0px;width:200.0px;transform:rotate(0.00deg)"></div>
+  <div class="rail" style="left:360.0px;top:1233.0px;width:100.0px;transform:rotate(0.00deg)"></div>
+  <div class="tag ghost" style="left:260px;top:599px;font-size:24px;color:#A08A50;opacity:.8;letter-spacing:14px">山&emsp;界</div>
+  <svg class="mountain" style="left:82px;top:578px" width="92" height="55" viewBox="0 0 100 60"><path d="M2 58 L28 22 L42 42 L60 10 L98 58 Z" fill="#D9C48F" opacity=".5" stroke="#8A7344" stroke-width="2.5" stroke-linejoin="round"/><path d="M60 10 L70 26 L64 26 Z" fill="#FFFFFF" opacity=".5"/></svg>
+  <svg class="mountain" style="left:346px;top:578px" width="92" height="55" viewBox="0 0 100 60"><path d="M2 58 L28 22 L42 42 L60 10 L98 58 Z" fill="#D9C48F" opacity=".5" stroke="#8A7344" stroke-width="2.5" stroke-linejoin="round"/><path d="M60 10 L70 26 L64 26 Z" fill="#FFFFFF" opacity=".5"/></svg>
+  <div class="node" style="left:60.0px;top:60.0px"></div>
+  <div class="base" style="left:160.0px;top:60.0px"></div>
+  <div class="tag" style="left:160.0px;top:104.0px;font-size:17px;color:#8A6A2F;padding:1px 4px">大本营</div>
+  <div class="node" style="left:260.0px;top:60.0px"></div>
+  <div class="base" style="left:360.0px;top:60.0px"></div>
+  <div class="tag" style="left:360.0px;top:104.0px;font-size:17px;color:#8A6A2F;padding:1px 4px">大本营</div>
+  <div class="node" style="left:460.0px;top:60.0px"></div>
+  <div class="camp" style="left:60.0px;top:160.0px"></div>
+  <div class="tag" style="left:60.0px;top:116.0px;font-size:16px;color:#9C7F3C;padding:1px 4px">行营</div>
+  <div class="node" style="left:160.0px;top:160.0px"></div>
+  <div class="camp" style="left:260.0px;top:160.0px"></div>
+  <div class="tag" style="left:260.0px;top:116.0px;font-size:16px;color:#9C7F3C;padding:1px 4px">行营</div>
+  <div class="node" style="left:360.0px;top:160.0px"></div>
+  <div class="camp" style="left:460.0px;top:160.0px"></div>
+  <div class="tag" style="left:460.0px;top:116.0px;font-size:16px;color:#9C7F3C;padding:1px 4px">行营</div>
+  <div class="node" style="left:60.0px;top:260.0px"></div>
+  <div class="node" style="left:160.0px;top:260.0px"></div>
+  <div class="node" style="left:260.0px;top:260.0px"></div>
+  <div class="node" style="left:360.0px;top:260.0px"></div>
+  <div class="node" style="left:460.0px;top:260.0px"></div>
+  <div class="node" style="left:60.0px;top:360.0px"></div>
+  <div class="camp" style="left:160.0px;top:360.0px"></div>
+  <div class="tag" style="left:160.0px;top:316.0px;font-size:16px;color:#9C7F3C;padding:1px 4px">行营</div>
+  <div class="node" style="left:260.0px;top:360.0px"></div>
+  <div class="camp" style="left:360.0px;top:360.0px"></div>
+  <div class="tag" style="left:360.0px;top:316.0px;font-size:16px;color:#9C7F3C;padding:1px 4px">行营</div>
+  <div class="node" style="left:460.0px;top:360.0px"></div>
+  <div class="node" style="left:60.0px;top:460.0px"></div>
+  <div class="node" style="left:160.0px;top:460.0px"></div>
+  <div class="node" style="left:260.0px;top:460.0px"></div>
+  <div class="node" style="left:360.0px;top:460.0px"></div>
+  <div class="node" style="left:460.0px;top:460.0px"></div>
+  <div class="node" style="left:60.0px;top:560.0px"></div>
+  <div class="node" style="left:160.0px;top:560.0px"></div>
+  <div class="node" style="left:260.0px;top:560.0px"></div>
+  <div class="node" style="left:360.0px;top:560.0px"></div>
+  <div class="node" style="left:460.0px;top:560.0px"></div>
+  <div class="node" style="left:60.0px;top:738.0px"></div>
+  <div class="node" style="left:160.0px;top:738.0px"></div>
+  <div class="node" style="left:260.0px;top:738.0px"></div>
+  <div class="node" style="left:360.0px;top:738.0px"></div>
+  <div class="node" style="left:460.0px;top:738.0px"></div>
+  <div class="node" style="left:60.0px;top:838.0px"></div>
+  <div class="node" style="left:160.0px;top:838.0px"></div>
+  <div class="node" style="left:260.0px;top:838.0px"></div>
+  <div class="node" style="left:360.0px;top:838.0px"></div>
+  <div class="node" style="left:460.0px;top:838.0px"></div>
+  <div class="node" style="left:60.0px;top:938.0px"></div>
+  <div class="camp" style="left:160.0px;top:938.0px"></div>
+  <div class="tag" style="left:160.0px;top:894.0px;font-size:16px;color:#9C7F3C;padding:1px 4px">行营</div>
+  <div class="node" style="left:260.0px;top:938.0px"></div>
+  <div class="camp" style="left:360.0px;top:938.0px"></div>
+  <div class="tag" style="left:360.0px;top:894.0px;font-size:16px;color:#9C7F3C;padding:1px 4px">行营</div>
+  <div class="node" style="left:460.0px;top:938.0px"></div>
+  <div class="node" style="left:60.0px;top:1038.0px"></div>
+  <div class="node" style="left:160.0px;top:1038.0px"></div>
+  <div class="node" style="left:260.0px;top:1038.0px"></div>
+  <div class="node" style="left:360.0px;top:1038.0px"></div>
+  <div class="node" style="left:460.0px;top:1038.0px"></div>
+  <div class="camp" style="left:60.0px;top:1138.0px"></div>
+  <div class="tag" style="left:60.0px;top:1094.0px;font-size:16px;color:#9C7F3C;padding:1px 4px">行营</div>
+  <div class="node" style="left:160.0px;top:1138.0px"></div>
+  <div class="camp" style="left:260.0px;top:1138.0px"></div>
+  <div class="tag" style="left:260.0px;top:1094.0px;font-size:16px;color:#9C7F3C;padding:1px 4px">行营</div>
+  <div class="node" style="left:360.0px;top:1138.0px"></div>
+  <div class="camp" style="left:460.0px;top:1138.0px"></div>
+  <div class="tag" style="left:460.0px;top:1094.0px;font-size:16px;color:#9C7F3C;padding:1px 4px">行营</div>
+  <div class="node" style="left:60.0px;top:1238.0px"></div>
+  <div class="base" style="left:160.0px;top:1238.0px"></div>
+  <div class="tag" style="left:160.0px;top:1194.0px;font-size:17px;color:#8A6A2F;padding:1px 4px">大本营</div>
+  <div class="node" style="left:260.0px;top:1238.0px"></div>
+  <div class="base" style="left:360.0px;top:1238.0px"></div>
+  <div class="tag" style="left:360.0px;top:1194.0px;font-size:17px;color:#8A6A2F;padding:1px 4px">大本营</div>
+  <div class="node" style="left:460.0px;top:1238.0px"></div>
+  <div class="tag ghost" style="left:26px;top:280px;font-size:19px;color:#5B7BA6;opacity:.55;letter-spacing:6px;writing-mode:vertical-rl">蓝方阵地</div>
+  <div class="tag ghost" style="left:494px;top:948px;font-size:19px;color:#B25A4E;opacity:.55;letter-spacing:6px;writing-mode:vertical-rl">红方阵地</div>
+</div></body></html>

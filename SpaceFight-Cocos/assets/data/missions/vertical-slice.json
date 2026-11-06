@@ -1,0 +1,24 @@
+{
+  "id": "vertical-slice",
+  "seed": 1337,
+  "enemies": [
+    {
+      "id": "scout-alpha",
+      "kind": "scout",
+      "position": { "x": 6, "y": 0, "z": -12 },
+      "health": 24
+    }
+  ],
+  "pickups": [
+    {
+      "id": "energy-cache-alpha",
+      "kind": "energy",
+      "position": { "x": 14, "y": 0, "z": 8 },
+      "value": 25
+    }
+  ],
+  "objective": {
+    "type": "eliminate",
+    "requiredKills": 1
+  }
+}

@@ -1,0 +1,14 @@
+[
+  { "id": "storage-crate", "slots": { "storage": 24 }, "capabilities": ["open", "transfer", "repair", "dismantle"], "interactionRange": 88, "offlineCapMinutes": 0 },
+  { "id": "furnace", "slots": { "input": 2, "fuel": 1, "output": 1 }, "capabilities": ["open", "process", "repair", "dismantle"], "interactionRange": 92, "offlineCapMinutes": 720 },
+  { "id": "workbench", "slots": { "input": 8, "output": 1 }, "capabilities": ["open", "craft", "repair", "dismantle"], "interactionRange": 96, "offlineCapMinutes": 0 },
+  { "id": "straw-mat", "slots": {}, "capabilities": ["sleep", "repair", "dismantle"], "interactionRange": 76, "offlineCapMinutes": 0 },
+  { "id": "hammock", "slots": {}, "capabilities": ["sleep", "repair", "dismantle"], "interactionRange": 84, "offlineCapMinutes": 0 },
+  { "id": "simple-bed", "slots": {}, "capabilities": ["sleep", "repair", "dismantle"], "interactionRange": 84, "offlineCapMinutes": 0 },
+  { "id": "camp-bed", "slots": {}, "capabilities": ["sleep", "repair", "dismantle"], "interactionRange": 84, "offlineCapMinutes": 0 },
+  { "id": "wooden-bed", "slots": {}, "capabilities": ["sleep", "repair", "dismantle"], "interactionRange": 90, "offlineCapMinutes": 0 },
+  { "id": "shelter", "slots": {}, "capabilities": ["shelter", "sleep", "repair", "dismantle"], "interactionRange": 128, "offlineCapMinutes": 0 },
+  { "id": "cooking-pot", "slots": { "input": 3, "fuel": 1, "output": 1 }, "capabilities": ["open", "process", "repair", "dismantle"], "interactionRange": 86, "offlineCapMinutes": 360 },
+  { "id": "drying-shed", "slots": { "input": 4, "output": 4 }, "capabilities": ["open", "process", "repair", "dismantle"], "interactionRange": 112, "offlineCapMinutes": 720 },
+  { "id": "medicine-table", "slots": { "input": 4, "output": 2 }, "capabilities": ["open", "process", "repair", "dismantle"], "interactionRange": 96, "offlineCapMinutes": 360 }
+]

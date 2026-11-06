@@ -1,0 +1,7 @@
+[
+  { "id": "radio-signal", "name": "远方电波", "terminal": false, "hint": "修复收音设备，发现更远海域的信号。" },
+  { "id": "open-water", "name": "驶向外海", "terminal": false, "hint": "造一艘能穿过浪区的小船。" },
+  { "id": "living-island", "name": "会呼吸的聚落", "terminal": false, "hint": "让住处、农田和水源形成循环。" },
+  { "id": "tide-memory", "name": "潮汐的记忆", "terminal": false, "hint": "继续记录遗迹留下的故事。" },
+  { "id": "island-naturalist", "name": "海岛博物志", "terminal": false, "hint": "观察新的生态与季节变化。" }
+]

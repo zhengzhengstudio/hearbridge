@@ -1,0 +1,12 @@
+{
+  "sourceHash": "e3ce73ee524156d6b0a2719f119bb161c2357372aa7cc8119aa7a55ddc38e67d",
+  "browserBundle": "website/survival-diary.zhengzhengstudio.cn/js/vendor/survival-wildlife.js",
+  "browserHash": "d94c0dd4",
+  "serverBundle": "website/survival-diary.zhengzhengstudio.cn/server/lib/wildlife-simulation.js",
+  "generatedFrom": [
+    "apps/SurvivalDiaryShared/src/wildlife-simulation.js",
+    "apps/SurvivalDiaryShared/src/wildlife-events.js",
+    "apps/SurvivalDiaryShared/content/animals.json",
+    "apps/SurvivalDiaryShared/content/habitats.json"
+  ]
+}

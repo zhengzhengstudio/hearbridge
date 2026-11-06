@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.CraftingEngineTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-04T10:01:30" hostname="LJGdeMacBook-Pro.local" time="0.029">
+  <properties/>
+  <testcase name="station recipes stay visible but cannot craft without placed station" classname="cn.zhengzhengstudio.survivaldiary.CraftingEngineTest" time="0.022"/>
+  <testcase name="stone pickaxe recipe consumes materials and creates the required tool" classname="cn.zhengzhengstudio.survivaldiary.CraftingEngineTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

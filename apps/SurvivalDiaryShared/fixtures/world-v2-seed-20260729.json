@@ -1,0 +1,49 @@
+{
+  "commands": [
+    {
+      "coordinates": {
+        "x": 0,
+        "y": 0
+      },
+      "type": "discover_region"
+    },
+    {
+      "minutes": 180,
+      "type": "advance_time"
+    },
+    {
+      "coordinates": {
+        "x": 11,
+        "y": -8
+      },
+      "type": "discover_region"
+    },
+    {
+      "amount": 2,
+      "itemId": "driftwood",
+      "type": "gather"
+    },
+    {
+      "amount": 3,
+      "itemId": "fiber",
+      "type": "gather"
+    },
+    {
+      "recipeId": "craft-fishing-rod",
+      "type": "craft"
+    },
+    {
+      "playMode": "free",
+      "type": "set_play_mode"
+    },
+    {
+      "entryId": "day-1",
+      "text": "Gathered supplies and crossed the shore.",
+      "type": "write_diary"
+    }
+  ],
+  "expectedDigest": "690f81ebdd47a2168149868673165b1f228f0fc5c8e16c44a8be9ba97e22b59d",
+  "playMode": "guided",
+  "schemaVersion": 2,
+  "seed": "20260729"
+}

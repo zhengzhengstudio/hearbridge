@@ -1,0 +1,42 @@
+{
+  "assetFamily": "spacefight-weapon-icons",
+  "variant": "low",
+  "generatedWith": "built-in image generation",
+  "assets": [
+    {
+      "id": "pulse",
+      "resourcePath": "ui/weapons/pulse",
+      "file": "pulse.png",
+      "prompt": "Cyan pulse cannon icon, transparent background, clean sci-fi silhouette.",
+      "use": "Compact loadout and HUD weapon icon."
+    },
+    {
+      "id": "scatter",
+      "resourcePath": "ui/weapons/scatter",
+      "file": "scatter.png",
+      "prompt": "Amber scatter cannon icon, transparent background, clean sci-fi silhouette.",
+      "use": "Compact loadout and HUD weapon icon."
+    },
+    {
+      "id": "missile",
+      "resourcePath": "ui/weapons/missile",
+      "file": "missile.png",
+      "prompt": "Red homing missile icon, transparent background, clean sci-fi silhouette.",
+      "use": "Compact loadout and HUD weapon icon."
+    },
+    {
+      "id": "rail",
+      "resourcePath": "ui/weapons/rail",
+      "file": "rail.png",
+      "prompt": "Ice-blue rail cannon icon, transparent background, clean sci-fi silhouette.",
+      "use": "Compact loadout and HUD weapon icon."
+    },
+    {
+      "id": "plasma",
+      "resourcePath": "ui/weapons/plasma",
+      "file": "plasma.png",
+      "prompt": "Turquoise plasma cannon icon, transparent background, clean sci-fi silhouette.",
+      "use": "Compact loadout and HUD weapon icon."
+    }
+  ]
+}

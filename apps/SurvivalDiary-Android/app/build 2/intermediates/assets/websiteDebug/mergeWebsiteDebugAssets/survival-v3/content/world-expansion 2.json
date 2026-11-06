@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "categories": {
+    "transport": ["rowboat", "rope-bridge"],
+    "agriculture": ["farm-plot"],
+    "industry": ["steam-engine", "ore-crusher"],
+    "rails": ["rail-segment", "minecart"],
+    "villagers": ["castaway-builder"]
+  },
+  "entries": [
+    { "id": "rowboat", "kind": "boat", "assetId": "world.rowboat", "anchor": { "x": 0.5, "y": 0.86 }, "collision": { "shape": "ellipse", "width": 3.2, "height": 1.2 }, "footprint": { "width": 4, "height": 2 }, "heightLayer": 2, "requiredStates": ["icon", "world", "working", "damaged"] },
+    { "id": "rope-bridge", "kind": "bridge", "assetId": "world.rope-bridge", "anchor": { "x": 0.5, "y": 0.94 }, "collision": { "shape": "box", "width": 2.0, "height": 5.0 }, "footprint": { "width": 2, "height": 5 }, "heightLayer": 1, "requiredStates": ["icon", "world", "working", "damaged"] },
+    { "id": "farm-plot", "kind": "farm", "assetId": "world.farm-plot", "anchor": { "x": 0.5, "y": 0.92 }, "collision": { "shape": "box", "width": 3.0, "height": 3.0 }, "footprint": { "width": 3, "height": 3 }, "heightLayer": 0, "requiredStates": ["icon", "world", "working", "damaged"] },
+    { "id": "steam-engine", "kind": "machine", "assetId": "world.steam-engine", "anchor": { "x": 0.5, "y": 0.9 }, "collision": { "shape": "box", "width": 2.4, "height": 2.0 }, "footprint": { "width": 3, "height": 2 }, "heightLayer": 3, "requiredStates": ["icon", "world", "working", "damaged"] },
+    { "id": "ore-crusher", "kind": "machine", "assetId": "world.ore-crusher", "anchor": { "x": 0.5, "y": 0.9 }, "collision": { "shape": "box", "width": 2.4, "height": 1.8 }, "footprint": { "width": 3, "height": 2 }, "heightLayer": 2, "requiredStates": ["icon", "world", "working", "damaged"] },
+    { "id": "rail-segment", "kind": "rail", "assetId": "world.rail-segment", "anchor": { "x": 0.5, "y": 0.96 }, "collision": { "shape": "box", "width": 1.0, "height": 2.0 }, "footprint": { "width": 1, "height": 2 }, "heightLayer": 0, "requiredStates": ["icon", "world", "working", "damaged"] },
+    { "id": "minecart", "kind": "vehicle", "assetId": "world.minecart", "anchor": { "x": 0.5, "y": 0.92 }, "collision": { "shape": "box", "width": 1.8, "height": 0.9 }, "footprint": { "width": 2, "height": 1 }, "heightLayer": 1, "requiredStates": ["icon", "world", "working", "damaged"] },
+    { "id": "castaway-builder", "kind": "villager", "assetId": "world.castaway-builder", "anchor": { "x": 0.5, "y": 0.94 }, "collision": { "shape": "circle", "width": 0.65, "height": 0.65 }, "footprint": { "width": 1, "height": 1 }, "heightLayer": 4, "requiredStates": ["idle", "walk", "work", "talk"] }
+  ]
+}

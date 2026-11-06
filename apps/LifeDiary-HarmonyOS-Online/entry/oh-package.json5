@@ -1,0 +1,9 @@
+{
+  "name": "entry",
+  "version": "0.3.1",
+  "description": "生活日记 HarmonyOS 联机版",
+  "main": "",
+  "author": "铮铮实验室",
+  "license": "",
+  "dependencies": {}
+}

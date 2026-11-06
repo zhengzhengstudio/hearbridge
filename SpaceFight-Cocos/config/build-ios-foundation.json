@@ -1,0 +1,33 @@
+{
+  "platform": "ios",
+  "debug": true,
+  "buildPath": "project://native-build",
+  "outputName": "spacefight-ios",
+  "taskName": "spacefight-ios-foundation",
+  "buildMode": "normal",
+  "mainBundleCompressionType": "merge_dep",
+  "packages": {
+    "ios": {
+      "packageName": "cn.zhengzhengstudio.spacefight",
+      "orientation": {
+        "portrait": false,
+        "upsideDown": false,
+        "landscapeRight": true,
+        "landscapeLeft": true
+      }
+    }
+  },
+  "name": "spacefight-cocos",
+  "mangleProperties": false,
+  "md5Cache": true,
+  "sourceMaps": false,
+  "useSplashScreen": false,
+  "showFPS": false,
+  "startScene": "ee9bc189-ccbe-45a5-bafb-2a39c70b4b08",
+  "scenes": [
+    {
+      "url": "db://assets/scenes/Combat.scene",
+      "uuid": "ee9bc189-ccbe-45a5-bafb-2a39c70b4b08"
+    }
+  ]
+}

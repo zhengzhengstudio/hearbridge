@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.StatusClockTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-04T08:57:35" hostname="LJGdeMacBook-Pro.local" time="0.003">
+  <properties/>
+  <testcase name="miningConsumesStaminaAndUnsafePlayersDoNotRegenerateHealth" classname="cn.zhengzhengstudio.survivaldiary.StatusClockTest" time="0.001"/>
+  <testcase name="health regeneration needs strong hunger hydration and normal temperature" classname="cn.zhengzhengstudio.survivaldiary.StatusClockTest" time="0.001"/>
+  <testcase name="thirtyRealMinutesAdvanceExactlyOneIslandDay" classname="cn.zhengzhengstudio.survivaldiary.StatusClockTest" time="0.0"/>
+  <testcase name="fractional one second ticks accumulate instead of freezing the clock" classname="cn.zhengzhengstudio.survivaldiary.StatusClockTest" time="0.001"/>
+  <testcase name="stamina recovery is visible during a short idle period and movement interrupts it" classname="cn.zhengzhengstudio.survivaldiary.StatusClockTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

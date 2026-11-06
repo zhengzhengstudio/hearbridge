@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.WorldInteractionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-04T08:57:35" hostname="LJGdeMacBook-Pro.local" time="0.492">
+  <properties/>
+  <testcase name="every generated biome has a clear player facing Chinese name and distinct map color" classname="cn.zhengzhengstudio.survivaldiary.WorldInteractionTest" time="0.001"/>
+  <testcase name="players cannot path onto lagoon water unless a traversable structure covers it" classname="cn.zhengzhengstudio.survivaldiary.WorldInteractionTest" time="0.488"/>
+  <testcase name="placement tap only moves the preview and manual pan releases camera follow" classname="cn.zhengzhengstudio.survivaldiary.WorldInteractionTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

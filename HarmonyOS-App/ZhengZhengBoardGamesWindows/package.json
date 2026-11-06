@@ -1,0 +1,58 @@
+{
+  "name": "zhengzheng-boardgames",
+  "version": "1.6.0",
+  "description": "铮铮桌游合集 · Windows 桌面版",
+  "main": "main.js",
+  "author": "ZhengZheng Studio",
+  "license": "All Rights Reserved",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win --x64 --ia32",
+    "dist:win64": "electron-builder --win --x64",
+    "dist:win32": "electron-builder --win --ia32",
+    "dist:mac": "electron-builder --mac --x64",
+    "dist": "electron-builder --win --x64 --ia32",
+    "singlefile": "python3 build_single_file.py"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "cn.zhengzhengstudio.boardgames.desktop",
+    "productName": "铮铮桌游合集",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "assets/**",
+      "src/**",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        { "target": "portable", "arch": ["x64", "ia32"] },
+        { "target": "nsis", "arch": ["x64", "ia32"] }
+      ],
+      "icon": "assets/icon.ico",
+      "artifactName": "ZhengZhengBoardGames-Windows-v${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "ZhengZhengBoardGames-Windows-v${version}-${arch}-portable.${ext}"
+    },
+    "msi": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "铮铮桌游合集"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.board-games"
+    }
+  }
+}

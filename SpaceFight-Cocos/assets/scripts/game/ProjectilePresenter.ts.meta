@@ -1,0 +1,13 @@
+{
+  "ver": "4.0.24",
+  "importer": "typescript",
+  "imported": true,
+  "uuid": "c5a5ff22-3583-48fa-96bd-258ea315a9c3",
+  "files": [],
+  "subMetas": {},
+  "userData": {
+    "moduleId": "project:///assets/scripts/game/ProjectilePresenter.js",
+    "importerSettings": 7,
+    "simulateGlobals": []
+  }
+}

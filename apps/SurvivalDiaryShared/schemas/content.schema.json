@@ -1,0 +1,245 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://survival-diary.zhengzhengstudio.cn/schemas/content-v3.json",
+  "title": "Survival Diary shared content catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["items", "recipes", "resources", "buildings", "facilities", "statusEffects", "animals", "habitats", "transport", "agriculture", "industry", "villagers"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/item" }
+    },
+    "recipes": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/recipe" }
+    },
+    "resources": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/resource" }
+    },
+    "buildings": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/building" }
+    },
+    "facilities": {
+      "$ref": "https://survival-diary.zhengzhengstudio.cn/schemas/facilities-v1.json"
+    },
+    "statusEffects": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/statusEffect" }
+    },
+    "animals": {
+      "type": "array",
+      "items": { "$ref": "https://survival-diary.zhengzhengstudio.cn/schemas/animals-v1.json#/definitions/animal" }
+    },
+    "habitats": {
+      "type": "array",
+      "items": { "$ref": "https://survival-diary.zhengzhengstudio.cn/schemas/animals-v1.json#/definitions/habitat" }
+    },
+    "transport": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/definitions/worldEntity" }
+    },
+    "agriculture": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/worldEntity" }
+    },
+    "industry": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/definitions/worldEntity" }
+    },
+    "villagers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/worldEntity" }
+    }
+  },
+  "definitions": {
+    "worldEntity": {
+      "type": "object",
+      "required": ["id", "kind", "assetId", "anchor", "collision", "footprint", "heightLayer", "requiredStates"],
+      "properties": {
+        "id": { "$ref": "#/definitions/id" },
+        "kind": { "$ref": "#/definitions/id" },
+        "assetId": { "type": "string", "pattern": "^[a-z0-9-]+(?:\\.[a-z0-9-]+)+$" },
+        "anchor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["x", "y"],
+          "properties": { "x": { "type": "number", "minimum": 0, "maximum": 1 }, "y": { "type": "number", "minimum": 0, "maximum": 1 } }
+        },
+        "collision": {
+          "type": "object",
+          "required": ["shape", "width", "height"],
+          "properties": { "shape": { "enum": ["box", "circle", "ellipse"] }, "width": { "type": "number", "exclusiveMinimum": 0 }, "height": { "type": "number", "exclusiveMinimum": 0 } }
+        },
+        "footprint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["width", "height"],
+          "properties": { "width": { "type": "integer", "minimum": 1 }, "height": { "type": "integer", "minimum": 1 } }
+        },
+        "heightLayer": { "type": "integer", "minimum": 0 },
+        "requiredStates": { "type": "array", "minItems": 2, "uniqueItems": true, "items": { "$ref": "#/definitions/id" } }
+      }
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "positiveItemMap": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/definitions/id" },
+      "additionalProperties": { "type": "integer", "minimum": 1 }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "category", "stackLimit", "mass", "imageKey", "use"],
+      "properties": {
+        "id": { "$ref": "#/definitions/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "category": {
+          "enum": ["material", "resource", "food", "medicine", "tool", "equipment", "building"]
+        },
+        "stackLimit": { "type": "integer", "minimum": 1 },
+        "mass": { "type": "number", "minimum": 0 },
+        "imageKey": { "type": "string", "pattern": "^(item|building)\\.[a-z0-9-]+$" },
+        "use": { "type": "string", "minLength": 1 },
+        "survivalEffect": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["health", "stamina", "hunger", "thirst", "animationId"],
+          "properties": {
+            "health": { "type": "number", "minimum": -100, "maximum": 100 },
+            "stamina": { "type": "number", "minimum": -100, "maximum": 100 },
+            "hunger": { "type": "number", "minimum": -100, "maximum": 100 },
+            "thirst": { "type": "number", "minimum": -100, "maximum": 100 },
+            "animationId": { "$ref": "#/definitions/id" }
+          }
+        }
+      }
+    },
+    "recipe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "station", "durationSeconds", "ingredients", "output", "discoverBy"],
+      "properties": {
+        "id": { "$ref": "#/definitions/id" },
+        "station": {
+          "enum": ["hand", "workbench", "furnace", "cooking-pot", "drying-shed", "medicine-table"]
+        },
+        "durationSeconds": { "type": "integer", "minimum": 1 },
+        "ingredients": { "$ref": "#/definitions/positiveItemMap" },
+        "fuel": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["itemId", "amount"],
+          "properties": {
+            "itemId": { "$ref": "#/definitions/id" },
+            "amount": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "output": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["itemId", "amount"],
+          "properties": {
+            "itemId": { "$ref": "#/definitions/id" },
+            "amount": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "discoverBy": { "type": "string", "minLength": 1 }
+      }
+    },
+    "resource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "itemId", "hardness", "toolTags", "yield", "recoveryMinutes", "states"],
+      "properties": {
+        "id": { "$ref": "#/definitions/id" },
+        "itemId": { "$ref": "#/definitions/id" },
+        "hardness": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "toolTags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["axe", "pickaxe", "machete", "shovel", "fishing", "container"] }
+        },
+        "yield": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min", "max"],
+          "properties": {
+            "min": { "type": "integer", "minimum": 1 },
+            "max": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "recoveryMinutes": { "type": "integer", "minimum": 0 },
+        "states": {
+          "type": "array",
+          "items": [
+            { "const": "full" },
+            { "const": "hit" },
+            { "const": "depleted" },
+            { "const": "recovering" }
+          ],
+          "additionalItems": false,
+          "minItems": 4,
+          "maxItems": 4
+        }
+      }
+    },
+    "building": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "itemId", "collision", "maxDurability", "interaction", "assetStates"],
+      "properties": {
+        "id": { "$ref": "#/definitions/id" },
+        "itemId": { "$ref": "#/definitions/id" },
+        "collision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["width", "height"],
+          "properties": {
+            "width": { "type": "integer", "minimum": 1 },
+            "height": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "maxDurability": { "type": "integer", "minimum": 1 },
+        "interaction": { "$ref": "#/definitions/id" },
+        "assetStates": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 4,
+          "items": { "enum": ["icon", "world", "working", "damaged"] }
+        }
+      }
+    },
+    "statusEffect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "kind", "maxStacks", "modifiers", "remedies"],
+      "properties": {
+        "id": { "$ref": "#/definitions/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["harmful", "helpful"] },
+        "maxStacks": { "type": "integer", "minimum": 1 },
+        "modifiers": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "number" }
+        },
+        "remedies": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/id" }
+        }
+      }
+    }
+  }
+}

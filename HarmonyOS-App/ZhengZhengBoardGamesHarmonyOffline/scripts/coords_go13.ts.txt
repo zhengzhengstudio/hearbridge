@@ -1,0 +1,4 @@
+// 由 gen_board_artwork.py 生成，请勿手改
+// go_board_13.png 交叉点百分比坐标
+export const GO13_POINTS_PCT: number[] = [8.5000, 15.4167, 22.3333, 29.2500, 36.1667, 43.0833, 50.0000, 56.9167, 63.8333, 70.7500, 77.6667, 84.5833, 91.5000]
+export const GO13_GRID_WIDTH_PCT: number = 84.7167

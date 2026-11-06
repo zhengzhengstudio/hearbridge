@@ -1,0 +1,9 @@
+{
+  "name": "entry",
+  "version": "1.1.7",
+  "description": "铮铮实验室跨平台联机桌游中心",
+  "main": "",
+  "author": "铮铮实验室",
+  "license": "",
+  "dependencies": {}
+}

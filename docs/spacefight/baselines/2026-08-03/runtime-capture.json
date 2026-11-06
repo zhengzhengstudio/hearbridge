@@ -1,0 +1,193 @@
+{
+  "createdAt": "2026-08-03T08:29:56.848Z",
+  "baselineReference": "docs/spacefight/baselines/2026-08-03/native-foundation.json",
+  "thresholds": {
+    "maxSamples": 8192,
+    "uniformStdDevMax": 6,
+    "uniformRangeMax": 18,
+    "indistinguishableMeanDiffMax": 4,
+    "indistinguishableChangedFractionMax": 0.015
+  },
+  "commands": {
+    "android": [
+      "adb",
+      [
+        "exec-out",
+        "screencap",
+        "-p"
+      ]
+    ],
+    "ios": [
+      "xcrun",
+      [
+        "simctl",
+        "io",
+        "booted",
+        "screenshot",
+        "{outputPath}"
+      ]
+    ],
+    "harmonyos": [
+      "hdc",
+      [
+        "shell",
+        "snapshot_display"
+      ]
+    ],
+    "macos": [
+      "/usr/sbin/screencapture",
+      [
+        "-x",
+        "{outputPath}"
+      ]
+    ]
+  },
+  "attempts": [
+    {
+      "platform": "macos",
+      "state": "launch",
+      "path": "docs/spacefight/screenshots/2026-08-03-legacy-macos-launch.png",
+      "syntactic": {
+        "validPng": true,
+        "width": 2360,
+        "height": 1520,
+        "reason": null
+      },
+      "evidence": {
+        "usable": false,
+        "reasons": [
+          "black-or-near-uniform",
+          "indistinguishable"
+        ],
+        "metrics": {
+          "averageLuma": 7.68,
+          "lumaStdDev": 15.62,
+          "lumaRange": 142.79,
+          "darkFraction": 0.9866,
+          "samples": 8968
+        },
+        "pairMetrics": {
+          "meanChannelDiff": 0,
+          "changedFraction": 0,
+          "samples": 8100
+        }
+      }
+    },
+    {
+      "platform": "macos",
+      "state": "combat",
+      "path": "docs/spacefight/screenshots/2026-08-03-legacy-macos-combat.png",
+      "syntactic": {
+        "validPng": true,
+        "width": 2360,
+        "height": 1520,
+        "reason": null
+      },
+      "evidence": {
+        "usable": false,
+        "reasons": [
+          "black-or-near-uniform",
+          "indistinguishable"
+        ],
+        "metrics": {
+          "averageLuma": 7.68,
+          "lumaStdDev": 15.62,
+          "lumaRange": 142.79,
+          "darkFraction": 0.9866,
+          "samples": 8968
+        },
+        "pairMetrics": {
+          "meanChannelDiff": 0,
+          "changedFraction": 0,
+          "samples": 8100
+        }
+      }
+    }
+  ],
+  "results": [
+    {
+      "platform": "macos",
+      "status": "unavailable",
+      "command": "'/usr/sbin/screencapture' '-x' '{outputPath}'",
+      "screenshots": [],
+      "reason": "launch/combat evidence unusable: black-or-near-uniform, indistinguishable."
+    },
+    {
+      "platform": "android",
+      "status": "unavailable",
+      "command": "'adb' 'exec-out' 'screencap' '-p' > '{outputPath}'",
+      "screenshots": [],
+      "reason": "adb executable not found in PATH."
+    },
+    {
+      "platform": "ios",
+      "status": "unavailable",
+      "command": "'xcrun' 'simctl' 'io' 'booted' 'screenshot' '/Users/ljg/Desktop/开发者/TRAE/docs/spacefight/screenshots/2026-08-03-legacy-ios-launch.png'",
+      "screenshots": [],
+      "reason": "xcrun simctl list devices booted returned no booted iOS simulator."
+    },
+    {
+      "platform": "harmonyos",
+      "status": "unavailable",
+      "command": "'hdc' 'shell' 'snapshot_display' > '{outputPath}'",
+      "screenshots": [],
+      "reason": "hdc executable not found in PATH."
+    }
+  ],
+  "commandLog": [
+    {
+      "platform": "macos",
+      "step": "launch-app",
+      "command": "'open' '-na' '/Users/ljg/Desktop/开发者/TRAE/apps/SpaceFightMac/build/SpaceFight.app'",
+      "exitCode": 0,
+      "timedOut": false,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "platform": "macos",
+      "step": "capture-launch",
+      "command": "'/usr/sbin/screencapture' '-x' '-l' '1655' '/Users/ljg/Desktop/开发者/TRAE/docs/spacefight/screenshots/2026-08-03-legacy-macos-launch.png'",
+      "exitCode": 0,
+      "timedOut": false,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "platform": "macos",
+      "step": "trigger-combat",
+      "command": "osascript <activate SpaceFight and send key code 36>",
+      "exitCode": 0,
+      "timedOut": false,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "platform": "macos",
+      "step": "capture-combat",
+      "command": "'/usr/sbin/screencapture' '-x' '-l' '1655' '/Users/ljg/Desktop/开发者/TRAE/docs/spacefight/screenshots/2026-08-03-legacy-macos-combat.png'",
+      "exitCode": 0,
+      "timedOut": false,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "platform": "macos",
+      "step": "cleanup",
+      "command": "terminate 45207",
+      "exitCode": 0,
+      "timedOut": false,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "platform": "ios",
+      "step": "detect-device",
+      "command": "'/usr/bin/xcrun' 'simctl' 'list' 'devices' 'booted' '--json'",
+      "exitCode": 0,
+      "timedOut": false,
+      "stdout": "{\n  \"devices\" : {\n    \"com.apple.CoreSimulator.SimRuntime.iOS-16-4\" : [\n\n    ]\n  }\n}",
+      "stderr": ""
+    }
+  ]
+}

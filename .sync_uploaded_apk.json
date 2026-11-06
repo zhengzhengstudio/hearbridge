@@ -1,0 +1,2150 @@
+[
+  [
+    "api/apps/SpaceFight-Android-v0.11.18.apk",
+    {
+      "size": 50590599,
+      "mtime": 1791779456007.3193
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-latest.apk",
+    {
+      "size": 112332727,
+      "mtime": 1793951509407.6338,
+      "device": 16777222,
+      "inode": 159551508,
+      "sha256": "cb88830f3578a576c9457c6fc86070e0cb9fd599ddb36f3145dda7470ac37ddb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-Android-latest.apk",
+    {
+      "size": 51080,
+      "mtime": 1785230411476.407,
+      "device": 16777224,
+      "inode": 114261080,
+      "sha256": "8f703e37a687db536cc2fd6f89f3e25c6d8ff19f17cdcb64a40fecc1bfb74ccb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-Android-v0.1.0-b2.apk",
+    {
+      "size": 55978,
+      "mtime": 1784696955801.8977,
+      "device": 16777224,
+      "inode": 114500686,
+      "sha256": "d53fc974b1e34bacf0f1f60cb9e1704788a3cf1b9be99dee0dd86ba9597384d8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-Android-v0.1.0.apk",
+    {
+      "size": 55978,
+      "mtime": 1784696648599.3682,
+      "device": 16777224,
+      "inode": 114261079,
+      "sha256": "d53fc974b1e34bacf0f1f60cb9e1704788a3cf1b9be99dee0dd86ba9597384d8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-Android-v0.1.1-b3.apk",
+    {
+      "size": 59324,
+      "mtime": 1785074505487.1982,
+      "device": 16777224,
+      "inode": 115528003,
+      "sha256": "f9d235b87d7386790dd8da49d203280f17fb1994a3e03118cd433a44c7c5bd02",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-Android-v0.1.2-b4.apk",
+    {
+      "size": 51080,
+      "mtime": 1785230411471.9326,
+      "device": 16777222,
+      "inode": 115724816,
+      "sha256": "8f703e37a687db536cc2fd6f89f3e25c6d8ff19f17cdcb64a40fecc1bfb74ccb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-Android-latest.apk",
+    {
+      "size": 51024,
+      "mtime": 1785230411521.1982,
+      "device": 16777224,
+      "inode": 114261088,
+      "sha256": "abc05f4551627a07ed58790d1ff9c1e64caa754750a8cd1a3c135fb1def8d8ef",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-Android-v0.1.0-b2.apk",
+    {
+      "size": 55886,
+      "mtime": 1784696955850.557,
+      "device": 16777224,
+      "inode": 114500690,
+      "sha256": "aa744b6ecde48edbd5c167d5d06f17fe5e3c6293b3bc09f3f9e73b6da925857e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-Android-v0.1.0.apk",
+    {
+      "size": 55886,
+      "mtime": 1784696648656.536,
+      "device": 16777224,
+      "inode": 114261087,
+      "sha256": "aa744b6ecde48edbd5c167d5d06f17fe5e3c6293b3bc09f3f9e73b6da925857e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-Android-v0.1.1-b3.apk",
+    {
+      "size": 59268,
+      "mtime": 1785074505555.8618,
+      "device": 16777224,
+      "inode": 115528007,
+      "sha256": "013a642d4cc27e9f4167c95fed618f8b8dfdbb12bdc1f3292dc1f74a07f7f1d0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-Android-v0.1.2-b4.apk",
+    {
+      "size": 51024,
+      "mtime": 1785230411515.3904,
+      "device": 16777222,
+      "inode": 115724820,
+      "sha256": "abc05f4551627a07ed58790d1ff9c1e64caa754750a8cd1a3c135fb1def8d8ef",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-Android-latest.apk",
+    {
+      "size": 502018,
+      "mtime": 1783326908503.3135,
+      "device": 16777222,
+      "inode": 111426471,
+      "sha256": "6c7a75a54903115579bbdd7e214945eddbe2e72f44de2f3cbd76298c35099945",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-Android-v0.2.1.apk",
+    {
+      "size": 223490,
+      "mtime": 1783056721705.1084,
+      "device": 16777224,
+      "inode": 111426470,
+      "sha256": "2d17bbb78c9387c7b7511f567b65a5bfa54d639d280d7b17f218d5fad2bbb16f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-Android-v0.2.2.apk",
+    {
+      "size": 227586,
+      "mtime": 1783092065084.4988,
+      "device": 16777224,
+      "inode": 111541314,
+      "sha256": "7bf26d5603d761607a87d99b686c6b248ba46a9c3810509451f6f6b876f4840e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-Android-v0.2.3.apk",
+    {
+      "size": 317698,
+      "mtime": 1783142734160.4792,
+      "device": 16777224,
+      "inode": 111622931,
+      "sha256": "358635071e7ce304543da5c863887a9661b75ebc0ca1bae1cda14098cdc08a03",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-Android-v0.2.4.apk",
+    {
+      "size": 497922,
+      "mtime": 1783143330648.0647,
+      "device": 16777224,
+      "inode": 111628614,
+      "sha256": "6ea78656b1f6938c039325a99fe6f773f94cf298ced9ab73285eac977e861a1d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-Android-v0.2.5.apk",
+    {
+      "size": 502018,
+      "mtime": 1783326908491.1562,
+      "device": 16777222,
+      "inode": 111777552,
+      "sha256": "6c7a75a54903115579bbdd7e214945eddbe2e72f44de2f3cbd76298c35099945",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-Android-latest-signed.apk",
+    {
+      "size": 1178893,
+      "mtime": 1788093598724.1953,
+      "device": 16777224,
+      "inode": 115526649,
+      "sha256": "bcf80a568a86c2dc5ae818f312cc726e2d145ae933c293ea11ab2e193f9cd0eb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-Android-v0.1.0-b1-signed.apk",
+    {
+      "size": 1178893,
+      "mtime": 1788093599523.1045,
+      "device": 16777224,
+      "inode": 115526650,
+      "sha256": "bcf80a568a86c2dc5ae818f312cc726e2d145ae933c293ea11ab2e193f9cd0eb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.0.apk",
+    {
+      "size": 133382,
+      "mtime": 1781976665580.1465,
+      "device": 16777224,
+      "inode": 109219321,
+      "sha256": "45c8c1d99c530dc0d15f4f90d5c9d144b1769afb6d77f45a212f540ea2007405",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.1.apk",
+    {
+      "size": 153862,
+      "mtime": 1782025472648.8726,
+      "device": 16777224,
+      "inode": 109329654,
+      "sha256": "c0376d9bcb52c88588e8545fac6defd20172a50dc24a96bc88c778ea14ec077b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.2.apk",
+    {
+      "size": 223494,
+      "mtime": 1782042981382.355,
+      "device": 16777224,
+      "inode": 109361509,
+      "sha256": "456cd720147d1dedea1a363eab5b78549155548cca6677c69af0df23c61460ec",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.3.apk",
+    {
+      "size": 227590,
+      "mtime": 1782746054813.294,
+      "device": 16777224,
+      "inode": 111201004,
+      "sha256": "e7a242d28418ee9293298aaaaf59516ce782fa5059661dbbba05df5596ad5f86",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.4.apk",
+    {
+      "size": 227590,
+      "mtime": 1783099748586.5205,
+      "device": 16777224,
+      "inode": 111551944,
+      "sha256": "853f5d6bc13fd108e6353d5951a4cfa12b2919302f78956696e8fa6a9de5fe67",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.5.apk",
+    {
+      "size": 231686,
+      "mtime": 1783251313588.1907,
+      "device": 16777224,
+      "inode": 111750800,
+      "sha256": "ed07b7e4f53441d581da37736493b15ef55e7746ba5faeffb7a55515f6638551",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.6.apk",
+    {
+      "size": 239878,
+      "mtime": 1783327039712.7173,
+      "device": 16777224,
+      "inode": 111779250,
+      "sha256": "087e3fcbaf0ffd7d397b0a343a0bb1e77938006bea66308f75739b61a77dac33",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.0.apk",
+    {
+      "size": 189555,
+      "mtime": 1780312534789.8257,
+      "device": 16777224,
+      "inode": 105006025,
+      "sha256": "cb538ceb7c7c9d81fb95dea0f7b5597936437758d9dc5b2d171ef201c9c99c7e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.1.apk",
+    {
+      "size": 243117,
+      "mtime": 1780396937903.6006,
+      "device": 16777224,
+      "inode": 105032824,
+      "sha256": "7e391bf7775c637f4dd1ba624dd0f0e0b6f6673bb66bd7d63e6159adbe8f4734",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.10.apk",
+    {
+      "size": 1552309,
+      "mtime": 1783487754833.826,
+      "device": 16777224,
+      "inode": 112079952,
+      "sha256": "8cedca638ffc6ba592abf757ae0ffe57d877a1831f4897925fdf8aee6d94acf0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.11.apk",
+    {
+      "size": 1551925,
+      "mtime": 1783488493506.8894,
+      "device": 16777224,
+      "inode": 112084277,
+      "sha256": "08dc67e747c2977b5518499a12018be12de3ecbbda4b083f555e8a0da78cd0a2",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.12.apk",
+    {
+      "size": 1552857,
+      "mtime": 1783607580546.7524,
+      "device": 16777224,
+      "inode": 112173375,
+      "sha256": "96e6df083f262e98ad550dade316db8bbd77cefde1d7460021d9254b251dc05f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.14.apk",
+    {
+      "size": 1556405,
+      "mtime": 1783674550521.1223,
+      "device": 16777224,
+      "inode": 112447656,
+      "sha256": "be34e7a5fd5d62ccd4c8f5e77ef187903888639f380d93716a13232c51373ab0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.15.apk",
+    {
+      "size": 1557509,
+      "mtime": 1783698824772.8242,
+      "device": 16777224,
+      "inode": 112490362,
+      "sha256": "fb6e90ca6fb0bc0af9a1b5844e7e9dd70ac28423760c642545ab808594caf79d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.16.apk",
+    {
+      "size": 1561465,
+      "mtime": 1783752676281.7046,
+      "device": 16777224,
+      "inode": 112646524,
+      "sha256": "235fc2f2ff68c8b3f3a90bd56fee110580bb381cca86f6b75dfe5a71d76f6afd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.17.apk",
+    {
+      "size": 1561489,
+      "mtime": 1783755454019.95,
+      "device": 16777224,
+      "inode": 112690356,
+      "sha256": "0c1abed949435d7d2a894006e5b8789e771dc1128c451e132a936befb65a8b90",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.18.apk",
+    {
+      "size": 1561689,
+      "mtime": 1783942833879.864,
+      "device": 16777224,
+      "inode": 113067567,
+      "sha256": "91355fb3c9a5e4e6e2aa63a2b35d1d0d0225986a66b4a7567c32da30e564c321",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.19.apk",
+    {
+      "size": 1562513,
+      "mtime": 1784114722000,
+      "device": 16777224,
+      "inode": 113274160,
+      "sha256": "04f4edfdbf60dfd371a8723d90f8b72cf73a63be3879e3b33426e0419b17caa6",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.2.apk",
+    {
+      "size": 245734,
+      "mtime": 1780488238000,
+      "device": 16777224,
+      "inode": 105290484,
+      "sha256": "88d8ff544e8dbf69f287c6634fa34ae6f58308270bfe6b982fef574eec2a36f1",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.20.apk",
+    {
+      "size": 1566501,
+      "mtime": 1784555863075.664,
+      "device": 16777224,
+      "inode": 114200097,
+      "sha256": "c945a3f016a53e47547668e4f0e1f04de7869a41d59839c90a2041143dfd4c86",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.3.apk",
+    {
+      "size": 194883,
+      "mtime": 1780575141000,
+      "device": 16777224,
+      "inode": 105351708,
+      "sha256": "5ca503821a077de387bbe3a7c12493a0bd57a7d48d971ff4b1008c8bef9d08a6",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.4.apk",
+    {
+      "size": 199763,
+      "mtime": 1780825170347.792,
+      "device": 16777224,
+      "inode": 105657478,
+      "sha256": "59d4996bac4e6264924e3f024d92286f6b7023698568cd0a1f5914445fbc01bd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.5.apk",
+    {
+      "size": 201459,
+      "mtime": 1780897308000,
+      "device": 16777224,
+      "inode": 105794431,
+      "sha256": "1892d7d93ff7f6de1aba8f0583475215c901fd7d75cd7e47c0f84a6c1b51bd82",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.6.apk",
+    {
+      "size": 203871,
+      "mtime": 1781341297870.938,
+      "device": 16777224,
+      "inode": 106754516,
+      "sha256": "890b5757ff4abf27381758322e60df84c7800e8665376b5335e00af595415e2f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.7-build9-ui2-test.apk",
+    {
+      "size": 206755,
+      "mtime": 1781429625334.4204,
+      "device": 16777224,
+      "inode": 107144728,
+      "sha256": "80db5066974d70cf2e06d28c7d26c274f1399659a6ddda0fd43c89159cecd8b7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.7.apk",
+    {
+      "size": 1630779,
+      "mtime": 1782815043847.7056,
+      "device": 16777224,
+      "inode": 111307805,
+      "sha256": "b9b1b44ee2a3a8ddc4c63aafdf2d03b7f4377b5aac5cbc77fc7385cdff117c0d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.8.apk",
+    {
+      "size": 1623055,
+      "mtime": 1783327382088.1453,
+      "device": 16777224,
+      "inode": 111311418,
+      "sha256": "23a4eeb9f63aead9793a4aafc2c5ea3caa0fe5b48889e944933778b4fc27d5e6",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.1.9.apk",
+    {
+      "size": 1552321,
+      "mtime": 1783437569856.5554,
+      "device": 16777224,
+      "inode": 111954459,
+      "sha256": "88ec8f66dac7ec6729421ce9bcb2ca24fc5aa1812cb5709e237c356811009a97",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.2.0.apk",
+    {
+      "size": 1571193,
+      "mtime": 1784695865901.0107,
+      "device": 16777224,
+      "inode": 114463155,
+      "sha256": "8e25723715f2589df3795dd1ce766e51e730727ad20cdae670e59e0e0721ab9c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.2.1.apk",
+    {
+      "size": 1218157,
+      "mtime": 1784895706348.543,
+      "device": 16777224,
+      "inode": 115175194,
+      "sha256": "9b3adb462bc3151160ef8bc6e2bc76c85eb36df24f3540c45f24bf62b4a15987",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.2.2.apk",
+    {
+      "size": 1218157,
+      "mtime": 1784975250814.0796,
+      "device": 16777224,
+      "inode": 115271307,
+      "sha256": "9b9a344d9c3170b6aff66c43410c1a062a9e9e4e257dd889d1b148ac625d8ec9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.2.3.apk",
+    {
+      "size": 1222253,
+      "mtime": 1784978412046.297,
+      "device": 16777224,
+      "inode": 115284331,
+      "sha256": "1462bcccbffe0db7d27df36a2adde9bf18171e1fc23fd4dd8c17c7d90f30f128",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.2.4.apk",
+    {
+      "size": 1222253,
+      "mtime": 1785302360443.328,
+      "device": 16777224,
+      "inode": 115836830,
+      "sha256": "fca2831a545b07062c78365f827b9cda02e7b2083521322a0c8ca89a54fbaf39",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.2.5.apk",
+    {
+      "size": 1673160,
+      "mtime": 1786089644921.11,
+      "device": 16777224,
+      "inode": 118170727,
+      "sha256": "7701acd3a3259e975ba04835f08eee22aa4a9be2461901d2b04eac57bf9f0aa8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-android-1.1.0.apk",
+    {
+      "size": 99203,
+      "mtime": 1780313771593.2395,
+      "device": 16777224,
+      "inode": 105016319,
+      "sha256": "b7bb9db92bc9ff307837194dee7056629c1cb4b7a68b05ca24f55c431dbeb590",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-android-1.1.1.apk",
+    {
+      "size": 99555,
+      "mtime": 1780315454682.773,
+      "device": 16777224,
+      "inode": 105034342,
+      "sha256": "907e1196ededd42895e4716d9ff4bfde9d034113eafb7185f4b4bc46b7bbaedb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-android-1.1.17.apk",
+    {
+      "size": 68228,
+      "mtime": 1784537867000,
+      "device": 16777224,
+      "inode": 114102752,
+      "sha256": "5255247aab44cf7a217a314ede9467c3944e5f766047bbcaae2b5f2d5c866743",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-android-1.1.18.apk",
+    {
+      "size": 481677,
+      "mtime": 1786459647000,
+      "device": 16777224,
+      "inode": 120274576,
+      "sha256": "f37ff6f04fa50f5dd056bf2598b0a9a9880269345020e83c21a13c0975f437dd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-android-1.1.19.apk",
+    {
+      "size": 484701,
+      "mtime": 1786756293000,
+      "device": 16777222,
+      "inode": 135395783,
+      "sha256": "ee8447b21eaa3d479fad8a2737b4ad126e82bfd8c58c556876bdaebcaca90a06",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-android-1.1.2.apk",
+    {
+      "size": 128208,
+      "mtime": 1780396661974.8926,
+      "device": 16777224,
+      "inode": 105071626,
+      "sha256": "a740a981faf51a1403b4bf4233138077936379f549c458276c6d1e27225efb7a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-android-1.1.3.apk",
+    {
+      "size": 103203,
+      "mtime": 1780490634127.6794,
+      "device": 16777224,
+      "inode": 105302317,
+      "sha256": "2b883ea8ade9cd58cb6014c776fea0077565c3c4d4d8cfdfe1247464809c48c4",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-android-1.1.4.apk",
+    {
+      "size": 103539,
+      "mtime": 1780500517471.0808,
+      "device": 16777224,
+      "inode": 105336555,
+      "sha256": "0ff93d76721993658c2eee31c18d31721249fbaa0bd9ae99adda7435a86d360d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-android-1.1.5.apk",
+    {
+      "size": 106099,
+      "mtime": 1780638918703.1113,
+      "device": 16777224,
+      "inode": 105414205,
+      "sha256": "f8fbc82cd3f553f9343b0b9cb17bfc17132a4fd2af7b838651b6ed6aa25cb301",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-android-1.1.6.apk",
+    {
+      "size": 106571,
+      "mtime": 1780738022949.911,
+      "device": 16777224,
+      "inode": 105571755,
+      "sha256": "750877d535bcb9a9bbe669f6c2eb91813ec5a88f65d4bdf0940e7d8cebb4ca90",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-android-1.1.7.apk",
+    {
+      "size": 108927,
+      "mtime": 1780825516756.6497,
+      "device": 16777224,
+      "inode": 105658914,
+      "sha256": "f4cf11a67c1b8cf18fdc7c07ad3a4bb67944492b836c66af0ba2e900a9bc38c0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-android-1.1.8.apk",
+    {
+      "size": 109999,
+      "mtime": 1780912348995.5527,
+      "device": 16777224,
+      "inode": 105840396,
+      "sha256": "5502f78fbd2cc450a2156e5da116a3f00e5fabf12e35508beeff6249c155b0c9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-android-latest.apk",
+    {
+      "size": 484701,
+      "mtime": 1786756293000,
+      "device": 16777222,
+      "inode": 135395784,
+      "sha256": "ee8447b21eaa3d479fad8a2737b4ad126e82bfd8c58c556876bdaebcaca90a06",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-android-1.0.1.apk",
+    {
+      "size": 63572,
+      "mtime": 1784537872000,
+      "device": 16777224,
+      "inode": 114102755,
+      "sha256": "2b8824eaa26222384e1db236cc09d10c7b7f2173d0e5981473951e7dc5a8a079",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-android-1.0.2.apk",
+    {
+      "size": 476441,
+      "mtime": 1786459666000,
+      "device": 16777224,
+      "inode": 120274580,
+      "sha256": "e1bb93855097020db7d0af4b2bc20a9cb5852cb7087e9fe61641f8f98039d3fc",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-android-1.0.3.apk",
+    {
+      "size": 478813,
+      "mtime": 1786756314000,
+      "device": 16777224,
+      "inode": 135395785,
+      "sha256": "bd502ffa6ebd9c56fe3f77ed6d6eb65340cdba84ee68f1acec82aae3525a7026",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-android-1.0.4.apk",
+    {
+      "size": 481549,
+      "mtime": 1790409566581.316,
+      "device": 16777222,
+      "inode": 144876374,
+      "sha256": "a6c5a40e0ba08b45d42fcee8c48649ed569afa775569a876b9f0df3973ec931e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-android-1.0.5.apk",
+    {
+      "size": 1059383,
+      "mtime": 1790609138227.6611,
+      "device": 16777224,
+      "inode": 145294277,
+      "sha256": "ce61f7dccb24633c16e75c9272ba978efef9cfd2eee6c93de66aaa2c5e56380d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-android-1.0.6.apk",
+    {
+      "size": 1059383,
+      "mtime": 1790760383875.6702,
+      "device": 16777222,
+      "inode": 145500243,
+      "sha256": "73781485372ebfcb5d6db0ee2f67f99a8877f66d7f91ee3157f26226cf7080ea",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-android-latest.apk",
+    {
+      "size": 1059383,
+      "mtime": 1790760383937.2078,
+      "device": 16777222,
+      "inode": 135395786,
+      "sha256": "73781485372ebfcb5d6db0ee2f67f99a8877f66d7f91ee3157f26226cf7080ea",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-Android-latest.apk",
+    {
+      "size": 51080,
+      "mtime": 1785230411487.8127,
+      "device": 16777224,
+      "inode": 114261082,
+      "sha256": "8f703e37a687db536cc2fd6f89f3e25c6d8ff19f17cdcb64a40fecc1bfb74ccb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-Android-v0.1.0-b2.apk",
+    {
+      "size": 55978,
+      "mtime": 1784696955812.0852,
+      "device": 16777224,
+      "inode": 114500687,
+      "sha256": "d53fc974b1e34bacf0f1f60cb9e1704788a3cf1b9be99dee0dd86ba9597384d8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-Android-v0.1.0.apk",
+    {
+      "size": 55978,
+      "mtime": 1784696648613.973,
+      "device": 16777224,
+      "inode": 114261081,
+      "sha256": "d53fc974b1e34bacf0f1f60cb9e1704788a3cf1b9be99dee0dd86ba9597384d8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-Android-v0.1.1-b3.apk",
+    {
+      "size": 59324,
+      "mtime": 1785074505503.1228,
+      "device": 16777224,
+      "inode": 115528004,
+      "sha256": "f9d235b87d7386790dd8da49d203280f17fb1994a3e03118cd433a44c7c5bd02",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-Android-v0.1.2-b4.apk",
+    {
+      "size": 51080,
+      "mtime": 1785230411483.5542,
+      "device": 16777224,
+      "inode": 115724817,
+      "sha256": "8f703e37a687db536cc2fd6f89f3e25c6d8ff19f17cdcb64a40fecc1bfb74ccb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-Android-latest.apk",
+    {
+      "size": 51024,
+      "mtime": 1785230411536.8564,
+      "device": 16777224,
+      "inode": 114261090,
+      "sha256": "abc05f4551627a07ed58790d1ff9c1e64caa754750a8cd1a3c135fb1def8d8ef",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-Android-v0.1.0-b2.apk",
+    {
+      "size": 55886,
+      "mtime": 1784696955860.27,
+      "device": 16777224,
+      "inode": 114500691,
+      "sha256": "aa744b6ecde48edbd5c167d5d06f17fe5e3c6293b3bc09f3f9e73b6da925857e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-Android-v0.1.0.apk",
+    {
+      "size": 55886,
+      "mtime": 1784696648667.0774,
+      "device": 16777224,
+      "inode": 114261089,
+      "sha256": "aa744b6ecde48edbd5c167d5d06f17fe5e3c6293b3bc09f3f9e73b6da925857e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-Android-v0.1.1-b3.apk",
+    {
+      "size": 59268,
+      "mtime": 1785074505574.3235,
+      "device": 16777224,
+      "inode": 115528008,
+      "sha256": "013a642d4cc27e9f4167c95fed618f8b8dfdbb12bdc1f3292dc1f74a07f7f1d0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-Android-v0.1.2-b4.apk",
+    {
+      "size": 51024,
+      "mtime": 1785230411530.4746,
+      "device": 16777224,
+      "inode": 115724821,
+      "sha256": "abc05f4551627a07ed58790d1ff9c1e64caa754750a8cd1a3c135fb1def8d8ef",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-Android-latest.apk",
+    {
+      "size": 502018,
+      "mtime": 1783326908570.2864,
+      "device": 16777224,
+      "inode": 111428066,
+      "sha256": "6c7a75a54903115579bbdd7e214945eddbe2e72f44de2f3cbd76298c35099945",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-Android-v0.2.1.apk",
+    {
+      "size": 223490,
+      "mtime": 1783056864144.2349,
+      "device": 16777224,
+      "inode": 111428065,
+      "sha256": "2d17bbb78c9387c7b7511f567b65a5bfa54d639d280d7b17f218d5fad2bbb16f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-Android-v0.2.2.apk",
+    {
+      "size": 227586,
+      "mtime": 1783092065131.015,
+      "device": 16777224,
+      "inode": 111541317,
+      "sha256": "7bf26d5603d761607a87d99b686c6b248ba46a9c3810509451f6f6b876f4840e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-Android-v0.2.3.apk",
+    {
+      "size": 317698,
+      "mtime": 1783142734209.0044,
+      "device": 16777224,
+      "inode": 111622934,
+      "sha256": "358635071e7ce304543da5c863887a9661b75ebc0ca1bae1cda14098cdc08a03",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-Android-v0.2.4.apk",
+    {
+      "size": 497922,
+      "mtime": 1783143330696.5632,
+      "device": 16777224,
+      "inode": 111628617,
+      "sha256": "6ea78656b1f6938c039325a99fe6f773f94cf298ced9ab73285eac977e861a1d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-Android-v0.2.5.apk",
+    {
+      "size": 502018,
+      "mtime": 1783326908561.5237,
+      "device": 16777224,
+      "inode": 111777555,
+      "sha256": "6c7a75a54903115579bbdd7e214945eddbe2e72f44de2f3cbd76298c35099945",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/download/SurvivalDiary-Android-latest.apk",
+    {
+      "size": 55427228,
+      "mtime": 1787831357000
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-Android-latest-unsigned.apk",
+    {
+      "size": 10518936,
+      "mtime": 1788093599000,
+      "device": 16777224,
+      "inode": 150035874,
+      "sha256": "d519f9d295af05b193dd43f2c1722333069d43a78d87c9f2b6f61fa3f9baba55",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-Android-latest.apk",
+    {
+      "size": 14060104,
+      "mtime": 1782743700000,
+      "device": 16777224,
+      "inode": 150035909,
+      "sha256": "959492ac7391a54b8701b7f52a60a18c549f0cbd6f237d515c0e5363f27bd16f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-latest 4.apk",
+    {
+      "size": 57132610,
+      "mtime": 1788100507000,
+      "device": 16777224,
+      "inode": 150035549,
+      "sha256": "75d7fed0930151b190aa5fbde04729a782aec6e8050ed232e55ca9eff4366d92",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.10.10.apk",
+    {
+      "size": 40204555,
+      "mtime": 1786590706000,
+      "device": 16777224,
+      "inode": 150035814,
+      "sha256": "2b48d33a06c2f110170aeb67450b0cc3ae2d06eeed81670d7a7e8e1077ef280c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.10.19.apk",
+    {
+      "size": 24480069,
+      "mtime": 1787293963000,
+      "device": 16777224,
+      "inode": 150035735,
+      "sha256": "bad399fef3c59bba7eeef5a6ae4718ad4c00b9dc895b6961c6893653215b9687",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.10.2-debug.apk",
+    {
+      "size": 53025481,
+      "mtime": 1785921686000,
+      "device": 16777224,
+      "inode": 150035787,
+      "sha256": "efbc7d1aba8510758ec0a55b44ce06307940ffbc5bfe8065c6268a0c4194ee95",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.10.3.apk",
+    {
+      "size": 41157352,
+      "mtime": 1785928831000,
+      "device": 16777224,
+      "inode": 150035911,
+      "sha256": "3c1afc5c4aaceba3573db7641ff6cbc7c843d5682bf5f94fee2f900f3483e718",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.10.9.apk",
+    {
+      "size": 40204599,
+      "mtime": 1786287039000,
+      "device": 16777224,
+      "inode": 150035757,
+      "sha256": "4c3707c74c4464be198cbd6c569fb77cd3d5d4ff01327ed247f91f0d611a3b8b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.11.0.apk",
+    {
+      "size": 24503432,
+      "mtime": 1788015114000,
+      "device": 16777224,
+      "inode": 150035852,
+      "sha256": "cf90abd1b542468541d1adac25dce0a341702ebdc0bb3a1cd4e941b35bfad2d6",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.11.15.apk",
+    {
+      "size": 61520016,
+      "mtime": 1788535007000,
+      "device": 16777224,
+      "inode": 150035576,
+      "sha256": "8987acee6d5c06d7c06b24335e0e09641be8be36f06f1a0462f16b300f8b5833",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.11.2.apk",
+    {
+      "size": 47578172,
+      "mtime": 1788089198000,
+      "device": 16777224,
+      "inode": 150035791,
+      "sha256": "9f739fb1755ffad3595906ce4c697ee01df68c643c49cb9334bd19ba0f42900e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.11.3.apk",
+    {
+      "size": 56461658,
+      "mtime": 1788094354000,
+      "device": 16777224,
+      "inode": 150035833,
+      "sha256": "ab1c8f018cc7f27ce26df52621282e5f2224fbcfa9750ccc227a7955fdf91793",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.5.0.apk",
+    {
+      "size": 8621442,
+      "mtime": 1782736661000,
+      "device": 16777224,
+      "inode": 150035846,
+      "sha256": "883860a0f64058a5240baf6b9e0ea2933da0de39cf3ae5769c1ad5de458c266b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-Android-latest.apk",
+    {
+      "size": 58087295,
+      "mtime": 1792080537584.5696,
+      "device": 16777224,
+      "inode": 151748070,
+      "sha256": "861854365fa5eb0715c1421b76be5bc75d4405df008371e5747ac7a203c815c9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-Android-v0.4.3-b8.apk",
+    {
+      "size": 50271253,
+      "mtime": 1785544581000,
+      "device": 16777224,
+      "inode": 150035915,
+      "sha256": "05ea713e7ca0c5bd6e5f8574b3b9e7429f5930f5aac682b1838103bf6af4834f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengStock-Android-v1.2.0-debug 2.apk",
+    {
+      "size": 6604605,
+      "mtime": 1789139303000,
+      "device": 16777224,
+      "inode": 150035894,
+      "sha256": "15ca25f7149debb8d0b86fffd5ea4cdb98603a0358d43a136adcb4e6008adfa3",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-latest 2.apk",
+    {
+      "size": 8734597,
+      "mtime": 1788063700000,
+      "device": 16777224,
+      "inode": 150035777,
+      "sha256": "a22d71e3d8b76722be6cdd1a7098a35f766fb9614582c3a07544d763f950ae08",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-latest 3.apk",
+    {
+      "size": 8742789,
+      "mtime": 1788184833000,
+      "device": 16777224,
+      "inode": 150035908,
+      "sha256": "616464621f0ea11712e5c0310b95dcb0083a571f4e9589cb6e58d78054544291",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.2.16-build31.apk",
+    {
+      "size": 8742789,
+      "mtime": 1788184833000,
+      "device": 16777224,
+      "inode": 150035906,
+      "sha256": "616464621f0ea11712e5c0310b95dcb0083a571f4e9589cb6e58d78054544291",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengzhengBoardGames-Android-v1.2.16.apk",
+    {
+      "size": 8742789,
+      "mtime": 1788184833000,
+      "device": 16777224,
+      "inode": 150035789,
+      "sha256": "616464621f0ea11712e5c0310b95dcb0083a571f4e9589cb6e58d78054544291",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-v0.12.0.apk",
+    {
+      "size": 42848023,
+      "mtime": 1793320073549.0242,
+      "device": 16777224,
+      "inode": 155775174,
+      "sha256": "fe1988a4e17148c73ab8c3a3fdd88e730e18ed79f2628aad20493687443804b0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-latest.apk",
+    {
+      "size": 112332727,
+      "mtime": 1793951509407.6338,
+      "device": 16777222,
+      "inode": 159551508,
+      "sha256": "cb88830f3578a576c9457c6fc86070e0cb9fd599ddb36f3145dda7470ac37ddb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.12.0.apk",
+    {
+      "size": 42848023,
+      "mtime": 1793320076385.1372,
+      "device": 16777224,
+      "inode": 155775195,
+      "sha256": "fe1988a4e17148c73ab8c3a3fdd88e730e18ed79f2628aad20493687443804b0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-latest 11.apk",
+    {
+      "size": 53226838,
+      "mtime": 1791869188000,
+      "device": 16777224,
+      "inode": 151290218,
+      "sha256": "9674b8d2c6fb3fe62aba99b25812e5bc39ecc0870bb61fded568911f797651f9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-latest 11.apk",
+    {
+      "size": 53226838,
+      "mtime": 1791869190000,
+      "device": 16777224,
+      "inode": 151290243,
+      "sha256": "9674b8d2c6fb3fe62aba99b25812e5bc39ecc0870bb61fded568911f797651f9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengBoardGames-Android-v1.4.0.apk",
+    {
+      "size": 6010701,
+      "mtime": 1792065681228.6514,
+      "device": 16777224,
+      "inode": 151590775,
+      "sha256": "fe219e55b6bdcb618b17e4c6c32d1924cc037435812a28da5b2d71478efb2010",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengBoardGames-Android-latest.apk",
+    {
+      "size": 6010701,
+      "mtime": 1792065711758.119,
+      "device": 16777224,
+      "inode": 151590844,
+      "sha256": "913e52d35ffdd4421c78d05ccdd836fdf8ff920a138db8b94361807580ef9465",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Android-latest.apk",
+    {
+      "size": 6010701,
+      "mtime": 1792066965013.3525,
+      "device": 16777224,
+      "inode": 151602094,
+      "sha256": "913e52d35ffdd4421c78d05ccdd836fdf8ff920a138db8b94361807580ef9465",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Android-v1.4.0.apk",
+    {
+      "size": 6010701,
+      "mtime": 1792066964945.9653,
+      "device": 16777224,
+      "inode": 151602092,
+      "sha256": "fe219e55b6bdcb618b17e4c6c32d1924cc037435812a28da5b2d71478efb2010",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SurvivalDiary-Android-Play-latest.apk",
+    {
+      "size": 58084391,
+      "mtime": 1792080529154.0962,
+      "device": 16777224,
+      "inode": 151747990,
+      "sha256": "60ac8034185b8c86b8d311c8546b3c17f6782e530db03c16cfeaaaf3d2f6e6c8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SurvivalDiary-Android-Play-v0.6.2-b46.apk",
+    {
+      "size": 58084391,
+      "mtime": 1792080527889.8835,
+      "device": 16777224,
+      "inode": 151747975,
+      "sha256": "60ac8034185b8c86b8d311c8546b3c17f6782e530db03c16cfeaaaf3d2f6e6c8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SurvivalDiary-Android-latest.apk",
+    {
+      "size": 58087295,
+      "mtime": 1792080526322.2888,
+      "device": 16777224,
+      "inode": 151747790,
+      "sha256": "861854365fa5eb0715c1421b76be5bc75d4405df008371e5747ac7a203c815c9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SurvivalDiary-Android-v0.6.2-b46.apk",
+    {
+      "size": 58087295,
+      "mtime": 1792080524797.387,
+      "device": 16777224,
+      "inode": 151747777,
+      "sha256": "861854365fa5eb0715c1421b76be5bc75d4405df008371e5747ac7a203c815c9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-Android-Play-latest.apk",
+    {
+      "size": 58084391,
+      "mtime": 1792080539675.445,
+      "device": 16777224,
+      "inode": 151748088,
+      "sha256": "60ac8034185b8c86b8d311c8546b3c17f6782e530db03c16cfeaaaf3d2f6e6c8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-Android-Play-v0.6.2-b46.apk",
+    {
+      "size": 58084391,
+      "mtime": 1792080538775.83,
+      "device": 16777224,
+      "inode": 151748083,
+      "sha256": "60ac8034185b8c86b8d311c8546b3c17f6782e530db03c16cfeaaaf3d2f6e6c8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-Android-v0.6.2-b46.apk",
+    {
+      "size": 58087295,
+      "mtime": 1792080536072.954,
+      "device": 16777224,
+      "inode": 151748057,
+      "sha256": "861854365fa5eb0715c1421b76be5bc75d4405df008371e5747ac7a203c815c9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-Android-v0.1.18.apk",
+    {
+      "size": 57040355,
+      "mtime": 1792736108887.253,
+      "device": 16777224,
+      "inode": 153193070,
+      "sha256": "3a90aaa932eb6caa608fbe7018ac6a6598a8cc6f74b76dc956ffd437015f7618",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-latest.apk",
+    {
+      "size": 57308395,
+      "mtime": 1793860383000,
+      "device": 16777222,
+      "inode": 159120436,
+      "sha256": "1618ea1aa395f3d44f966788e1b6ec3c02559dea32af8ec3224bb0082b03b4d7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.18.apk",
+    {
+      "size": 57040355,
+      "mtime": 1792736111262.1814,
+      "device": 16777224,
+      "inode": 153193100,
+      "sha256": "3a90aaa932eb6caa608fbe7018ac6a6598a8cc6f74b76dc956ffd437015f7618",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-Android-latest 3.apk",
+    {
+      "size": 57040355,
+      "mtime": 1792736110000,
+      "device": 16777224,
+      "inode": 153193077,
+      "sha256": "3a90aaa932eb6caa608fbe7018ac6a6598a8cc6f74b76dc956ffd437015f7618",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-Android-latest.apk",
+    {
+      "size": 57308395,
+      "mtime": 1793860379000,
+      "device": 16777222,
+      "inode": 159120040,
+      "sha256": "1618ea1aa395f3d44f966788e1b6ec3c02559dea32af8ec3224bb0082b03b4d7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.19.apk",
+    {
+      "size": 57308391,
+      "mtime": 1793028515926.021,
+      "device": 16777224,
+      "inode": 153327162,
+      "sha256": "22ad97b56352892809d8c6b548e861a5f7ef5759390dcfb8dc69fbc76e044583",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-Android-v0.1.19.apk",
+    {
+      "size": 57308391,
+      "mtime": 1793028519208.908,
+      "device": 16777224,
+      "inode": 153327178,
+      "sha256": "22ad97b56352892809d8c6b548e861a5f7ef5759390dcfb8dc69fbc76e044583",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.20.apk",
+    {
+      "size": 57308395,
+      "mtime": 1793118329255.2063,
+      "device": 16777224,
+      "inode": 153774937,
+      "sha256": "0cf803602b08e9036c89a363d2396c8348c985db82ced338df9e95d8fc4a7eea",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-latest 12.apk",
+    {
+      "size": 42847591,
+      "mtime": 1793202709000,
+      "device": 16777224,
+      "inode": 154438212,
+      "sha256": "73c079acd260defe328faf6b69691e16d2362625d3ea5db2b39524ea5545f041",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-v0.12.0 2.apk",
+    {
+      "size": 42847591,
+      "mtime": 1793202709000,
+      "device": 16777224,
+      "inode": 154438205,
+      "sha256": "73c079acd260defe328faf6b69691e16d2362625d3ea5db2b39524ea5545f041",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-latest 12.apk",
+    {
+      "size": 42847591,
+      "mtime": 1793202706000,
+      "device": 16777224,
+      "inode": 154438196,
+      "sha256": "73c079acd260defe328faf6b69691e16d2362625d3ea5db2b39524ea5545f041",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.12.0 2.apk",
+    {
+      "size": 42847591,
+      "mtime": 1793202705000,
+      "device": 16777224,
+      "inode": 154438195,
+      "sha256": "73c079acd260defe328faf6b69691e16d2362625d3ea5db2b39524ea5545f041",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.21.apk",
+    {
+      "size": 53975666,
+      "mtime": 1793232020681.5818,
+      "device": 16777224,
+      "inode": 154885746,
+      "sha256": "7fd829f6fe5010e6e613ca82e53b685df29714818909a175a7ff0b447e6fdb03",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-Android-v0.1.21.apk",
+    {
+      "size": 53975666,
+      "mtime": 1793232023655.1892,
+      "device": 16777224,
+      "inode": 154885805,
+      "sha256": "7fd829f6fe5010e6e613ca82e53b685df29714818909a175a7ff0b447e6fdb03",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-Android-latest 5.apk",
+    {
+      "size": 53975666,
+      "mtime": 1793232025000,
+      "device": 16777224,
+      "inode": 154885823,
+      "sha256": "7fd829f6fe5010e6e613ca82e53b685df29714818909a175a7ff0b447e6fdb03",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-latest 5.apk",
+    {
+      "size": 53975666,
+      "mtime": 1793232022000,
+      "device": 16777224,
+      "inode": 154885767,
+      "sha256": "7fd829f6fe5010e6e613ca82e53b685df29714818909a175a7ff0b447e6fdb03",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-latest 13.apk",
+    {
+      "size": 42848023,
+      "mtime": 1793320075000,
+      "device": 16777224,
+      "inode": 155775183,
+      "sha256": "fe1988a4e17148c73ab8c3a3fdd88e730e18ed79f2628aad20493687443804b0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-v0.12.0 3.apk",
+    {
+      "size": 42848023,
+      "mtime": 1793320073000,
+      "device": 16777224,
+      "inode": 155775174,
+      "sha256": "fe1988a4e17148c73ab8c3a3fdd88e730e18ed79f2628aad20493687443804b0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-latest 13.apk",
+    {
+      "size": 42848023,
+      "mtime": 1793320077000,
+      "device": 16777224,
+      "inode": 155775208,
+      "sha256": "fe1988a4e17148c73ab8c3a3fdd88e730e18ed79f2628aad20493687443804b0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.12.0 3.apk",
+    {
+      "size": 42848023,
+      "mtime": 1793320076000,
+      "device": 16777224,
+      "inode": 155775195,
+      "sha256": "fe1988a4e17148c73ab8c3a3fdd88e730e18ed79f2628aad20493687443804b0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.13.0.apk",
+    {
+      "size": 42847984,
+      "mtime": 1793352417940.668,
+      "device": 16777224,
+      "inode": 156145006,
+      "sha256": "9abe475985447e41b983007e15f8067fda426801f045fbad8ea8e39f764855ca",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-v0.13.0.apk",
+    {
+      "size": 42847984,
+      "mtime": 1793352415008.3184,
+      "device": 16777224,
+      "inode": 156144983,
+      "sha256": "9abe475985447e41b983007e15f8067fda426801f045fbad8ea8e39f764855ca",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-latest 14.apk",
+    {
+      "size": 42847984,
+      "mtime": 1793352416000,
+      "device": 16777224,
+      "inode": 156144993,
+      "sha256": "9abe475985447e41b983007e15f8067fda426801f045fbad8ea8e39f764855ca",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-latest 14.apk",
+    {
+      "size": 42847984,
+      "mtime": 1793352419000,
+      "device": 16777224,
+      "inode": 156145014,
+      "sha256": "9abe475985447e41b983007e15f8067fda426801f045fbad8ea8e39f764855ca",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-v0.13.1.apk",
+    {
+      "size": 42847984,
+      "mtime": 1793420272120.8657,
+      "device": 16777224,
+      "inode": 156242218,
+      "sha256": "00793547168d09d2c90678bcd453ca7893e1f7b7ddbc9237c4733bd6afbc3b15",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.13.1.apk",
+    {
+      "size": 42847984,
+      "mtime": 1793420274906.0781,
+      "device": 16777224,
+      "inode": 156242230,
+      "sha256": "00793547168d09d2c90678bcd453ca7893e1f7b7ddbc9237c4733bd6afbc3b15",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengDebugAssistant-Android-v0.1.0.apk",
+    {
+      "size": 3556083,
+      "mtime": 1793451072243.8015,
+      "device": 16777224,
+      "inode": 156384785,
+      "sha256": "d3e394e4d1da7247bee156a6110e8a698b4d90114e7ac2863832d9fdaa53d5a0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengDebugAssistant-Android-v0.1.0.apk",
+    {
+      "size": 3556083,
+      "mtime": 1793451070741.5396,
+      "device": 16777224,
+      "inode": 156384769,
+      "sha256": "d3e394e4d1da7247bee156a6110e8a698b4d90114e7ac2863832d9fdaa53d5a0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.13.2.apk",
+    {
+      "size": 42848591,
+      "mtime": 1793453682000,
+      "device": 16777222,
+      "inode": 158075413,
+      "sha256": "d31e3557e7f32f274c8cc37f0aee5fbd40fe5ebfa9e11b11ec0ae55adc5ed758",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-v0.13.2.apk",
+    {
+      "size": 42848591,
+      "mtime": 1793453679000,
+      "device": 16777222,
+      "inode": 158075118,
+      "sha256": "d31e3557e7f32f274c8cc37f0aee5fbd40fe5ebfa9e11b11ec0ae55adc5ed758",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-latest 15.apk",
+    {
+      "size": 42848591,
+      "mtime": 1793453685000,
+      "device": 16777224,
+      "inode": 156242240,
+      "sha256": "d31e3557e7f32f274c8cc37f0aee5fbd40fe5ebfa9e11b11ec0ae55adc5ed758",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-latest 17.apk",
+    {
+      "size": 42848591,
+      "mtime": 1793453681000,
+      "device": 16777224,
+      "inode": 156439851,
+      "sha256": "d31e3557e7f32f274c8cc37f0aee5fbd40fe5ebfa9e11b11ec0ae55adc5ed758",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-Android-v0.3.1-b4-debug-signed.apk",
+    {
+      "size": 16185145,
+      "mtime": 1793495908564.3535,
+      "device": 16777224,
+      "inode": 156610197,
+      "sha256": "e369e84778da6a7f52c296235e9b7f8568c3d32b5377123fabc9152e9e8f3926",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengDebugAssistant-Android-latest.apk",
+    {
+      "size": 3556083,
+      "mtime": 1793541802538.49,
+      "device": 16777224,
+      "inode": 156674113,
+      "sha256": "d3e394e4d1da7247bee156a6110e8a698b4d90114e7ac2863832d9fdaa53d5a0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-v0.13.2 2.apk",
+    {
+      "size": 42848158,
+      "mtime": 1793714570000,
+      "device": 16777222,
+      "inode": 158061587,
+      "sha256": "b8071e47684f9d9a3d39ee2820c078337e78b03ea3be302df9d057ec08eaffb5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-latest 18.apk",
+    {
+      "size": 42848158,
+      "mtime": 1793714571000,
+      "device": 16777222,
+      "inode": 158061592,
+      "sha256": "b8071e47684f9d9a3d39ee2820c078337e78b03ea3be302df9d057ec08eaffb5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-latest 16.apk",
+    {
+      "size": 42848158,
+      "mtime": 1793714573000,
+      "device": 16777222,
+      "inode": 158061612,
+      "sha256": "b8071e47684f9d9a3d39ee2820c078337e78b03ea3be302df9d057ec08eaffb5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.13.2 2.apk",
+    {
+      "size": 42848158,
+      "mtime": 1793714572000,
+      "device": 16777222,
+      "inode": 158061605,
+      "sha256": "b8071e47684f9d9a3d39ee2820c078337e78b03ea3be302df9d057ec08eaffb5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-latest 19.apk",
+    {
+      "size": 42848158,
+      "mtime": 1793715814000,
+      "device": 16777222,
+      "inode": 158075064,
+      "sha256": "b8071e47684f9d9a3d39ee2820c078337e78b03ea3be302df9d057ec08eaffb5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-latest 17.apk",
+    {
+      "size": 42848158,
+      "mtime": 1793715816000,
+      "device": 16777222,
+      "inode": 158075093,
+      "sha256": "b8071e47684f9d9a3d39ee2820c078337e78b03ea3be302df9d057ec08eaffb5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-v0.13.3.apk",
+    {
+      "size": 42848156,
+      "mtime": 1793719611663.0598,
+      "device": 16777222,
+      "inode": 158107106,
+      "sha256": "e75d7c8549d26c926a20cf571b6c7bcdbd76ba224ad13d99c9cb3c17b83c2d2c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.13.3.apk",
+    {
+      "size": 42848156,
+      "mtime": 1793719612947.4846,
+      "device": 16777222,
+      "inode": 158107114,
+      "sha256": "e75d7c8549d26c926a20cf571b6c7bcdbd76ba224ad13d99c9cb3c17b83c2d2c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-latest 18.apk",
+    {
+      "size": 42848156,
+      "mtime": 1793719613000,
+      "device": 16777222,
+      "inode": 158107118,
+      "sha256": "e75d7c8549d26c926a20cf571b6c7bcdbd76ba224ad13d99c9cb3c17b83c2d2c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-latest 20.apk",
+    {
+      "size": 42848156,
+      "mtime": 1793719612000,
+      "device": 16777222,
+      "inode": 158107110,
+      "sha256": "e75d7c8549d26c926a20cf571b6c7bcdbd76ba224ad13d99c9cb3c17b83c2d2c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-v0.13.4.apk",
+    {
+      "size": 194929995,
+      "mtime": 1793788604138.4917,
+      "device": 16777222,
+      "inode": 158633086,
+      "sha256": "480cddb478975d732a9c828dd8cc9670848877206bf96b2b74cc83f48e25cb03",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.13.4.apk",
+    {
+      "size": 194929995,
+      "mtime": 1793788608532.1643,
+      "device": 16777222,
+      "inode": 158633103,
+      "sha256": "480cddb478975d732a9c828dd8cc9670848877206bf96b2b74cc83f48e25cb03",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-v0.13.5.apk",
+    {
+      "size": 194490681,
+      "mtime": 1793799481524.0886,
+      "device": 16777222,
+      "inode": 158701349,
+      "sha256": "371ab10d068290b1c1efc525a528c30d4a196e0e2baf126653e2ecd759f28ed2",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.13.5.apk",
+    {
+      "size": 194490681,
+      "mtime": 1793799484517.579,
+      "device": 16777222,
+      "inode": 158701377,
+      "sha256": "371ab10d068290b1c1efc525a528c30d4a196e0e2baf126653e2ecd759f28ed2",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-v0.13.6.apk",
+    {
+      "size": 110693690,
+      "mtime": 1793808213112.954,
+      "device": 16777222,
+      "inode": 158745762,
+      "sha256": "336bcc15418fb6086cf83657d99baea73c95f3e019bd37a0836dcedbd45c9742",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.13.6.apk",
+    {
+      "size": 110693690,
+      "mtime": 1793808214626.3313,
+      "device": 16777222,
+      "inode": 158745767,
+      "sha256": "336bcc15418fb6086cf83657d99baea73c95f3e019bd37a0836dcedbd45c9742",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-Android-v0.1.22.apk",
+    {
+      "size": 53975666,
+      "mtime": 1793859489046.076,
+      "device": 16777222,
+      "inode": 158948081,
+      "sha256": "37f53c2922d08f83f107e5f2361f4c037f68612ca065d067a93c8bf2f117e78d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.22.apk",
+    {
+      "size": 53975666,
+      "mtime": 1793859493631.367,
+      "device": 16777222,
+      "inode": 158948099,
+      "sha256": "37f53c2922d08f83f107e5f2361f4c037f68612ca065d067a93c8bf2f117e78d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-Android-latest 6.apk",
+    {
+      "size": 53975666,
+      "mtime": 1793859021000,
+      "device": 16777222,
+      "inode": 158948089,
+      "sha256": "37f53c2922d08f83f107e5f2361f4c037f68612ca065d067a93c8bf2f117e78d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-latest 6.apk",
+    {
+      "size": 53975666,
+      "mtime": 1793859025000,
+      "device": 16777222,
+      "inode": 158948108,
+      "sha256": "37f53c2922d08f83f107e5f2361f4c037f68612ca065d067a93c8bf2f117e78d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-Android-v0.1.23.apk",
+    {
+      "size": 57308395,
+      "mtime": 1793860377263.4485,
+      "device": 16777222,
+      "inode": 158957749,
+      "sha256": "1618ea1aa395f3d44f966788e1b6ec3c02559dea32af8ec3224bb0082b03b4d7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.23.apk",
+    {
+      "size": 57308395,
+      "mtime": 1793860381680.8145,
+      "device": 16777222,
+      "inode": 158957781,
+      "sha256": "1618ea1aa395f3d44f966788e1b6ec3c02559dea32af8ec3224bb0082b03b4d7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.13.8.apk",
+    {
+      "size": 112332727,
+      "mtime": 1793884162599.5583,
+      "device": 16777222,
+      "inode": 159060446,
+      "sha256": "c5dbfd7b85f85cfb021afc3e376d35065ed626e9a6e5a391947c741df2d31cfd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-v0.13.8.apk",
+    {
+      "size": 112332727,
+      "mtime": 1793884156626.2053,
+      "device": 16777222,
+      "inode": 159060204,
+      "sha256": "c5dbfd7b85f85cfb021afc3e376d35065ed626e9a6e5a391947c741df2d31cfd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-latest 21.apk",
+    {
+      "size": 112332727,
+      "mtime": 1793884159000,
+      "device": 16777222,
+      "inode": 159060400,
+      "sha256": "c5dbfd7b85f85cfb021afc3e376d35065ed626e9a6e5a391947c741df2d31cfd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-latest 19.apk",
+    {
+      "size": 112332727,
+      "mtime": 1793884165000,
+      "device": 16777222,
+      "inode": 159060512,
+      "sha256": "c5dbfd7b85f85cfb021afc3e376d35065ed626e9a6e5a391947c741df2d31cfd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-latest 22.apk",
+    {
+      "size": 112332727,
+      "mtime": 1793884195000,
+      "device": 16777222,
+      "inode": 159060750,
+      "sha256": "c5dbfd7b85f85cfb021afc3e376d35065ed626e9a6e5a391947c741df2d31cfd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-latest 20.apk",
+    {
+      "size": 112332727,
+      "mtime": 1793884219000,
+      "device": 16777222,
+      "inode": 159060861,
+      "sha256": "c5dbfd7b85f85cfb021afc3e376d35065ed626e9a6e5a391947c741df2d31cfd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-latest 21.apk",
+    {
+      "size": 112332727,
+      "mtime": 1793884162000,
+      "device": 16777222,
+      "inode": 159060446,
+      "sha256": "c5dbfd7b85f85cfb021afc3e376d35065ed626e9a6e5a391947c741df2d31cfd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-Android-v0.1.24.apk",
+    {
+      "size": 57324791,
+      "mtime": 1793895268829.7412,
+      "device": 16777222,
+      "inode": 159116246,
+      "sha256": "8b7711ae13f182067e8e145568599aa446f07588aae2a97358fa8af04bb56432",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-v0.1.24.apk",
+    {
+      "size": 57324791,
+      "mtime": 1793895273006.7156,
+      "device": 16777222,
+      "inode": 159116262,
+      "sha256": "8b7711ae13f182067e8e145568599aa446f07588aae2a97358fa8af04bb56432",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-Android-latest 7.apk",
+    {
+      "size": 57324791,
+      "mtime": 1793895002000,
+      "device": 16777222,
+      "inode": 159116258,
+      "sha256": "8b7711ae13f182067e8e145568599aa446f07588aae2a97358fa8af04bb56432",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-Android-latest 7.apk",
+    {
+      "size": 57324791,
+      "mtime": 1793895006000,
+      "device": 16777222,
+      "inode": 159116272,
+      "sha256": "8b7711ae13f182067e8e145568599aa446f07588aae2a97358fa8af04bb56432",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-Android-v0.13.9.apk",
+    {
+      "size": 112332727,
+      "mtime": 1793951509407.6338,
+      "device": 16777222,
+      "inode": 159551508,
+      "sha256": "cb88830f3578a576c9457c6fc86070e0cb9fd599ddb36f3145dda7470ac37ddb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-Android-v0.13.9.apk",
+    {
+      "size": 112332727,
+      "mtime": 1793951509407.6338,
+      "device": 16777222,
+      "inode": 159551508,
+      "sha256": "cb88830f3578a576c9457c6fc86070e0cb9fd599ddb36f3145dda7470ac37ddb",
+      "targetKey": ""
+    }
+  ]
+]

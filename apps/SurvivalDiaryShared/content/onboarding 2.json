@@ -1,0 +1,68 @@
+{
+  "version": 2,
+  "steps": [
+    {
+      "id": "wake_and_observe",
+      "title": "第一章 1/8 · 潮退之后",
+      "body": "你在搁浅残骸旁醒来。走几步确认方向；迷路时用指南针找回自己。",
+      "action": "focus-wreck",
+      "actionLabel": "检查残骸"
+    },
+    {
+      "id": "gather_starter_supplies",
+      "title": "第一章 2/8 · 眼下能用的东西",
+      "body": "天黑前要生火。徒手收集树枝×1、松散海蚀石×2和棕榈纤维×4。",
+      "action": "find-starter-supply",
+      "actionLabel": "寻找材料"
+    },
+    {
+      "id": "secure_fresh_water",
+      "title": "第一章 3/8 · 先解决口渴",
+      "body": "沿低地寻找起始海湾内必定存在的淡水泉；采集或饮用都算完成。",
+      "action": "find-water",
+      "actionLabel": "寻找淡水"
+    },
+    {
+      "id": "craft_first_tool",
+      "title": "第一章 4/8 · 第一把工具",
+      "body": "把纤维搓成绳索，再制作石片砍刀、石斧或石镐中的任意一种。",
+      "action": "track-first-tool",
+      "actionLabel": "追踪制作"
+    },
+    {
+      "id": "eat_first_food",
+      "title": "第一章 5/8 · 给黑夜留些体力",
+      "body": "采集椰子或浆果并吃下一份，观察饱腹、饮水、生命和体力的变化。",
+      "action": "find-food",
+      "actionLabel": "寻找食物"
+    },
+    {
+      "id": "light_first_fire",
+      "title": "第一章 6/8 · 天黑前点起火",
+      "body": "制作并放置营火，再靠近点燃。只有真正点亮的营火才算完成。",
+      "action": "track-campfire",
+      "actionLabel": "准备营火"
+    },
+    {
+      "id": "place_first_shelter",
+      "title": "第一章 7/8 · 搭好住处",
+      "body": "准备材料并放置庇护所或床铺。它们能隔绝坏天气，并提供休息位置。",
+      "action": "track-shelter",
+      "actionLabel": "准备庇护所"
+    },
+    {
+      "id": "rest_first_night",
+      "title": "第一章 8/8 · 熬过第一夜",
+      "body": "确保饱腹和饮水足够，靠近庇护所或床铺休息到清晨。充足营养会帮助恢复生命。",
+      "action": "find-shelter",
+      "actionLabel": "前往住处"
+    }
+  ],
+  "completion": {
+    "id": "opening_complete",
+    "title": "岛屿传闻 · 继续探索",
+    "body": "清晨的迷雾后升起一缕炊烟。沿旧路寻找矿脉、动物、村落与流浪者；之后由你决定怎样生活。",
+    "action": "focus-world",
+    "actionLabel": "向迷雾前进"
+  }
+}

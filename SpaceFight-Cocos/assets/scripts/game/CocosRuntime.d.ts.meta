@@ -1,0 +1,13 @@
+{
+  "ver": "4.0.24",
+  "importer": "typescript",
+  "imported": true,
+  "uuid": "49326c62-588d-4bff-a12f-a5e8ba40d85e",
+  "files": [],
+  "subMetas": {},
+  "userData": {
+    "moduleId": "project:///assets/scripts/game/CocosRuntime.js",
+    "importerSettings": 7,
+    "simulateGlobals": []
+  }
+}

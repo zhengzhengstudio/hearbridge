@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "PROCESSED_RES",
+    "kind": "Directory"
+  },
+  "applicationId": "cn.zhengzhengstudio.survivaldiary.debug",
+  "variantName": "websiteDebug",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 46,
+      "versionName": "0.6.2",
+      "outputFile": "resources-websiteDebug.ap_"
+    }
+  ],
+  "elementType": "File"
+}

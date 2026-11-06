@@ -1,0 +1,5307 @@
+[
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.12.0.app",
+    {
+      "size": 51146438,
+      "mtime": 1793283621491.4226,
+      "device": 16777222,
+      "inode": 149261370,
+      "sha256": "ef2f3c7c228d5e19e7055c191b1244857ac07645fe11405d7628daf8794731b1",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-latest.app",
+    {
+      "size": 51146438,
+      "mtime": 1793283626042.586,
+      "device": 16777222,
+      "inode": 149261372,
+      "sha256": "ef2f3c7c228d5e19e7055c191b1244857ac07645fe11405d7628daf8794731b1",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-iOS-v0.10.0.ipa",
+    {
+      "size": 2966424,
+      "mtime": 1785674079282.094,
+      "device": 16777222,
+      "inode": 116949399,
+      "sha256": "0b02fcc04a69c4033398b75d42b81499cbfb8e24c29273b43e4acc3864305afb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-iOS-latest.ipa",
+    {
+      "size": 2966424,
+      "mtime": 1785674079000,
+      "device": 16777222,
+      "inode": 110327451,
+      "sha256": "0b02fcc04a69c4033398b75d42b81499cbfb8e24c29273b43e4acc3864305afb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-HarmonyOS-Offline-v0.12.0.app",
+    {
+      "size": 51146438,
+      "mtime": 1793283619427.6826,
+      "device": 16777224,
+      "inode": 149261363,
+      "sha256": "ef2f3c7c228d5e19e7055c191b1244857ac07645fe11405d7628daf8794731b1",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-HarmonyOS-Offline-latest.app",
+    {
+      "size": 51146438,
+      "mtime": 1793283623550.2566,
+      "device": 16777224,
+      "inode": 149261364,
+      "sha256": "ef2f3c7c228d5e19e7055c191b1244857ac07645fe11405d7628daf8794731b1",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-iOS-v0.10.0.ipa",
+    {
+      "size": 2966424,
+      "mtime": 1785674079282.094
+    }
+  ],
+  [
+    "api/apps/SpaceFight-iOS-latest.ipa",
+    {
+      "size": 2966424,
+      "mtime": 1785674079000
+    }
+  ],
+  [
+    "api/apps/SpaceFight-HarmonyOS-Offline-v0.12.0.hap",
+    {
+      "size": 51130398,
+      "mtime": 1793286082404.3118,
+      "device": 16777224,
+      "inode": 155624735,
+      "sha256": "6d75eaf7212fb801daf1d90d0e14472d7b25fc1767a2835ddef0b0afae3e9c7f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-macOS-v0.11.7-debug.dmg",
+    {
+      "size": 58003310,
+      "mtime": 1792066964361.5117,
+      "device": 16777224,
+      "inode": 151602084,
+      "sha256": "99f99b395153bac7daa12a40f2488cb6ef8cf5c5ea9ca2730eb398c975aeed6a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-macOS-latest-debug.dmg",
+    {
+      "size": 58003310,
+      "mtime": 1792066964832.01,
+      "device": 16777224,
+      "inode": 151602088,
+      "sha256": "99f99b395153bac7daa12a40f2488cb6ef8cf5c5ea9ca2730eb398c975aeed6a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-HarmonyOS-Offline-latest.hap",
+    {
+      "size": 51130398,
+      "mtime": 1793286083462.8438,
+      "device": 16777224,
+      "inode": 155624736,
+      "sha256": "6d75eaf7212fb801daf1d90d0e14472d7b25fc1767a2835ddef0b0afae3e9c7f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-HarmonyOS-latest-unsigned.app",
+    {
+      "size": 249952,
+      "mtime": 1785230399939.1807,
+      "device": 16777224,
+      "inode": 114548587,
+      "sha256": "27f2ffb9ad8182a3b09ece1ab65a7160f68bcc1394d2407fe6ae147bb8eb482b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-HarmonyOS-latest-unsigned.hap",
+    {
+      "size": 272455,
+      "mtime": 1785230399840.7825,
+      "device": 16777224,
+      "inode": 114548579,
+      "sha256": "94f1afa5083c17e2ba42c283678c412875a7cc18d767475b1d9ef37527259a53",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-HarmonyOS-v0.1.0-b2-unsigned.app",
+    {
+      "size": 248495,
+      "mtime": 1785072690729.7742,
+      "device": 16777224,
+      "inode": 114548586,
+      "sha256": "19ad485a00da048e4116bf86058dbdb4c719487eaeea4b1a7fba28fc6ebfb6a9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-HarmonyOS-v0.1.0-b2-unsigned.hap",
+    {
+      "size": 268287,
+      "mtime": 1785072690592.9917,
+      "device": 16777224,
+      "inode": 114548578,
+      "sha256": "e2733e17594032cb5bd078602898a2d4d6a220e15605f86742b0b55c5997ce18",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-HarmonyOS-v0.1.1-b3-unsigned.app",
+    {
+      "size": 249964,
+      "mtime": 1785074545233.578,
+      "device": 16777224,
+      "inode": 115528909,
+      "sha256": "0bfa56923289391eb02a0cf6691f9099b1fc4d16da561e35971126332f1abe64",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-HarmonyOS-v0.1.1-b3-unsigned.hap",
+    {
+      "size": 272451,
+      "mtime": 1785074545127.6777,
+      "device": 16777224,
+      "inode": 115528905,
+      "sha256": "985252cdb355a1452c9307a28cae70921edbbb2c4321f061eac6f1cbcba70d02",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-HarmonyOS-v0.1.2-b4-unsigned.app",
+    {
+      "size": 249952,
+      "mtime": 1785230399932.0027,
+      "device": 16777222,
+      "inode": 115724725,
+      "sha256": "27f2ffb9ad8182a3b09ece1ab65a7160f68bcc1394d2407fe6ae147bb8eb482b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-HarmonyOS-v0.1.2-b4-unsigned.hap",
+    {
+      "size": 272455,
+      "mtime": 1785230399832.2776,
+      "device": 16777222,
+      "inode": 115724719,
+      "sha256": "94f1afa5083c17e2ba42c283678c412875a7cc18d767475b1d9ef37527259a53",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-iOS-latest-unsigned.ipa",
+    {
+      "size": 196059,
+      "mtime": 1785230431642.5562,
+      "device": 16777224,
+      "inode": 114261368,
+      "sha256": "24cca34011adb501c3746b1110e664f638b153ee278e93ca4b55d217b8f3fcce",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-iOS-v0.1.0-b2-unsigned.ipa",
+    {
+      "size": 185089,
+      "mtime": 1784696962922.1768,
+      "device": 16777224,
+      "inode": 114500732,
+      "sha256": "ca4dff75fd274187ea34c2be2bef11dc330cc2e1f7718a8d3a4b2dad7b421840",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-iOS-v0.1.0-unsigned.ipa",
+    {
+      "size": 185089,
+      "mtime": 1784696670927.7185,
+      "device": 16777224,
+      "inode": 114261367,
+      "sha256": "ffe8a2981f1aa4560240c6646aaf7293ee4ae9e915bd596d354e306cc1bc7f22",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-iOS-v0.1.1-b3-unsigned.ipa",
+    {
+      "size": 196063,
+      "mtime": 1785074519573.8113,
+      "device": 16777224,
+      "inode": 115528098,
+      "sha256": "8d365daf707bae023b5175e2fdac4ab553ee86d7722aa235a270464381656b61",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-iOS-v0.1.2-b4-unsigned.ipa",
+    {
+      "size": 196059,
+      "mtime": 1785230431636.363,
+      "device": 16777222,
+      "inode": 115725043,
+      "sha256": "24cca34011adb501c3746b1110e664f638b153ee278e93ca4b55d217b8f3fcce",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-macOS-latest.dmg",
+    {
+      "size": 284290,
+      "mtime": 1785230455981.7139,
+      "device": 16777224,
+      "inode": 114263932,
+      "sha256": "c95d76a910d13746d622b366c40aadc01176976f8f66b4224299daa20e056753",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-macOS-v0.1.0-b2.dmg",
+    {
+      "size": 271732,
+      "mtime": 1784696984187.9705,
+      "device": 16777224,
+      "inode": 114500945,
+      "sha256": "debb213d55c555540635293486614811be7df38d95db1cd9a755cb665e83c63c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-macOS-v0.1.0.dmg",
+    {
+      "size": 271715,
+      "mtime": 1784696710043.4514,
+      "device": 16777224,
+      "inode": 114263931,
+      "sha256": "79d96c0f17cd059aaabc39318481e9594772db27c0817366504e1da75b18c591",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-macOS-v0.1.1-b3.dmg",
+    {
+      "size": 284374,
+      "mtime": 1785074563455.7039,
+      "device": 16777224,
+      "inode": 115528375,
+      "sha256": "56d4c348571426161ab4f20531cc605bb2ff0f5048561297ac7b8d59a7901bb8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/Cantonese-macOS-v0.1.2-b4.dmg",
+    {
+      "size": 284290,
+      "mtime": 1785230455974.125,
+      "device": 16777222,
+      "inode": 115725357,
+      "sha256": "c95d76a910d13746d622b366c40aadc01176976f8f66b4224299daa20e056753",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-HarmonyOS-latest-unsigned.app",
+    {
+      "size": 250287,
+      "mtime": 1785230433448.7876,
+      "device": 16777224,
+      "inode": 114548944,
+      "sha256": "e614fc4907cb3d3ab7252f613c12cacbe5ae7c4aebc048aa8d80e9d443d7cbbb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-HarmonyOS-latest-unsigned.hap",
+    {
+      "size": 273325,
+      "mtime": 1785230433314.1467,
+      "device": 16777224,
+      "inode": 114548936,
+      "sha256": "01abec2bb2a13f70a5fb5dfbf2252cd7a7db12c7c445633cb03f8a7126d55dcc",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-HarmonyOS-v0.1.0-b2-unsigned.app",
+    {
+      "size": 255907,
+      "mtime": 1785072771371.1436,
+      "device": 16777224,
+      "inode": 114548943,
+      "sha256": "d99ad604b71dee7dc7de2cd9f5429f326ee42763ed2a3368e1d96e57d5c3df89",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-HarmonyOS-v0.1.0-b2-unsigned.hap",
+    {
+      "size": 288269,
+      "mtime": 1785072771211.2312,
+      "device": 16777224,
+      "inode": 114548935,
+      "sha256": "0fc48da4920e2461df32257793cbbfd95b7539f91238cf2bef6d7834d032c14a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-HarmonyOS-v0.1.1-b3-unsigned.app",
+    {
+      "size": 250281,
+      "mtime": 1785074592963.394,
+      "device": 16777224,
+      "inode": 115529202,
+      "sha256": "55ba62b2b0e0661f9b7b33f42b590155e079728be9dcf9a1aa6cb118c0dfa757",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-HarmonyOS-v0.1.1-b3-unsigned.hap",
+    {
+      "size": 273325,
+      "mtime": 1785074592832.6882,
+      "device": 16777224,
+      "inode": 115529198,
+      "sha256": "3ff0d99e99bf084f8eec2323a7393637fae201575dd4898abfc6d2f5cbc8f877",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-HarmonyOS-v0.1.2-b4-unsigned.app",
+    {
+      "size": 250287,
+      "mtime": 1785230433441.5564,
+      "device": 16777222,
+      "inode": 115725086,
+      "sha256": "e614fc4907cb3d3ab7252f613c12cacbe5ae7c4aebc048aa8d80e9d443d7cbbb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-HarmonyOS-v0.1.2-b4-unsigned.hap",
+    {
+      "size": 273325,
+      "mtime": 1785230433304.146,
+      "device": 16777222,
+      "inode": 115725082,
+      "sha256": "01abec2bb2a13f70a5fb5dfbf2252cd7a7db12c7c445633cb03f8a7126d55dcc",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-iOS-latest-unsigned.ipa",
+    {
+      "size": 195284,
+      "mtime": 1785230438501.9,
+      "device": 16777224,
+      "inode": 114261485,
+      "sha256": "edf2eb395dea9c2a5bccb8060ec7144116a4d964e8c2e44af293c57440109dad",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-iOS-v0.1.0-b2-unsigned.ipa",
+    {
+      "size": 192990,
+      "mtime": 1784696969703.9116,
+      "device": 16777224,
+      "inode": 114500810,
+      "sha256": "554364282f26f0aba18ea572b8f29946babdc9a1c8202eb4c32c40a6d71051f9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-iOS-v0.1.0-unsigned.ipa",
+    {
+      "size": 192990,
+      "mtime": 1784696679654.5806,
+      "device": 16777224,
+      "inode": 114261484,
+      "sha256": "5bf2d7788db0fd3e9bce613f4c94ba81396fbc544d43dac73c549158678a9d6d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-iOS-v0.1.1-b3-unsigned.ipa",
+    {
+      "size": 195284,
+      "mtime": 1785074531636.2786,
+      "device": 16777224,
+      "inode": 115528156,
+      "sha256": "1b18d17f78c3fd9be1cfa5c260646ca854e76d26d38cdefb996ff416aa007114",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-iOS-v0.1.2-b4-unsigned.ipa",
+    {
+      "size": 195284,
+      "mtime": 1785230438495.9639,
+      "device": 16777222,
+      "inode": 115725190,
+      "sha256": "edf2eb395dea9c2a5bccb8060ec7144116a4d964e8c2e44af293c57440109dad",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-macOS-latest.dmg",
+    {
+      "size": 284716,
+      "mtime": 1785230468651.9382,
+      "device": 16777224,
+      "inode": 114264139,
+      "sha256": "5d9411e7c30a2786bfb06b4ca725edb286352cefb400aa61deb04858dde6acb9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-macOS-v0.1.0-b2.dmg",
+    {
+      "size": 281464,
+      "mtime": 1784696997114.482,
+      "device": 16777224,
+      "inode": 114501119,
+      "sha256": "16abcc9a83904c0f415c72217b3066308c4cd94b5ce81c02b0fda7ddb3408926",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-macOS-v0.1.0.dmg",
+    {
+      "size": 281466,
+      "mtime": 1784696738797.4329,
+      "device": 16777224,
+      "inode": 114264138,
+      "sha256": "b8b22ecd96bc6f670a0df90dbe5cac5d6aed6d8121af160444ff84e243637eca",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-macOS-v0.1.1-b3.dmg",
+    {
+      "size": 284752,
+      "mtime": 1785074596727.942,
+      "device": 16777224,
+      "inode": 115528466,
+      "sha256": "101997a5e014a4e6ae283c3ffbee712bfe10dcf6d5b8c76bcb381fc4dc214c5b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CantoneseOffline-macOS-v0.1.2-b4.dmg",
+    {
+      "size": 284716,
+      "mtime": 1785230468646.881,
+      "device": 16777222,
+      "inode": 115725460,
+      "sha256": "5d9411e7c30a2786bfb06b4ca725edb286352cefb400aa61deb04858dde6acb9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-iOS-latest.ipa",
+    {
+      "size": 1189248,
+      "mtime": 1783327469580.5725,
+      "device": 16777222,
+      "inode": 111427426,
+      "sha256": "6ea460b22bf54599609ff41f24c637a55555a6ac8610fdff59b9ba5c6abe68f6",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-iOS-v0.2.1.ipa",
+    {
+      "size": 29540,
+      "mtime": 1783056784129.7234,
+      "device": 16777224,
+      "inode": 111427425,
+      "sha256": "4d6cb136dc16972c3bd63df8bdc49ae045a16d70b465087885cd60f97fcfd142",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-iOS-v0.2.2.ipa",
+    {
+      "size": 69772,
+      "mtime": 1783092065117.542,
+      "device": 16777224,
+      "inode": 111541316,
+      "sha256": "0f27f26628453491e0de8972c1022d2e103406e442fb95a202936b014926e33c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-iOS-v0.2.3.ipa",
+    {
+      "size": 538609,
+      "mtime": 1783142734195.3496,
+      "device": 16777224,
+      "inode": 111622933,
+      "sha256": "acf99fa90f2c9f16405af8d936c8f563bf363a24db99e287bf989e0008de0bba",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-iOS-v0.2.4.ipa",
+    {
+      "size": 1203799,
+      "mtime": 1783143330682.7732,
+      "device": 16777224,
+      "inode": 111628616,
+      "sha256": "8c4aab420d7ff9c3a57a98cf0907f0b991993745a6ab32c9d9770bfba03c6eac",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-iOS-v0.2.5.ipa",
+    {
+      "size": 1189248,
+      "mtime": 1783327469566.1372,
+      "device": 16777222,
+      "inode": 111777554,
+      "sha256": "6ea460b22bf54599609ff41f24c637a55555a6ac8610fdff59b9ba5c6abe68f6",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-macOS-v0.2.1.dmg",
+    {
+      "size": 49865,
+      "mtime": 1783056766807.299,
+      "device": 16777224,
+      "inode": 111427155,
+      "sha256": "c61b9d64dee78d7c90fc7ace70bb914d31ad1674945f273858e6a973b2781600",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-macOS-v0.2.2.dmg",
+    {
+      "size": 98280,
+      "mtime": 1783092065102.9292,
+      "device": 16777224,
+      "inode": 111541315,
+      "sha256": "cf423b3fc2fefc86e0532da06a694d5495b60418a05a4fdc54d47baede505d60",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-macOS-v0.2.3.dmg",
+    {
+      "size": 1127451,
+      "mtime": 1783142734176.793,
+      "device": 16777224,
+      "inode": 111622932,
+      "sha256": "679fe200321e2b8f49224330314bb9831b044796d26e8746e03410dc3c187b92",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/HearBridge-iOS-latest-unsigned.ipa",
+    {
+      "size": 134231,
+      "mtime": 1783754047160.3325,
+      "device": 16777222,
+      "inode": 112429384,
+      "sha256": "cfd3ad8745359e2d0afd56ad1680cdb7a8a0256a1703d4c2363a539714767d7a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/HearBridge-iOS-v0.1.0-unsigned.ipa",
+    {
+      "size": 45441,
+      "mtime": 1783672678341.5144,
+      "device": 16777224,
+      "inode": 112429383,
+      "sha256": "d0add36fbe522b8d75f7c817956ace6cf67b75054fdc3b730f3866866b7b7c55",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/HearBridge-iOS-v0.1.1-unsigned.ipa",
+    {
+      "size": 134231,
+      "mtime": 1783754047155.6245,
+      "device": 16777222,
+      "inode": 112663412,
+      "sha256": "cfd3ad8745359e2d0afd56ad1680cdb7a8a0256a1703d4c2363a539714767d7a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/HearBridge-macOS-latest.dmg",
+    {
+      "size": 564589,
+      "mtime": 1783754036314.5247,
+      "device": 16777222,
+      "inode": 112429223,
+      "sha256": "3ce871a810adbcbdba743f6e44ffd4b4cb82a49e12a246d18dbf2f659be05eef",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/HearBridge-macOS-v0.1.0.dmg",
+    {
+      "size": 64199,
+      "mtime": 1783672671106.7751,
+      "device": 16777224,
+      "inode": 112429222,
+      "sha256": "6fa1bfcbfaeb0e02c3f1417f9ac5e0534436b2ac08eb149a49f715be94dbe9e6",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/HearBridge-macOS-v0.1.1.dmg",
+    {
+      "size": 564589,
+      "mtime": 1783754036303.7551,
+      "device": 16777222,
+      "inode": 112663359,
+      "sha256": "3ce871a810adbcbdba743f6e44ffd4b4cb82a49e12a246d18dbf2f659be05eef",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Offline-latest-unsigned.app",
+    {
+      "size": 1453395,
+      "mtime": 1788093601174.476,
+      "device": 16777222,
+      "inode": 115526651,
+      "sha256": "3204e81c2503e98ae4c71d5192561efb30f6352fa371a87f3100d98fc43b524f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Offline-latest-unsigned.hap",
+    {
+      "size": 1505620,
+      "mtime": 1788093601256.5671,
+      "device": 16777222,
+      "inode": 115526652,
+      "sha256": "48c92f389f68beac4157db3a2c4e605c1b109aca722affed604f56cd60a10874",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Offline-v0.1.0-b10000-unsigned.app",
+    {
+      "size": 267804,
+      "mtime": 1788093601267.7827,
+      "device": 16777224,
+      "inode": 115526653,
+      "sha256": "e66dd047d61599b6d19713410f8ae75b411ea5a0be1f14bc4f8ac1a8e3c7963e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Offline-v0.1.0-b10000-unsigned.hap",
+    {
+      "size": 316204,
+      "mtime": 1788093601278.6736,
+      "device": 16777224,
+      "inode": 115526654,
+      "sha256": "7a8543792191011368f1c02be1b7dc260b6e422ee5273b87165f47c246059800",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Offline-v0.2.0-b20000-unsigned.app",
+    {
+      "size": 1438200,
+      "mtime": 1788093601375.3044,
+      "device": 16777224,
+      "inode": 115971867,
+      "sha256": "daf74769fcec64eb012a5724df0ae30a99431bb142443a0b1822f61673e81b35",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Offline-v0.2.0-b20000-unsigned.hap",
+    {
+      "size": 1493272,
+      "mtime": 1788093601628.9011,
+      "device": 16777224,
+      "inode": 115971868,
+      "sha256": "01dcc957af1030ece04d3aa869b4ada52dafc577f5b01393a6f74d7bcaa409ac",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Offline-v0.3.0-b30000-unsigned.app",
+    {
+      "size": 1452676,
+      "mtime": 1788093601740.79,
+      "device": 16777224,
+      "inode": 139471715,
+      "sha256": "85ceed1b41451ae3aa06f0fc780fb45feae5f46c27f294635d1a1573ad0c17c7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Offline-v0.3.0-b30000-unsigned.hap",
+    {
+      "size": 1533196,
+      "mtime": 1788093601815.554,
+      "device": 16777224,
+      "inode": 139471713,
+      "sha256": "2bdf89acfc27107bd2b5a71a88695ae46d611c77384dc09ff8946737ad1024f5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Offline-v0.3.1-b30001-unsigned.app",
+    {
+      "size": 1453395,
+      "mtime": 1788093601859.5327,
+      "device": 16777222,
+      "inode": 139591712,
+      "sha256": "3204e81c2503e98ae4c71d5192561efb30f6352fa371a87f3100d98fc43b524f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Offline-v0.3.1-b30001-unsigned.hap",
+    {
+      "size": 1505620,
+      "mtime": 1788093601901.1772,
+      "device": 16777222,
+      "inode": 139591713,
+      "sha256": "48c92f389f68beac4157db3a2c4e605c1b109aca722affed604f56cd60a10874",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Online-latest-unsigned.app",
+    {
+      "size": 1482126,
+      "mtime": 1788093602108.467,
+      "device": 16777222,
+      "inode": 115526655,
+      "sha256": "f2aa421092fae549c4c8a87dc8b5349afb50d05dda71a2da234a680f0e76c8a3",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Online-latest-unsigned.hap",
+    {
+      "size": 282715,
+      "mtime": 1788093602148.4517,
+      "device": 16777222,
+      "inode": 115526656,
+      "sha256": "3d6c9d7dd6376841036af0534e9b4d34be8aa9bcf40756d89658e59f015a1ba5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Online-v0.1.0-b10000-unsigned.app",
+    {
+      "size": 254893,
+      "mtime": 1788093602341.2156,
+      "device": 16777224,
+      "inode": 115526657,
+      "sha256": "1cd8aed522a2505d8c9d314316ecfbe5d587d2fbc4b67ed82d9459a7ee6eef61",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Online-v0.1.0-b10000-unsigned.hap",
+    {
+      "size": 282715,
+      "mtime": 1788093602446.817,
+      "device": 16777224,
+      "inode": 115526658,
+      "sha256": "3d6c9d7dd6376841036af0534e9b4d34be8aa9bcf40756d89658e59f015a1ba5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Online-v0.2.0-b20000-unsigned.app",
+    {
+      "size": 1457422,
+      "mtime": 1788093602642.9836,
+      "device": 16777224,
+      "inode": 115971869,
+      "sha256": "8453f975c50d28e81d786de4405378b50b2657c7ea0fe4ff88cfbb6c4dbafc3f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Online-v0.2.0-b20000-unsigned.hap",
+    {
+      "size": 1538665,
+      "mtime": 1788093602860.929,
+      "device": 16777224,
+      "inode": 115971870,
+      "sha256": "88d95d28360c664f0d7d9d2e839b2b4b27b6c959ffc0850eff2a27980eaad4be",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Online-v0.3.0-b30000-unsigned.app",
+    {
+      "size": 1476627,
+      "mtime": 1788093603079.6118,
+      "device": 16777224,
+      "inode": 139471711,
+      "sha256": "4f7084d54cc4728ccd305df9f9877ac531ba8617421235378b3400609c3fed6e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Online-v0.3.0-b30000-unsigned.hap",
+    {
+      "size": 1590721,
+      "mtime": 1788093603159.415,
+      "device": 16777224,
+      "inode": 139471708,
+      "sha256": "7b4e5b6a9ecdb142132c0a92b1a0690ade1b3ea243cda4df052edc1f737e7fcf",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Online-v0.3.1-b30001-unsigned.app",
+    {
+      "size": 1482126,
+      "mtime": 1788093603296.8054,
+      "device": 16777222,
+      "inode": 139591723,
+      "sha256": "f2aa421092fae549c4c8a87dc8b5349afb50d05dda71a2da234a680f0e76c8a3",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-HarmonyOS-Online-v0.3.1-b30001-unsigned.hap",
+    {
+      "size": 282715,
+      "mtime": 1788093603334.038,
+      "device": 16777222,
+      "inode": 139591725,
+      "sha256": "3d6c9d7dd6376841036af0534e9b4d34be8aa9bcf40756d89658e59f015a1ba5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-iOS-latest-unsigned.ipa",
+    {
+      "size": 3681560,
+      "mtime": 1788093603466.265,
+      "device": 16777222,
+      "inode": 115526659,
+      "sha256": "a9309d8569925fd18d0bd61e737b9e04045e65cc11ba2c98d4ae9a421af90bb0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-iOS-v0.1.0-b1-unsigned.ipa",
+    {
+      "size": 100706,
+      "mtime": 1788093603512.172,
+      "device": 16777224,
+      "inode": 115526660,
+      "sha256": "37b05999384c44df74a132efe6595ae3eead006ee88c73b6a4266562bb799e53",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-iOS-v0.2.0-b2-unsigned.ipa",
+    {
+      "size": 3569560,
+      "mtime": 1788093603755.0156,
+      "device": 16777224,
+      "inode": 115971871,
+      "sha256": "63cf074829e55b4443c6f365f127de3f5910394eae87b4910475c363f6e1b71e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-iOS-v0.3.0-b3-unsigned.ipa",
+    {
+      "size": 4036322,
+      "mtime": 1788093603983.2688,
+      "device": 16777224,
+      "inode": 139473719,
+      "sha256": "bbe3a483a2d97e29112058a53dc32216b2ba79de08f1e62d3a0bbc3326770dc1",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-iOS-v0.3.1-b4-unsigned.ipa",
+    {
+      "size": 3681560,
+      "mtime": 1788093604233.02,
+      "device": 16777222,
+      "inode": 139591726,
+      "sha256": "a9309d8569925fd18d0bd61e737b9e04045e65cc11ba2c98d4ae9a421af90bb0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-macOS-latest.dmg",
+    {
+      "size": 339765,
+      "mtime": 1788093604596.4282,
+      "device": 16777224,
+      "inode": 115526661,
+      "sha256": "35995dd59ee5e1d27ac448dba911daef7bf7e7065aea5f09937c35cbc49c1852",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-macOS-v0.1.0.dmg",
+    {
+      "size": 339765,
+      "mtime": 1788093604613.4731,
+      "device": 16777224,
+      "inode": 115526662,
+      "sha256": "35995dd59ee5e1d27ac448dba911daef7bf7e7065aea5f09937c35cbc49c1852",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/MultipleBoardGames-iOS-latest.ipa",
+    {
+      "size": 3952931,
+      "mtime": 1780585514000,
+      "device": 16777222,
+      "inode": 139471874,
+      "sha256": "63c1998bf78453bae71365993a5fe76b9d3a2de1d91c96e1eebd0dc3491b15ea",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/MultipleBoardGames-iOS-v1.1.3.ipa",
+    {
+      "size": 3952931,
+      "mtime": 1780585514000,
+      "device": 16777222,
+      "inode": 139471873,
+      "sha256": "63c1998bf78453bae71365993a5fe76b9d3a2de1d91c96e1eebd0dc3491b15ea",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/MultipleBoardGames-iPad-latest.ipa",
+    {
+      "size": 3952931,
+      "mtime": 1780585514000,
+      "device": 16777222,
+      "inode": 139471878,
+      "sha256": "63c1998bf78453bae71365993a5fe76b9d3a2de1d91c96e1eebd0dc3491b15ea",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/MultipleBoardGames-iPad-v1.1.3.ipa",
+    {
+      "size": 3952931,
+      "mtime": 1780585514000,
+      "device": 16777222,
+      "inode": 139471877,
+      "sha256": "63c1998bf78453bae71365993a5fe76b9d3a2de1d91c96e1eebd0dc3491b15ea",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-HarmonyOS-Offline-v1.0.0-signed.app",
+    {
+      "size": 75617,
+      "mtime": 1784975947000,
+      "device": 16777224,
+      "inode": 115274204,
+      "sha256": "9a59e84dd91706b7c12d5135f4068a2969d95d1e90ae3d836149fceaa55043a0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-HarmonyOS-Offline-v1.0.0-signed.hap",
+    {
+      "size": 207081,
+      "mtime": 1784975944000,
+      "device": 16777224,
+      "inode": 115274205,
+      "sha256": "9dd6b6d61515694f1105b126a3edb0f4a2beec746735076746202e0af80584e3",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-HarmonyOS-Offline-v1.0.0-unsigned.app",
+    {
+      "size": 27822,
+      "mtime": 1784897286000,
+      "device": 16777224,
+      "inode": 115179104,
+      "sha256": "bc596db7961ec9c281a2fe14d945228d6db4a3d704ab95bc5fa8cbc3a31d5355",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-HarmonyOS-Offline-v1.0.0-unsigned.hap",
+    {
+      "size": 55796,
+      "mtime": 1784897286792.912,
+      "device": 16777224,
+      "inode": 115015572,
+      "sha256": "3f6774e9552d64cbeb86492a6a45a10b5afc286974b93baa1784a380cd6ab08a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-HarmonyOS-Offline-v1.1.0-signed.app",
+    {
+      "size": 86061,
+      "mtime": 1785035699000,
+      "device": 16777224,
+      "inode": 115371070,
+      "sha256": "05f8db30d167c6be8a628eb226e11b3b1b1ec17506c143d5e5a8853eb477c3e3",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-HarmonyOS-Offline-v1.1.0-signed.hap",
+    {
+      "size": 227661,
+      "mtime": 1785035697000,
+      "device": 16777224,
+      "inode": 115371071,
+      "sha256": "bbbc5298aeede9cf7136c751ecd911722b08f0b6c1eb52af918a5bca0c2b9b94",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-HarmonyOS-Offline-v1.2.0-signed.app",
+    {
+      "size": 86058,
+      "mtime": 1785037575000,
+      "device": 16777222,
+      "inode": 115374070,
+      "sha256": "989501511352f331889c191c931e64d6aa5b08146751ba80057a795996433111",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-HarmonyOS-Offline-v1.2.0-signed.hap",
+    {
+      "size": 227662,
+      "mtime": 1785037572000,
+      "device": 16777222,
+      "inode": 115374071,
+      "sha256": "617d73c02f346be8b3e4d83199f6e8debea9b6361534b27074e3acdce62ac7c0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-HarmonyOS-Online-v1.0.0-signed.app",
+    {
+      "size": 42915,
+      "mtime": 1784900805000,
+      "device": 16777222,
+      "inode": 115187168,
+      "sha256": "8ceedcf3b0e77a8fc01d29602421f3c84ec572b6293fa68f26536a7f7bc60e79",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-HarmonyOS-Online-v1.0.0-signed.hap",
+    {
+      "size": 91598,
+      "mtime": 1784900805947.9482,
+      "device": 16777222,
+      "inode": 115185628,
+      "sha256": "bde597662882dff2a1878824e973840046bbc0d9c7164e9c8ff06447dd24ff12",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-HarmonyOS-Online-v1.0.0-unsigned.app",
+    {
+      "size": 28150,
+      "mtime": 1784897360000,
+      "device": 16777224,
+      "inode": 115179461,
+      "sha256": "0d6bdb64d85c0b732f929ae9bea41d6bde8c1d9442860367c0cfe56f8132fdeb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-HarmonyOS-Online-v1.0.0-unsigned.hap",
+    {
+      "size": 55410,
+      "mtime": 1784897361084.8928,
+      "device": 16777224,
+      "inode": 115016422,
+      "sha256": "e1105316f5ba49c71d8e89428026d5d8578d8938760d5b8f41f0f5941ca5f7b3",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-iOS-latest-unsigned.ipa",
+    {
+      "size": 84170,
+      "mtime": 1782743700752.0955,
+      "device": 16777222,
+      "inode": 111144031,
+      "sha256": "6ef742116c43b8eca0181b2826e2ab7eb1e49af1f7fa30929563a3002b1f65c7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-iOS-v1.0.0-unsigned.ipa",
+    {
+      "size": 84170,
+      "mtime": 1782743700743.194,
+      "device": 16777222,
+      "inode": 111144030,
+      "sha256": "6ef742116c43b8eca0181b2826e2ab7eb1e49af1f7fa30929563a3002b1f65c7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-macOS-latest.dmg",
+    {
+      "size": 142118,
+      "mtime": 1784819096502.7163,
+      "device": 16777222,
+      "inode": 111144029,
+      "sha256": "3a9cb35f5f10c79c2cc41630ed03af2e047f8e82e6b8ff567b9c2e6987583f58",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/PerfectCalendar-macOS-v1.0.0.dmg",
+    {
+      "size": 142118,
+      "mtime": 1784819096000,
+      "device": 16777222,
+      "inode": 107489671,
+      "sha256": "3a9cb35f5f10c79c2cc41630ed03af2e047f8e82e6b8ff567b9c2e6987583f58",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.0.app",
+    {
+      "size": 37407797,
+      "mtime": 1785905915365.1274,
+      "device": 16777224,
+      "inode": 116964288,
+      "sha256": "fce9e8bae96e078b03fe570c15486a781179b578fb2685f0078c3fbf882cd356",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.10.app",
+    {
+      "size": 49333936,
+      "mtime": 1786592279843.72,
+      "device": 16777224,
+      "inode": 131256542,
+      "sha256": "27f2795f6b5bd69d85d5bafb29e54f7c3bf080d820549e294b7a726e1e2f65fd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.17.app",
+    {
+      "size": 49346315,
+      "mtime": 1786916774460.909,
+      "device": 16777224,
+      "inode": 135897610,
+      "sha256": "a3883f5847dbaa17154ae78dc3e2b6787315116a1c2196ee0f864f19c1d69503",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.18.app",
+    {
+      "size": 49350317,
+      "mtime": 1786947684537.2153,
+      "device": 16777224,
+      "inode": 136071589,
+      "sha256": "783280ea5f0473aaab61049ccd7d232b29b9b6ea52b2feab857641ab80bb7a04",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.19.app",
+    {
+      "size": 33027820,
+      "mtime": 1787293959077.413,
+      "device": 16777224,
+      "inode": 137578474,
+      "sha256": "e0ed00e4f7652f5e6f3c68252bddeb9feccd3f12b93386afc774edb91f9a578a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.2.app",
+    {
+      "size": 42226538,
+      "mtime": 1785923479142.4456,
+      "device": 16777224,
+      "inode": 117753904,
+      "sha256": "601d3db0d9c741f3d9953987620cb5315eb7bcba3b6e61be85d01a7b2e0f09ac",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.20.app",
+    {
+      "size": 33027814,
+      "mtime": 1787318873806.5762,
+      "device": 16777224,
+      "inode": 137692704,
+      "sha256": "cce714f0720204d979b6e94f5124d87aef6da6a98e7ac27f014e900e45d4e4a6",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.21.app",
+    {
+      "size": 49386204,
+      "mtime": 1787326214103.3564,
+      "device": 16777224,
+      "inode": 137847004,
+      "sha256": "5ab394822fa2b22c6f604379cdef4ac9fcbf877ea450d9f83b010298eb628e96",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.22.app",
+    {
+      "size": 49387759,
+      "mtime": 1787370337364.882,
+      "device": 16777224,
+      "inode": 138001225,
+      "sha256": "d3d471afa0e6253a6a5ca2a78403f3883eb7853f7f3bdce6f9ace1df0d63559f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.23.app",
+    {
+      "size": 49408241,
+      "mtime": 1787936277174.2266,
+      "device": 16777224,
+      "inode": 139008696,
+      "sha256": "d34e14c1b70c09ad9078c603e7cddb5b7ebeed61b1de65af06b20cf94cedf075",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.5.app",
+    {
+      "size": 36192624,
+      "mtime": 1786021444846.5398,
+      "device": 16777224,
+      "inode": 117977971,
+      "sha256": "c8c7251568398713d079f49fdd7314318f7f29726e29a7ad7cb30dfc36cbea96",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.6.app",
+    {
+      "size": 36193346,
+      "mtime": 1786092198598.579,
+      "device": 16777224,
+      "inode": 118220807,
+      "sha256": "b98879f1b84f475b8edc1ee4316c05b9c612c8485709928326aa367185f46c20",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.7.app",
+    {
+      "size": 49329537,
+      "mtime": 1786245783612.6738,
+      "device": 16777224,
+      "inode": 118509368,
+      "sha256": "064571c74aa23159d90bfd43efa0ced283cdbaaf0798743b83d721e4b63414b9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.8.app",
+    {
+      "size": 49329641,
+      "mtime": 1786249829223.5916,
+      "device": 16777224,
+      "inode": 118532194,
+      "sha256": "35d0ae49af89e10009dfe330dc12cc516a9c6bc217b97d1cb374b29806012ff8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.9.app",
+    {
+      "size": 49333830,
+      "mtime": 1786287042496.1946,
+      "device": 16777224,
+      "inode": 118653459,
+      "sha256": "1097b02ac40e667edc76ada8e7b312cbe8a6b15794b844f947cfc45cf6983cb3",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.1.app",
+    {
+      "size": 36101672,
+      "mtime": 1788068572572.303,
+      "device": 16777224,
+      "inode": 139365611,
+      "sha256": "6357e84f70443033b42c2d6e94230670c4f16f83e0819d21ba89f6d14666fa51",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.10.app",
+    {
+      "size": 64367551,
+      "mtime": 1788442630945.7346,
+      "device": 16777224,
+      "inode": 140363858,
+      "sha256": "634a7a591d5af7c43ad54f793c03b1880dfc43c1126ab4fd20b545af4c253b75",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.11.app",
+    {
+      "size": 49324155,
+      "mtime": 1788497998712.6455,
+      "device": 16777224,
+      "inode": 140456544,
+      "sha256": "38e5683c36ecb125d1c6849a81bfa77083d249f4ce81f161be7f5e2d963f1b0e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.12.app",
+    {
+      "size": 49332354,
+      "mtime": 1788511356133.96,
+      "device": 16777224,
+      "inode": 140508969,
+      "sha256": "7e4e5af721c715a28660e595a029a3628f05b2701ff190f311fed46ed76764d7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.13.app",
+    {
+      "size": 49323793,
+      "mtime": 1788516223819.8638,
+      "device": 16777224,
+      "inode": 140557466,
+      "sha256": "160eb7cf49210a431b13d0fad7fd99df1606685dce8ed63838073adeb51ed215",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.14.app",
+    {
+      "size": 48312451,
+      "mtime": 1788522514639.5151,
+      "device": 16777224,
+      "inode": 140634215,
+      "sha256": "c789588d58820df5c49ee9ea5cfca4aa9d16af34e351f6ba3b26bb53c97750b1",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.15.app",
+    {
+      "size": 72507884,
+      "mtime": 1788535010603.3489,
+      "device": 16777224,
+      "inode": 140738912,
+      "sha256": "f3bb798647123b959167b10b3f38258f5525bddd1956d98af272d4f958b58e86",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.16.app",
+    {
+      "size": 59970626,
+      "mtime": 1789121821639.493,
+      "device": 16777224,
+      "inode": 141159740,
+      "sha256": "1b6bf19f4a16e298da190b71ab42d5970b16dd889afb884a289651782068ea38",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.17.app",
+    {
+      "size": 59970618,
+      "mtime": 1789136186608.4272,
+      "device": 16777224,
+      "inode": 142925179,
+      "sha256": "bee023e0fe8d9e1da0d0403d858a18b1448b212af765f73fcde77b69bd9c1ab7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.2.app",
+    {
+      "size": 54143811,
+      "mtime": 1788089192014.8413,
+      "device": 16777224,
+      "inode": 139532991,
+      "sha256": "c9df1f8a23de49e14061ecbc13f3c7507c9e4e8094337414a6acff229e3180c5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.7.app",
+    {
+      "size": 39716934,
+      "mtime": 1788326811430.0276,
+      "device": 16777224,
+      "inode": 140119971,
+      "sha256": "5185188855b4ff30f68bec073b033b4e8097512876c7a16fe4015d096b862409",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.8.app",
+    {
+      "size": 48602056,
+      "mtime": 1788351147053.371,
+      "device": 16777224,
+      "inode": 140223814,
+      "sha256": "b8e137807d4ffb68b6b9c236e2e83a9479c055e8f55dbefaa4d823ce958936d5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.9.app",
+    {
+      "size": 48606153,
+      "mtime": 1788355955741.6833,
+      "device": 16777224,
+      "inode": 140259284,
+      "sha256": "0bf252a498d18e47ad056f02dc98d8c5855bd0a2c97bf115e567fbefc44d6815",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.8.1.app",
+    {
+      "size": 5051667,
+      "mtime": 1785331814065.425,
+      "device": 16777224,
+      "inode": 116031714,
+      "sha256": "41042e1e4d9dd72dc8bd995a22f617fa1c72267792922e6dc407bfea8d04355d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.9.0.app",
+    {
+      "size": 5062081,
+      "mtime": 1785368113742.759,
+      "device": 16777224,
+      "inode": 116112941,
+      "sha256": "0657a820bdf85da54482d6072ef1cf3f42ac1816dd99e3bc469be122a738aadb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.9.1.app",
+    {
+      "size": 5065108,
+      "mtime": 1785478803567.1692,
+      "device": 16777224,
+      "inode": 116147409,
+      "sha256": "96de9032f71325e747653e4f80969a26deaed3d93266a6a75bcd7f5154693350",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.9.5.app",
+    {
+      "size": 5076451,
+      "mtime": 1785509474503.5693,
+      "device": 16777224,
+      "inode": 116390903,
+      "sha256": "d19412e6247c750aab542a0de786106657f1ceeabb6741168affb763d503ba48",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.9.6.app",
+    {
+      "size": 5076452,
+      "mtime": 1785542161496.7942,
+      "device": 16777224,
+      "inode": 116613076,
+      "sha256": "44b0930bd5a115ad66935fe6f502de34a223b1d614c3d863f43c033aa537dacb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-v0.5.0-unsigned.hap",
+    {
+      "size": 142795,
+      "mtime": 1782736684035.3167,
+      "device": 16777224,
+      "inode": 111019126,
+      "sha256": "49fb0ae050a95f76eaa19bb56f949b92e77a222fd022741af6d8e39502615408",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-v0.6.0-unsigned.hap",
+    {
+      "size": 230162,
+      "mtime": 1784980515986.9604,
+      "device": 16777224,
+      "inode": 115296174,
+      "sha256": "ec71ae6fd5db102f644c095fd960dc8bbc764ecde60cb23f0dfbbbaa206808c9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-iOS-v0.5.0.ipa",
+    {
+      "size": 2147192,
+      "mtime": 1782736622000,
+      "device": 16777224,
+      "inode": 110776044,
+      "sha256": "e569e632d85b9d0b262f800119ce10bc7cb92798647cfbf1ae3708a35cd3a0a1",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-iOS-v0.6.0.ipa",
+    {
+      "size": 70423,
+      "mtime": 1784980485309.4766,
+      "device": 16777224,
+      "inode": 115293629,
+      "sha256": "c0a2d9520e31f1ac736341ab27c6b69e7766d5c3ad68d81d55d228b844ceec20",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-iOS-v0.7.0.ipa",
+    {
+      "size": 2882389,
+      "mtime": 1785052776208.6907,
+      "device": 16777224,
+      "inode": 115414667,
+      "sha256": "2096250d9d4c7e5789a7acd9ec0a40e79ca635cc0da8716e8156d2bb701177cb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-iOS-v0.8.0.ipa",
+    {
+      "size": 2913030,
+      "mtime": 1785214187464.3333,
+      "device": 16777224,
+      "inode": 115665359,
+      "sha256": "73c6518f04ed957b9e704dd8869b3e9327ad9d5966601b8d5d74ad6d8c84a0df",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-iOS-v0.9.0.ipa",
+    {
+      "size": 2941059,
+      "mtime": 1785360205852.072,
+      "device": 16777224,
+      "inode": 116110792,
+      "sha256": "c00a4549c126eb39a19d62d4cd94223e168af28cb715061d0234bc7ab1db716b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-iOS-v0.9.1.ipa",
+    {
+      "size": 2960492,
+      "mtime": 1785478732957.664,
+      "device": 16777224,
+      "inode": 116145315,
+      "sha256": "07df7823fa4a71e9189f45221839dc0f59b68e376d58af7fd886957ccc2022cd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-iOS-v0.9.5.ipa",
+    {
+      "size": 2966502,
+      "mtime": 1785508633953.6926,
+      "device": 16777224,
+      "inode": 116386413,
+      "sha256": "4140412ad6e2da4af480a247839c521aafab25475744676bfa6542ede28fbab1",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-iOS-v0.9.6.ipa",
+    {
+      "size": 2966497,
+      "mtime": 1785541151158.1865,
+      "device": 16777224,
+      "inode": 116608688,
+      "sha256": "d0361d73c446a47fd0de281e4a9d79fa9a47744a84c236c1d556f78021174efa",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-macOS-v0.6.0.dmg",
+    {
+      "size": 88221,
+      "mtime": 1784980468069.6958,
+      "device": 16777224,
+      "inode": 115293532,
+      "sha256": "c3f916137a6b0778e87c10c13289b8479b615ef0813df5edc84e4234a3809880",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Offline-latest.app",
+    {
+      "size": 11503480,
+      "mtime": 1788496630445.7017,
+      "device": 16777224,
+      "inode": 117065151,
+      "sha256": "f03a85fa951dcd6d6cca76c9fe9e3f3bdcb0cd4bf1563398d08134aaad623b19",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Offline-v0.4.6-b40611.app",
+    {
+      "size": 6889728,
+      "mtime": 1785633288971.2197,
+      "device": 16777224,
+      "inode": 117065149,
+      "sha256": "de87dc4caf06b196ee66e1a46a645500e92f35384bfcb6f135faba8f48a070b0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Offline-v0.6.0-b60001.app",
+    {
+      "size": 9044215,
+      "mtime": 1787309559095.8774,
+      "device": 16777224,
+      "inode": 137650835,
+      "sha256": "1915651ccc617d5e6d9bca174e0244d48172f35be8378ce94318169cedc46b5d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Offline-v0.6.1-b60101.app",
+    {
+      "size": 11074093,
+      "mtime": 1788012012998.858,
+      "device": 16777224,
+      "inode": 139147145,
+      "sha256": "dbf7e23907b37744311994df40808af4d22b2967e4b6bf2d20e9b369c0a4612a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Offline-v0.6.1-b60103.app",
+    {
+      "size": 11498475,
+      "mtime": 1788067573660.898,
+      "device": 16777224,
+      "inode": 139385428,
+      "sha256": "fdfe916be4abd04c2c073d8c32ad5d36f998365c9ac4dbf6cb1c39a1839d3ea4",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Offline-v0.6.2-b60201.app",
+    {
+      "size": 11502077,
+      "mtime": 1788095401198.6653,
+      "device": 16777224,
+      "inode": 139605977,
+      "sha256": "1759db7b74846938131499ee9b056a3e330d7f1a69e76a3292dd6ef68bcfed98",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Offline-v0.6.2-b60203.app",
+    {
+      "size": 11503480,
+      "mtime": 1788496629729.2424,
+      "device": 16777224,
+      "inode": 139687949,
+      "sha256": "f03a85fa951dcd6d6cca76c9fe9e3f3bdcb0cd4bf1563398d08134aaad623b19",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Online-v0.6.1-b60102-debug.app",
+    {
+      "size": 10092465,
+      "mtime": 1788066213703.9736,
+      "device": 16777224,
+      "inode": 139160533,
+      "sha256": "f1dfe81e4ae87c42f8a04c21162e1f98ba2b8d4504a1df40b921ad05835272b9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Online-v0.6.1-b60104-debug.app",
+    {
+      "size": 10092465,
+      "mtime": 1788067547709.0771,
+      "device": 16777224,
+      "inode": 139385357,
+      "sha256": "77297cd5e84c8b2d32b9773b59313c2a15a2df93e3bc14e78c214d9cec05a0e3",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Online-v0.6.2-b60202-debug.app",
+    {
+      "size": 10114062,
+      "mtime": 1788095753062.6633,
+      "device": 16777224,
+      "inode": 139608695,
+      "sha256": "d1f1e1cc9931eae2975d05e76f93e7c9b142d23b1cad23e0c5e01351d15338f1",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Online-v0.6.2-b60204-debug.app",
+    {
+      "size": 10120615,
+      "mtime": 1788274375240.5461,
+      "device": 16777224,
+      "inode": 139692547,
+      "sha256": "6e900fdb5d7605d6b01b5db6240c110c2dedbefaac7421ca0c48c83467141422",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Online-v0.6.2-b60204-unsigned-debug.app",
+    {
+      "size": 10120615,
+      "mtime": 1788496906495.1157,
+      "device": 16777224,
+      "inode": 140089477,
+      "sha256": "4acb7cdc33f44bf5192644ec21a72fdf79364b714fac2256d988e4ce8caadeba",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-latest 2.app",
+    {
+      "size": 17297168,
+      "mtime": 1787931267000,
+      "device": 16777224,
+      "inode": 115175202,
+      "sha256": "dc9036698175a8ab74b59945aef1a12218f1b132bd14979bed4bc05922607962",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-latest 3.app",
+    {
+      "size": 333093,
+      "mtime": 1786898768000,
+      "device": 16777224,
+      "inode": 139095728,
+      "sha256": "f9e66eacb2f7bbeeb225c9e30a82c86e5eb3249d91f7354b377e23c5ede26485",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-latest-unsigned.hap",
+    {
+      "size": 317038,
+      "mtime": 1783942833000,
+      "device": 16777224,
+      "inode": 105794434,
+      "sha256": "d351993e97dd2f7f26c6a39ee9d73d17d0af4ae7eab6f21c619e4a5b51bc9e5c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-latest.app",
+    {
+      "size": 5740588,
+      "mtime": 1790862995171.999,
+      "device": 16777224,
+      "inode": 139610054,
+      "sha256": "1a5f178fd307c4c317c630c29bfd6b5aec16be4a5f813c037affe7998e6ecd47",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.0.0-unsigned.hap",
+    {
+      "size": 206861,
+      "mtime": 1780738838266.7395,
+      "device": 16777224,
+      "inode": 105573057,
+      "sha256": "e003184ab6242280dc8018bcc83b5238b91ed091fa1d7202f7cf9bbbcf2ac24e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.0.1-unsigned.hap",
+    {
+      "size": 224806,
+      "mtime": 1780742350682.164,
+      "device": 16777224,
+      "inode": 105587461,
+      "sha256": "5fa90d3bae37105be225a0fcf9f3ad04c7fd06b81b895023881642334d4a9e29",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.1.11-signed.hap",
+    {
+      "size": 363725,
+      "mtime": 1783945308701.131,
+      "device": 16777224,
+      "inode": 113078216,
+      "sha256": "3bc11edd555c881537189b009b1c89b259c1db66fc94918b2c531337acae4f99",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.1.11-unsigned-test.hap",
+    {
+      "size": 317038,
+      "mtime": 1783942833843.6711,
+      "device": 16777224,
+      "inode": 113067566,
+      "sha256": "d351993e97dd2f7f26c6a39ee9d73d17d0af4ae7eab6f21c619e4a5b51bc9e5c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.1.12-signed.hap",
+    {
+      "size": 392153,
+      "mtime": 1784114729000,
+      "device": 16777224,
+      "inode": 113274162,
+      "sha256": "4a7598b041aadf989f22a60fe9f0fdeee2c16902937905f051cc9c0cddf8cc50",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.1.4-unsigned.hap",
+    {
+      "size": 278207,
+      "mtime": 1780866114000,
+      "device": 16777224,
+      "inode": 105764474,
+      "sha256": "d23fbb9f535e5508097688515e27f1488e87019b4aa42146050a6e403dd311c0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.1.5-unsigned.hap",
+    {
+      "size": 281224,
+      "mtime": 1780897331000,
+      "device": 16777224,
+      "inode": 105794433,
+      "sha256": "b7f27d1d5d8333ee317be252648cf19add8e2137e47f4cd7aa0a258ac802200b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.1.8-unsigned-test.hap",
+    {
+      "size": 295936,
+      "mtime": 1783067324247.9104,
+      "device": 16777224,
+      "inode": 111474579,
+      "sha256": "2d26a5301328d20e3f31277bc608bb81260eac42abe02d6d6ad0fc42c45a2a0f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.0-signed.hap",
+    {
+      "size": 306300,
+      "mtime": 1784890039470.1606,
+      "device": 16777224,
+      "inode": 115131306,
+      "sha256": "a972bf65337995a910f8e2837f2fc90b763fac616d886a9cf609840805e3fade",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.1-signed.app",
+    {
+      "size": 610869,
+      "mtime": 1784895711000,
+      "device": 16777224,
+      "inode": 115175201,
+      "sha256": "099ab36f65e9a6ce12c2904f50f405d8c112b60ccd782489636c8c286fa5a13e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.1-signed.hap",
+    {
+      "size": 783489,
+      "mtime": 1784895709000,
+      "device": 16777224,
+      "inode": 115175198,
+      "sha256": "39fbb7be5eaa5b536dc2237fcdae1930f35ed56d59668aec6b605809c1fd1f41",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.10-signed.app",
+    {
+      "size": 272941,
+      "mtime": 1786247633000,
+      "device": 16777224,
+      "inode": 118524485,
+      "sha256": "c1c8e3ce87dc82387dbf72c251fb9e35a7a5d488391c310b0a27f74ad118a952",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.10-signed.hap",
+    {
+      "size": 496739,
+      "mtime": 1786247623000,
+      "device": 16777224,
+      "inode": 118524483,
+      "sha256": "47449b6ce9b05a09957a6e62f41691d878d29cf05166f1ba9afa47d61035525f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.11-signed.app",
+    {
+      "size": 354243,
+      "mtime": 1786275599000,
+      "device": 16777224,
+      "inode": 118574995,
+      "sha256": "d0d2800d33d580733300cf1c56e84f5713816c4306b136a8921174cd8b206b25",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.11-signed.hap",
+    {
+      "size": 586850,
+      "mtime": 1786275597000,
+      "device": 16777224,
+      "inode": 118574993,
+      "sha256": "844cea43b12cffa4d5c1c048503906b3ad94ddad9724caf21afd72832bbe475f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.12-signed.app",
+    {
+      "size": 354246,
+      "mtime": 1786436549000,
+      "device": 16777224,
+      "inode": 118807506,
+      "sha256": "e2b386e671e5f8aaf63579ab95cb7cc13d5a640f2ba876d4399ddc7cd08aca31",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.12-signed.hap",
+    {
+      "size": 586851,
+      "mtime": 1786436547000,
+      "device": 16777224,
+      "inode": 118807504,
+      "sha256": "d8c8c2b9631d095f4ac04c1ef40938e87ce5e08cedabd90b8459668559411b6b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.13-signed.app",
+    {
+      "size": 333093,
+      "mtime": 1786898768000,
+      "device": 16777224,
+      "inode": 135775722,
+      "sha256": "f9e66eacb2f7bbeeb225c9e30a82c86e5eb3249d91f7354b377e23c5ede26485",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.13-signed.hap",
+    {
+      "size": 581515,
+      "mtime": 1786898768000,
+      "device": 16777224,
+      "inode": 135775719,
+      "sha256": "5a11f65d34d8b97a3ef8f04369792ee1ad52b55944ff926e2080e44bce2fe93d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.15-signed 2.app",
+    {
+      "size": 17297168,
+      "mtime": 1787931267000,
+      "device": 16777224,
+      "inode": 139095743,
+      "sha256": "dc9036698175a8ab74b59945aef1a12218f1b132bd14979bed4bc05922607962",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.15-signed.app",
+    {
+      "size": 5849225,
+      "mtime": 1788080788000,
+      "device": 16777224,
+      "inode": 139464070,
+      "sha256": "3d13a371cde75a72affa1984fd4a88ef659265ced11008b9721d05f6561f07ca",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.16-signed.app",
+    {
+      "size": 5852314,
+      "mtime": 1788095776000,
+      "device": 16777224,
+      "inode": 139610051,
+      "sha256": "b376f06bd31a33f695ce2ecc55ddd777db10bf0c2af53b55a7818cb6fba72682",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.2-signed.app",
+    {
+      "size": 309146,
+      "mtime": 1784923658000,
+      "device": 16777224,
+      "inode": 115218495,
+      "sha256": "d6731b44094db19b7639e82255e86ffdc7a9a2e93345a8fb86cea13ca7ae1e0b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.2-signed.hap",
+    {
+      "size": 516100,
+      "mtime": 1784923650000,
+      "device": 16777224,
+      "inode": 115218493,
+      "sha256": "dac94ead5757ca983df0fc3f3dded0d827f38c7c81cb383ba5842ca08a2db590",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.3-signed.app",
+    {
+      "size": 313957,
+      "mtime": 1784978775638.539,
+      "device": 16777224,
+      "inode": 115284338,
+      "sha256": "65b48c2f3dfcb05b115e436999b9ff8d017a0892cfe1e98a79d114bc8c2c04a8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.3-signed.hap",
+    {
+      "size": 533175,
+      "mtime": 1784978766599.586,
+      "device": 16777224,
+      "inode": 115284336,
+      "sha256": "e3d46d9b3e815d8092756d1182ad3c7659d89d2a275fcc960fe63be8eaa51cae",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.4-signed.app",
+    {
+      "size": 314116,
+      "mtime": 1785302364000,
+      "device": 16777224,
+      "inode": 115836834,
+      "sha256": "9f14c2ad44c804f21a1b568d8eb30742c2df566112f67f1be09bd004e7c689d7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.4-signed.hap",
+    {
+      "size": 522085,
+      "mtime": 1785302361000,
+      "device": 16777224,
+      "inode": 115836832,
+      "sha256": "fb0eb2bcfbc6e04aa3a87fd5b5c5d528fb0f078cec8d662fa5e75f8851a9c038",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.5-signed.app",
+    {
+      "size": 415096,
+      "mtime": 1785303512000,
+      "device": 16777224,
+      "inode": 115840951,
+      "sha256": "73c4f30f930900e73732120cb0c742b745ebc300d30a707684bef3f97930178a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.5-signed.hap",
+    {
+      "size": 624489,
+      "mtime": 1785303507000,
+      "device": 16777224,
+      "inode": 115840949,
+      "sha256": "be5f064c7162f93fa248a56b7541d1c7eb316343180e844dbd24f5e85022d85d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.6-signed.app",
+    {
+      "size": 297936,
+      "mtime": 1785477303000,
+      "device": 16777224,
+      "inode": 116264141,
+      "sha256": "82d204c7df7ee50f83eb1e36659c3c31bcb281b868c7829823ccdac96cc3a911",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.6-signed.hap",
+    {
+      "size": 511254,
+      "mtime": 1785477294000,
+      "device": 16777224,
+      "inode": 116264123,
+      "sha256": "c5f694404a19fc777832fc0071c8bc4d43bbf8c2bfd7c8c0f2b25261ce730878",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.7-signed.app",
+    {
+      "size": 272671,
+      "mtime": 1785752502890.6343,
+      "device": 16777224,
+      "inode": 117252013,
+      "sha256": "a0d31769ddaa1a722adff9d7f77925b0ceba9d5db236ee8aafeb238b54f6c83d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.7-signed.hap",
+    {
+      "size": 482433,
+      "mtime": 1785752502876.651,
+      "device": 16777224,
+      "inode": 117252012,
+      "sha256": "1289d2a2261ad29931e52bac9c48c61d8636bfa4d819baabac6f71ec375a83de",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.8-signed.app",
+    {
+      "size": 298280,
+      "mtime": 1786083765000,
+      "device": 16777224,
+      "inode": 118142443,
+      "sha256": "8d5559ac09a666525dd3016bbed6ff3a5e7ee22e77fe3b91845024ebdd56fd6d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.8-signed.hap",
+    {
+      "size": 510861,
+      "mtime": 1786083761000,
+      "device": 16777224,
+      "inode": 118142441,
+      "sha256": "f14adf07e5cf9b361147d0bd5890972560ea5eefc5c0194912f8f37462bfaeef",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.9-signed.app",
+    {
+      "size": 299140,
+      "mtime": 1786086975000,
+      "device": 16777224,
+      "inode": 118171267,
+      "sha256": "91ef33f703600cd13dbf1bed0dd584f3dfaf09c88e55633eba78dd628f9a36fe",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.2.9-signed.hap",
+    {
+      "size": 525410,
+      "mtime": 1786086974000,
+      "device": 16777224,
+      "inode": 118171265,
+      "sha256": "308ef68a9c6767694513d109316cf9859606976faf218a9201e041017d3e80b7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.3.0-signed.app",
+    {
+      "size": 16497770,
+      "mtime": 1790771594525.4824,
+      "device": 16777224,
+      "inode": 145486552,
+      "sha256": "d48b90ca2ee74fd49111558cb028c9953cc831e4b7e8de7ea529ca0cb3dc7899",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-latest 2.app",
+    {
+      "size": 17286357,
+      "mtime": 1787931340000,
+      "device": 16777224,
+      "inode": 118155136,
+      "sha256": "07c786a436517b267940bc6420dc6b8a043b8d4d684bcd4fd3198750d711a887",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-latest 3.app",
+    {
+      "size": 321747,
+      "mtime": 1786898982000,
+      "device": 16777224,
+      "inode": 139095759,
+      "sha256": "d7f407b8a23546c876505766a53f04af9cecb24260de402ac9e6499888f18e47",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-latest.app",
+    {
+      "size": 5916856,
+      "mtime": 1790927215838.999,
+      "device": 16777222,
+      "inode": 139471868,
+      "sha256": "1ee369d9f5c02ac4479603a01aac3b9723072ba384b520f6f761d608a0d6d10b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.0-signed.app",
+    {
+      "size": 372369,
+      "mtime": 1785942302000,
+      "device": 16777224,
+      "inode": 117891556,
+      "sha256": "57548831b8442cf9ff7d9e9a42440d9d5f81a23cd67a0ad8e12d3b241642875e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.0-signed.hap",
+    {
+      "size": 610843,
+      "mtime": 1785942300000,
+      "device": 16777224,
+      "inode": 117891554,
+      "sha256": "2fc00950e89f84da5c534a45be6314f4661181600403d74e09d992e6d39b33f8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.1-signed.app",
+    {
+      "size": 415086,
+      "mtime": 1786084724000,
+      "device": 16777224,
+      "inode": 118155135,
+      "sha256": "95ffd5f40192b479c0adaac267cc1b3001f0509d6ef652396179583712af4701",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.1-signed.hap",
+    {
+      "size": 635427,
+      "mtime": 1786084722000,
+      "device": 16777224,
+      "inode": 118155133,
+      "sha256": "da6bceb3c83e9c0a5633b539459d963f97eeb99afbc8afa3aa1ecf4995f56853",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.2-signed.app",
+    {
+      "size": 351270,
+      "mtime": 1786275635000,
+      "device": 16777224,
+      "inode": 118575000,
+      "sha256": "b2d350b7b5e5775bdf9060bdf70efe2b8f4b3b5acecd5dc34fc3a76ceec543f9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.2-signed.hap",
+    {
+      "size": 573986,
+      "mtime": 1786275634000,
+      "device": 16777224,
+      "inode": 118574999,
+      "sha256": "44e0853aec14814141f3fe94052c2cef830eef293ac518e8eb965defd1bb5dfd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.3-signed.app",
+    {
+      "size": 351274,
+      "mtime": 1786436678000,
+      "device": 16777224,
+      "inode": 118807510,
+      "sha256": "6bedad430e9aa8165cf4aaed130997b4466753f2481c2af8f2f486e65cb80b1b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.3-signed.hap",
+    {
+      "size": 573988,
+      "mtime": 1786436676000,
+      "device": 16777224,
+      "inode": 118807509,
+      "sha256": "e6f91a8bf4d6f90c4d897c67f264bec4c7287d11bd0bd70b2880d924c302df06",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.4-signed.app",
+    {
+      "size": 344442,
+      "mtime": 1786438567000,
+      "device": 16777224,
+      "inode": 118811059,
+      "sha256": "fefbe15c94fe7f10a54eaee080583d9f54fa3bc165e0fa27235e9850f3f9f2b4",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.4-signed.hap",
+    {
+      "size": 554199,
+      "mtime": 1786438563000,
+      "device": 16777224,
+      "inode": 118811058,
+      "sha256": "f7c4ec40a953d20d5decd80e156525c4f8dbf0b9edefaf41e61ed1b21e009f66",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.5-signed.app",
+    {
+      "size": 321747,
+      "mtime": 1786898982000,
+      "device": 16777224,
+      "inode": 135779833,
+      "sha256": "d7f407b8a23546c876505766a53f04af9cecb24260de402ac9e6499888f18e47",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.5-signed.hap",
+    {
+      "size": 554199,
+      "mtime": 1786898982000,
+      "device": 16777224,
+      "inode": 135779832,
+      "sha256": "4a2808b3c3f3345f0aedff431ee50113b579d939b4b96cfe0da533a577e3cdc0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.6-signed 2.app",
+    {
+      "size": 17286357,
+      "mtime": 1787931340000,
+      "device": 16777224,
+      "inode": 139095734,
+      "sha256": "07c786a436517b267940bc6420dc6b8a043b8d4d684bcd4fd3198750d711a887",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.0.6-signed.app",
+    {
+      "size": 5837422,
+      "mtime": 1788081469000,
+      "device": 16777224,
+      "inode": 139471867,
+      "sha256": "4575b28548ee29727dcbf01dc994304072a86cc216b58f42393c55273657aa9b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.1.0-signed.app",
+    {
+      "size": 16445926,
+      "mtime": 1790771593486.1152,
+      "device": 16777224,
+      "inode": 145467019,
+      "sha256": "42b0fd3ea6e425baaf42e138995c8464b040afdf24a1372d49b7cd3d09eee259",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.2.0-signed.app",
+    {
+      "size": 5721283,
+      "mtime": 1790862993368,
+      "device": 16777224,
+      "inode": 145622813,
+      "sha256": "90683ece832eed51127b79c6cda38a78250c44b4e7186612aabc122a7fc98700",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.3.0-signed.app",
+    {
+      "size": 5916856,
+      "mtime": 1790927214822,
+      "device": 16777222,
+      "inode": 145757535,
+      "sha256": "1ee369d9f5c02ac4479603a01aac3b9723072ba384b520f6f761d608a0d6d10b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.6.0-signed.app",
+    {
+      "size": 7060243,
+      "mtime": 1791629358000,
+      "device": 16777222,
+      "inode": 147872917,
+      "sha256": "f60d2aa3fe655af9c9acfdc60da92ed4ce175eadccc38fb2177f70b118d9dfc7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Online-HarmonyOS-v1.4.0-signed.app",
+    {
+      "size": 5740588,
+      "mtime": 1790862994700.999,
+      "device": 16777222,
+      "inode": 145624060,
+      "sha256": "1a5f178fd307c4c317c630c29bfd6b5aec16be4a5f813c037affe7998e6ecd47",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Online-HarmonyOS-v1.7.0-signed.app",
+    {
+      "size": 7038080,
+      "mtime": 1791631262000,
+      "device": 16777222,
+      "inode": 147872911,
+      "sha256": "0b8f9e8700b99413cae1418f7c26180d3c51d67ff23b907745c548e4c866b06f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-HarmonyOS-latest.app",
+    {
+      "size": 313336,
+      "mtime": 1788005611000,
+      "device": 16777222,
+      "inode": 139082158,
+      "sha256": "7eccd7887f0363ac1818d5efc3d5a875dda7bb260188064065ba2995625aef41",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-HarmonyOS-latest.hap",
+    {
+      "size": 276029,
+      "mtime": 1792736141083.367,
+      "device": 16777222,
+      "inode": 139082156,
+      "sha256": "162641e3e6addf47a75115644aa58767cf88441cfe2fba69366027059038507e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-HarmonyOS-v1.0.0-signed.app",
+    {
+      "size": 220073,
+      "mtime": 1784088522127.887,
+      "device": 16777224,
+      "inode": 113152160,
+      "sha256": "0f088588f529ede5f53733a857cbc3c2b00b1c918c14b5fcec841719a680805c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-HarmonyOS-v1.0.0-signed.hap",
+    {
+      "size": 267602,
+      "mtime": 1784088522126.2053,
+      "device": 16777224,
+      "inode": 113147059,
+      "sha256": "a77e06c89ca25318284897be40207aa65a877dc0d9ae8fab6a419f105a016cef",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-HarmonyOS-v1.0.1-signed.app",
+    {
+      "size": 220990,
+      "mtime": 1784182618036.7078,
+      "device": 16777224,
+      "inode": 113364631,
+      "sha256": "7ad0968ffee1ae2f13fa882932c46becf7e068267462d37014ea844986222976",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-HarmonyOS-v1.0.1-signed.hap",
+    {
+      "size": 273680,
+      "mtime": 1784182618018.4265,
+      "device": 16777224,
+      "inode": 113364630,
+      "sha256": "1c431894ceb88896246678eb95eec594edad64ba144bffd74e7aa96d71e0dd20",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-HarmonyOS-v1.0.2-signed.app",
+    {
+      "size": 313336,
+      "mtime": 1788005611000,
+      "device": 16777222,
+      "inode": 139082157,
+      "sha256": "7eccd7887f0363ac1818d5efc3d5a875dda7bb260188064065ba2995625aef41",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-HarmonyOS-v1.0.2-signed.hap",
+    {
+      "size": 297260,
+      "mtime": 1788005609000,
+      "device": 16777224,
+      "inode": 139082155,
+      "sha256": "8ea58417259d6637178ea8b3c7888d5f3497ea062092943fc28d46d16ac63aad",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-macOS-latest.dmg",
+    {
+      "size": 1031822,
+      "mtime": 1788005115000,
+      "device": 16777222,
+      "inode": 139082154,
+      "sha256": "57234186fd8f6b6c365c2a6604c20a46c5cd27f5fdb747ac9cd21dc344e7ec5b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-macOS-v0.1.0.dmg",
+    {
+      "size": 55660,
+      "mtime": 1781976665590.3704,
+      "device": 16777224,
+      "inode": 109219323,
+      "sha256": "d6b92474dcf4bb0b60d289c73bf5e0d063cf865dc81fcb14cb899d634a130f51",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-macOS-v0.1.1.dmg",
+    {
+      "size": 302782,
+      "mtime": 1782025472666.6028,
+      "device": 16777224,
+      "inode": 109329655,
+      "sha256": "3666cc24b1ab69359ec9ccdaf15ff5b6f9895a5cd732275a47d635b76d6c6981",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-macOS-v0.1.2.dmg",
+    {
+      "size": 624841,
+      "mtime": 1782042981350.0383,
+      "device": 16777224,
+      "inode": 109361508,
+      "sha256": "958770f76aa5a03109c9972b89e9a8e2cec80843ffac7e057d51ed1663b456f5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-macOS-v0.1.3.dmg",
+    {
+      "size": 1083542,
+      "mtime": 1782745014012.462,
+      "device": 16777224,
+      "inode": 111201005,
+      "sha256": "87a484f46186996bb9d4b542fdb90980606017def2fef5eddea0a73297f52808",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-macOS-v0.1.4.dmg",
+    {
+      "size": 1102665,
+      "mtime": 1783093053246.6245,
+      "device": 16777224,
+      "inode": 111551945,
+      "sha256": "35f300a04e6064e37334e9b422aee0ab78f177a8685901fffc74f14169648036",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-macOS-v0.1.5.dmg",
+    {
+      "size": 1031822,
+      "mtime": 1788005115000,
+      "device": 16777224,
+      "inode": 139082153,
+      "sha256": "57234186fd8f6b6c365c2a6604c20a46c5cd27f5fdb747ac9cd21dc344e7ec5b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengLab-HarmonyOS-test.hap",
+    {
+      "size": 118176,
+      "mtime": 1780722617296.397,
+      "device": 16777224,
+      "inode": 105498527,
+      "sha256": "65a2e17b63100ba51ccf15102556f58a6f9162336169f723e4a355cbc28faa2d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengLab-HarmonyOS-v1.1.0-unsigned.hap",
+    {
+      "size": 152732,
+      "mtime": 1780725465575.8098,
+      "device": 16777222,
+      "inode": 105506314,
+      "sha256": "e4ae3c167db855f0f6ad96138b6f8c7d0ac1fe92d80e7342c4f1b3b84f166685",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengStock-HarmonyOS-latest-unsigned.hap",
+    {
+      "size": 1292907,
+      "mtime": 1789139303000,
+      "device": 16777222,
+      "inode": 106493879,
+      "sha256": "80ef4a9f6fdeb2040594aae8df70b9dc822e4f91dfa87f5e2dcdc75d9920a203",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengStock-HarmonyOS-v1.0.0-unsigned.hap",
+    {
+      "size": 1838445,
+      "mtime": 1781310764305.504,
+      "device": 16777224,
+      "inode": 106529523,
+      "sha256": "865212fb127120ef412e00c3d2791210b0cab9b155c001e265965b0aef3955b0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengStock-HarmonyOS-v1.2.0-unsigned.hap",
+    {
+      "size": 1292907,
+      "mtime": 1789139303000,
+      "device": 16777222,
+      "inode": 139849875,
+      "sha256": "80ef4a9f6fdeb2040594aae8df70b9dc822e4f91dfa87f5e2dcdc75d9920a203",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengStock-iOS-latest-unsigned.ipa",
+    {
+      "size": 2035732,
+      "mtime": 1781310688432.1543,
+      "device": 16777222,
+      "inode": 106513847,
+      "sha256": "621c9b95401b4ab30e07d671c4b4d80b492f463802d86f4d4c62afddead71852",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengStock-iOS-v1.0.0-unsigned.ipa",
+    {
+      "size": 2035732,
+      "mtime": 1781310688398.486,
+      "device": 16777222,
+      "inode": 106513846,
+      "sha256": "621c9b95401b4ab30e07d671c4b4d80b492f463802d86f4d4c62afddead71852",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengStock-iPadOS-latest-unsigned.ipa",
+    {
+      "size": 2035732,
+      "mtime": 1781310688481.5393,
+      "device": 16777222,
+      "inode": 106513849,
+      "sha256": "621c9b95401b4ab30e07d671c4b4d80b492f463802d86f4d4c62afddead71852",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengStock-iPadOS-v1.0.0-unsigned.ipa",
+    {
+      "size": 2035732,
+      "mtime": 1781310688456.5818,
+      "device": 16777222,
+      "inode": 106513848,
+      "sha256": "621c9b95401b4ab30e07d671c4b4d80b492f463802d86f4d4c62afddead71852",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.12.app",
+    {
+      "size": 63623,
+      "mtime": 1784042249694.0374,
+      "device": 16777224,
+      "inode": 113182366,
+      "sha256": "7aebf8d4f8ffb430f8af5388dda9c4205fea897e8d29fd30c888e505c15be972",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.12.hap",
+    {
+      "size": 165818,
+      "mtime": 1784042249700.0325,
+      "device": 16777224,
+      "inode": 113182367,
+      "sha256": "aab0664882a80dcf6ec5767d3e9e08f5d24819c416bf22924dad44f797e43b3b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.13.app",
+    {
+      "size": 64036,
+      "mtime": 1784090432410.0676,
+      "device": 16777224,
+      "inode": 113225457,
+      "sha256": "fed62d0b9b233afd250f65be54e97321d089308ba800b5a14aaf5945dfef3c4e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.13.hap",
+    {
+      "size": 171967,
+      "mtime": 1784090432418.8474,
+      "device": 16777224,
+      "inode": 113225458,
+      "sha256": "daf5b05ed2628f24c757501d2e54f3998ec73aca10c78c8d758d804862db0445",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.14.app",
+    {
+      "size": 64372,
+      "mtime": 1784109854415.1565,
+      "device": 16777224,
+      "inode": 113257686,
+      "sha256": "b5f94b2e0c8ef7c242f0c892f9cbaa266d4bdb7ae06abee18f8588f93cc56528",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.14.hap",
+    {
+      "size": 171531,
+      "mtime": 1784109854931.5376,
+      "device": 16777224,
+      "inode": 113257688,
+      "sha256": "b3be7372efb2d74fb2403bbb6199192f350c7712aa54fc0661adc19426987cb7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.15.app",
+    {
+      "size": 66793,
+      "mtime": 1784194460312.3535,
+      "device": 16777224,
+      "inode": 113468149,
+      "sha256": "80afb1be73707a914cb97d35c9a81e9dbb0b6445c297b7c16848c0f046ddcdef",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.15.hap",
+    {
+      "size": 179150,
+      "mtime": 1784194460856.4243,
+      "device": 16777224,
+      "inode": 113468154,
+      "sha256": "b06a99829e1c6905b9fe20a92859f972eae01b28b6c1f615a2d12c66340f4771",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.17.app",
+    {
+      "size": 78121,
+      "mtime": 1784696038571.088,
+      "device": 16777224,
+      "inode": 114482966,
+      "sha256": "06cd6aca6bfc2580b3c13efd9eccc9f36d1b39088aa51f1820fddc61540759ba",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.17.hap",
+    {
+      "size": 216999,
+      "mtime": 1784696038580.0823,
+      "device": 16777224,
+      "inode": 114482967,
+      "sha256": "d2ec961b9bc222f715c9ce178c46161ad952f97ed7e9118e0762bd06183026ec",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.18.app",
+    {
+      "size": 78406,
+      "mtime": 1784698081933.204,
+      "device": 16777224,
+      "inode": 114539409,
+      "sha256": "6e4247cfb65fb164c9271cfebc51b3e2b0d5419102f56c9b2589971985367687",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.18.hap",
+    {
+      "size": 216679,
+      "mtime": 1784698081941.7002,
+      "device": 16777224,
+      "inode": 114539410,
+      "sha256": "e8baa71385f8f4232a5177d36b29283fd71bde3d8e900280b9b34cd4cde3a5bd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.19.app",
+    {
+      "size": 78027,
+      "mtime": 1784699149110.1672,
+      "device": 16777224,
+      "inode": 114545750,
+      "sha256": "1cc05679d824746a16a7bc1a864b7dc4c136bfcce0cfa7a306278c335bc220af",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.19.hap",
+    {
+      "size": 209551,
+      "mtime": 1784699149097.144,
+      "device": 16777224,
+      "inode": 114545749,
+      "sha256": "2de84bdb56302b38808fc73c4f3c929dfbd2cabde6d7b78e22856439a8ea5ec6",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.20.app",
+    {
+      "size": 80039,
+      "mtime": 1784701438395.355,
+      "device": 16777224,
+      "inode": 114562735,
+      "sha256": "7d90c171a5ccca84a8aeffef4aa85fa2a380981642ac600a0f601f972654f403",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.20.hap",
+    {
+      "size": 219434,
+      "mtime": 1784701438388.4521,
+      "device": 16777224,
+      "inode": 114562734,
+      "sha256": "9fa94180fd1cdd372da7529843054cb05c2606d9500671fc570f449518cff9aa",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.21.app",
+    {
+      "size": 80854,
+      "mtime": 1784974536705.341,
+      "device": 16777224,
+      "inode": 115255197,
+      "sha256": "bd7bded3b8abd5eca15832a3f47d0e7bbca1f500a34673947d301bd79bb908d5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.21.hap",
+    {
+      "size": 224434,
+      "mtime": 1784974536699.853,
+      "device": 16777224,
+      "inode": 115255196,
+      "sha256": "27f64879c4fa2521b5608edbb6db4f99c9d39bbf557d04908fa4558b1274d31a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.22.app",
+    {
+      "size": 81021,
+      "mtime": 1784974945038.0776,
+      "device": 16777224,
+      "inode": 115270125,
+      "sha256": "48d83b94223174f4b52937d37e9af3b0f1a5d1c8b82488db33280263d8e429b5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.22.hap",
+    {
+      "size": 223891,
+      "mtime": 1784974945036.436,
+      "device": 16777224,
+      "inode": 115270124,
+      "sha256": "fdff750cf6510c412f736d4b3a0ef55d09421fff5d738527cc763235aaabc185",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.23.app",
+    {
+      "size": 81657,
+      "mtime": 1784976030678.716,
+      "device": 16777222,
+      "inode": 115274873,
+      "sha256": "abddf901d3b020ac46f348974d9ad55500379d789f6899a9388829250574877a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.23.hap",
+    {
+      "size": 222469,
+      "mtime": 1784976030675.6665,
+      "device": 16777222,
+      "inode": 115274872,
+      "sha256": "e4acf2631004f5fed5038e35854bbda96b5bc85feaae1bb5bac0fd0f6e27febb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.24.app",
+    {
+      "size": 81667,
+      "mtime": 1785410934123.735,
+      "device": 16777224,
+      "inode": 116172315,
+      "sha256": "4706c5010e1e2184ee598911360368517c45f781e52c1111b6f764908540dc91",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.24.hap",
+    {
+      "size": 222422,
+      "mtime": 1785410934121.395,
+      "device": 16777224,
+      "inode": 116172314,
+      "sha256": "e4c167a3651997d50832b1a1e3c3f38c724d52bb7624437a4ed4d099b31c7b6b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.25.app",
+    {
+      "size": 81962,
+      "mtime": 1785475526772.1355,
+      "device": 16777224,
+      "inode": 116250484,
+      "sha256": "806a8afe531026902d6b5537bc7e3c4bb4ea2f35e960aec9f694b660ba470e6d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.25.hap",
+    {
+      "size": 230158,
+      "mtime": 1785475526778.9097,
+      "device": 16777224,
+      "inode": 116250485,
+      "sha256": "e0f8c38215defff2486c043db49da70cdba6e5706f9a62f797e6f2f99994799e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.26.app",
+    {
+      "size": 85264,
+      "mtime": 1785497529738.0576,
+      "device": 16777224,
+      "inode": 116448513,
+      "sha256": "093048d7d1df84cdb7046ba51b220a2ab7cfba0be9d7914709351910b5d1f76b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.26.hap",
+    {
+      "size": 245678,
+      "mtime": 1785497529760.1772,
+      "device": 16777224,
+      "inode": 116448514,
+      "sha256": "a160f36474ae1c62c3712e0fba51f7b409f93c8f5cbd81dfdffca8ebe5b702f7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.27.app",
+    {
+      "size": 86350,
+      "mtime": 1785560571678.0667,
+      "device": 16777224,
+      "inode": 116666593,
+      "sha256": "3c0dacdd612e6b54fca2d590490dc51c8e4e7049163248109c7bf97b8ef9e766",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.27.hap",
+    {
+      "size": 243059,
+      "mtime": 1785560571691.2437,
+      "device": 16777224,
+      "inode": 116666594,
+      "sha256": "676fb6a6d7acf5f0dbddf3d050f1f96b504e1a268c011ecba7ecd555989a53ea",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.28.app",
+    {
+      "size": 295563,
+      "mtime": 1786453519593.2192,
+      "device": 16777224,
+      "inode": 119519273,
+      "sha256": "1bdc914ee8482d86d07be75e074bb13f97d32cd3a43a7324b877c2882f09bd0a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.28.hap",
+    {
+      "size": 279404,
+      "mtime": 1786453519600.3523,
+      "device": 16777224,
+      "inode": 119519276,
+      "sha256": "a6bb325a11b6e1858ab14507cc9d540f6d887b881b7b31a1d748de573efaf661",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.29.app",
+    {
+      "size": 319213,
+      "mtime": 1786768635844.6357,
+      "device": 16777224,
+      "inode": 135395718,
+      "sha256": "96cc2ab814083719c764bc2cb392c2ab203ab471b9116aaebf2f9511592308fd",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.29.hap",
+    {
+      "size": 303001,
+      "mtime": 1786768635863.5706,
+      "device": 16777224,
+      "inode": 135395719,
+      "sha256": "40bf4bb44f150814527b4c67b02902756c9f3f885eae5da92284651b2dfaee90",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.30.app",
+    {
+      "size": 355100,
+      "mtime": 1790399520856.8723,
+      "device": 16777224,
+      "inode": 144789446,
+      "sha256": "766373b7a4b1d5e3817affe7110a79db021b207c775340369ffd0c182654c952",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.30.hap",
+    {
+      "size": 339052,
+      "mtime": 1790399520953.2341,
+      "device": 16777224,
+      "inode": 144789450,
+      "sha256": "38ca568e22f1bf0c638816e24f6ab09eb2c8879c6315568b90aa0861bb96c100",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.31.app",
+    {
+      "size": 360249,
+      "mtime": 1790405381668.3875,
+      "device": 16777222,
+      "inode": 144842948,
+      "sha256": "c0c25dffe497c57c53ef2c4c16b202f36fce3a5cfbd120561d0e8125e994dde8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.31.hap",
+    {
+      "size": 344191,
+      "mtime": 1790405381700.7244,
+      "device": 16777222,
+      "inode": 144842949,
+      "sha256": "6a7e5fbf4dd1d4ed1ee8b4c59af5a5237952880e88ffb8b411373d524f2b3759",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.6-unsigned.hap",
+    {
+      "size": 222242,
+      "mtime": 1780738022975.5806,
+      "device": 16777224,
+      "inode": 105571756,
+      "sha256": "96d44f5ad58bc7a3c41b7d23190a61776a90c17f13a3fbcc29c62565e8da7d7c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.7-unsigned.hap",
+    {
+      "size": 252839,
+      "mtime": 1780828048794.3025,
+      "device": 16777224,
+      "inode": 105658916,
+      "sha256": "58e50e76e5dc574c9b57a626d1379c3f13360935dae40a441f4201089dffe457",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-1.1.8-unsigned.hap",
+    {
+      "size": 253640,
+      "mtime": 1780912349054.5586,
+      "device": 16777224,
+      "inode": 105840399,
+      "sha256": "951c6d56949b3d3eaad6bdbe5e8bb5c7a11ccdaac12ed15a051151a8942b3a6e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-latest-unsigned.hap",
+    {
+      "size": 253640,
+      "mtime": 1780912349000,
+      "device": 16777224,
+      "inode": 105571757,
+      "sha256": "951c6d56949b3d3eaad6bdbe5e8bb5c7a11ccdaac12ed15a051151a8942b3a6e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-latest.app",
+    {
+      "size": 360249,
+      "mtime": 1790405381686.8577,
+      "device": 16777222,
+      "inode": 113182368,
+      "sha256": "c0c25dffe497c57c53ef2c4c16b202f36fce3a5cfbd120561d0e8125e994dde8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-harmonyos-latest.hap",
+    {
+      "size": 344191,
+      "mtime": 1790405381717.262,
+      "device": 16777224,
+      "inode": 113182369,
+      "sha256": "6a7e5fbf4dd1d4ed1ee8b4c59af5a5237952880e88ffb8b411373d524f2b3759",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-ios-ipad-1.1.5.ipa",
+    {
+      "size": 386107,
+      "mtime": 1780647415743.2224,
+      "device": 16777224,
+      "inode": 105414206,
+      "sha256": "ee1b74c381b39909f81131f15f30123e7a6e9b11e834d875d21fed7becde9535",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-ios-ipad-1.1.8.ipa",
+    {
+      "size": 461098,
+      "mtime": 1780912915498.168,
+      "device": 16777222,
+      "inode": 105843417,
+      "sha256": "d8ec8526ccd5b54c006acf0303c8cb7a227dc0ab38fce389f6f36864fdb8cb11",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-ios-latest.ipa",
+    {
+      "size": 461098,
+      "mtime": 1780912915000,
+      "device": 16777222,
+      "inode": 105414207,
+      "sha256": "d8ec8526ccd5b54c006acf0303c8cb7a227dc0ab38fce389f6f36864fdb8cb11",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-ipad-latest.ipa",
+    {
+      "size": 461098,
+      "mtime": 1780912915000,
+      "device": 16777222,
+      "inode": 105414208,
+      "sha256": "d8ec8526ccd5b54c006acf0303c8cb7a227dc0ab38fce389f6f36864fdb8cb11",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.1.app",
+    {
+      "size": 72635,
+      "mtime": 1784696038604.4404,
+      "device": 16777224,
+      "inode": 114482968,
+      "sha256": "be34b810090fd11780f4e4fa942ab78ac59f897890e69e4aeee7cda972b93814",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.1.hap",
+    {
+      "size": 200034,
+      "mtime": 1784696038612.5503,
+      "device": 16777224,
+      "inode": 114482969,
+      "sha256": "5a485d6d6c22fa6b94b378b8e09c6af5ffa99b9be56798b89317ada2012de39b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.10.app",
+    {
+      "size": 79904,
+      "mtime": 1785497529785.155,
+      "device": 16777224,
+      "inode": 116448515,
+      "sha256": "ea31192208c1ea6ec060fecd027c60abf1f95a4195a2aac7ca7e2c7b0a5f5be5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.10.hap",
+    {
+      "size": 228791,
+      "mtime": 1785497529807.52,
+      "device": 16777224,
+      "inode": 116448516,
+      "sha256": "c6413c392cccd2a739da6a266fe71ce90ea90bc78cc530d6c39f9a38f7b7bdae",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.11.app",
+    {
+      "size": 79948,
+      "mtime": 1785560572052.0286,
+      "device": 16777224,
+      "inode": 116666597,
+      "sha256": "f6bebf9b9713c61edcc8b06027245db69da48d8b14c1da15cd95ddf4311bae00",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.11.hap",
+    {
+      "size": 228751,
+      "mtime": 1785560572068.488,
+      "device": 16777224,
+      "inode": 116666598,
+      "sha256": "b23263231a5e61a5a3793d5bc25da24b0a3352622baa2e196c15220559c80194",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.12.app",
+    {
+      "size": 265829,
+      "mtime": 1786453519631.0142,
+      "device": 16777224,
+      "inode": 119519286,
+      "sha256": "e060d8f2fef5805ee724aa79ae82e27247ded691946249f910751257f218b013",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.12.hap",
+    {
+      "size": 249724,
+      "mtime": 1786453519647.6655,
+      "device": 16777224,
+      "inode": 119519290,
+      "sha256": "41a2bd796014a1c6d6bda4e0c7d9a2fae21e647790baedde505a0ef3f7cd3341",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.13.app",
+    {
+      "size": 289445,
+      "mtime": 1786768635912.5188,
+      "device": 16777224,
+      "inode": 135395722,
+      "sha256": "1426ceb03751c7c7bb2b8f532e57a9e99c05b49f9487e7c25f68dfe4fadd48bb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.13.hap",
+    {
+      "size": 273340,
+      "mtime": 1786768635942.2314,
+      "device": 16777224,
+      "inode": 135395723,
+      "sha256": "8887a470e0c894ae24020527912cab734b6b2c015df887acb72a9237ce292c1c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.14.app",
+    {
+      "size": 306298,
+      "mtime": 1790267825230.4775,
+      "device": 16777224,
+      "inode": 144516905,
+      "sha256": "5a045d1453aff62d09629cf8220bcdb1d54d8653bc4e0d8bcd5d5763aca3d52e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.14.hap",
+    {
+      "size": 290304,
+      "mtime": 1790267825330.6304,
+      "device": 16777224,
+      "inode": 144516909,
+      "sha256": "9eecc4430b7183d516902c620a1b384aba17b4a02354a71411dd00f3584a04a7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.15.app",
+    {
+      "size": 339025,
+      "mtime": 1790397644229.943,
+      "device": 16777224,
+      "inode": 144768944,
+      "sha256": "50748001676e4a674a8841705389f8ce519eb65d6c6015217203be0037b37ac1",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.15.hap",
+    {
+      "size": 323023,
+      "mtime": 1790397644313.4949,
+      "device": 16777224,
+      "inode": 144768948,
+      "sha256": "5570fa5e34b57d68d4660be8f9f9b95edaac6acaab67d46e70eb23018f533527",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.16.app",
+    {
+      "size": 352897,
+      "mtime": 1790402302380.5461,
+      "device": 16777224,
+      "inode": 144823755,
+      "sha256": "8ddfa2b1b785951b50de1d38c8c1674f796f8265d33f742c736845d83b9d85fc",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.16.hap",
+    {
+      "size": 336895,
+      "mtime": 1790402302391.641,
+      "device": 16777224,
+      "inode": 144823756,
+      "sha256": "ffd60e3c3992561048f89168ecfd1d465124b741ff93e0a799d9943afea3d385",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.17.app",
+    {
+      "size": 352899,
+      "mtime": 1790408705673.0103,
+      "device": 16777224,
+      "inode": 144854144,
+      "sha256": "679f00399cf86d3354939afcac98913fb2da4e24981c1381e62701e6b9f79f89",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.17.hap",
+    {
+      "size": 336895,
+      "mtime": 1790408705851.0083,
+      "device": 16777224,
+      "inode": 144854148,
+      "sha256": "f761d2225e0bc7b8217514d8082e3aabceabc8fb8f9bf85b149ca917a16f0ab1",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.18.app",
+    {
+      "size": 343189,
+      "mtime": 1790575133173.1182,
+      "device": 16777224,
+      "inode": 145193677,
+      "sha256": "bf7819404f4fc70cdb60cd810c7aa5b7292391a4876b4de44022c9f4794f898a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.18.hap",
+    {
+      "size": 327196,
+      "mtime": 1790575133234.53,
+      "device": 16777224,
+      "inode": 145193679,
+      "sha256": "e1346251734c4029132614e830812616437685dc0d3147c6eea41ca98cc45c86",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.19.app",
+    {
+      "size": 328497,
+      "mtime": 1790771713430.123,
+      "device": 16777222,
+      "inode": 145498879,
+      "sha256": "d1b01bb7b2c9391aebd8c520444edc2611ea0587d472ff3b198c1e50d287e73d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.19.hap",
+    {
+      "size": 327182,
+      "mtime": 1790771713538.6348,
+      "device": 16777222,
+      "inode": 145498885,
+      "sha256": "40f9adad04637bb006e569f23652802e2ea46bdca5e5ff7cbd999688aae43463",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.2.app",
+    {
+      "size": 72824,
+      "mtime": 1784698081970.0115,
+      "device": 16777224,
+      "inode": 114539411,
+      "sha256": "5b2c62a7303f3d865d4e70df22ecadef603dc12ec826117bf08599d6d9870a3e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.2.hap",
+    {
+      "size": 199714,
+      "mtime": 1784698081975.1736,
+      "device": 16777224,
+      "inode": 114539412,
+      "sha256": "3eb64d2b96c18e2de1840b7b8111eab2d80dc0f33619baea1c8350c42c12ab6e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.3.app",
+    {
+      "size": 72586,
+      "mtime": 1784699149136.3105,
+      "device": 16777224,
+      "inode": 114545752,
+      "sha256": "55da5bfec196497edf151a303124271ac7bf0cf6fb1247db23fbeac19447b655",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.3.hap",
+    {
+      "size": 200780,
+      "mtime": 1784699149129.754,
+      "device": 16777224,
+      "inode": 114545751,
+      "sha256": "72eda0d132938f02eef898c2403a6b2b5182241540dc5b51f4663c6c95541243",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.4.app",
+    {
+      "size": 74680,
+      "mtime": 1784701438426.409,
+      "device": 16777224,
+      "inode": 114562737,
+      "sha256": "f38cf0a4ad6ff3b9a2a3f0e6e1387bf64b98a8736211ff6ed09a281f624b0b27",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.4.hap",
+    {
+      "size": 202478,
+      "mtime": 1784701438418.1729,
+      "device": 16777224,
+      "inode": 114562736,
+      "sha256": "a9ebbde75e6210160a5ef867940325d5ee573ef8ea8291dcde96d5bfda32cc73",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.5.app",
+    {
+      "size": 75458,
+      "mtime": 1784974536727.0295,
+      "device": 16777224,
+      "inode": 115255199,
+      "sha256": "b2f583ae04a4b2e67235e440e4e7b5bc12596ebc7545605eec9b88dcec387379",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.5.hap",
+    {
+      "size": 207559,
+      "mtime": 1784974536721.2312,
+      "device": 16777224,
+      "inode": 115255198,
+      "sha256": "c23848f58fad9be5b014e79d28ed5e42c9d5d248525baee11013de2f335e694d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.6.app",
+    {
+      "size": 75722,
+      "mtime": 1784974945052.089,
+      "device": 16777224,
+      "inode": 115270127,
+      "sha256": "66baa2a71ba2c74125492781517345c8c708a2cdfbc1f387485b216494eeb392",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.6.hap",
+    {
+      "size": 206993,
+      "mtime": 1784974945048.46,
+      "device": 16777224,
+      "inode": 115270126,
+      "sha256": "0fc9392ca1f17039e1a0e78bd72765b75adf1fc472be05002db08bec112bf602",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.7.app",
+    {
+      "size": 76316,
+      "mtime": 1784976030687.0793,
+      "device": 16777222,
+      "inode": 115274875,
+      "sha256": "2e5704ca32ad99c2e0a613fa3c11e6f3012d9d371d5777bb14d2acc208c6c8b0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.7.hap",
+    {
+      "size": 221958,
+      "mtime": 1784976030685.3044,
+      "device": 16777222,
+      "inode": 115274874,
+      "sha256": "751f5ba5a907161e1545c43e218164a0c4f003c2c2712bb516d716924a8d686b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.8.app",
+    {
+      "size": 76395,
+      "mtime": 1785410934131.5894,
+      "device": 16777224,
+      "inode": 116172317,
+      "sha256": "3b338eaf7db52b16abe01a59ab779c4ff4b5da275227bbafd164933e83c9998e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.8.hap",
+    {
+      "size": 221914,
+      "mtime": 1785410934129.937,
+      "device": 16777224,
+      "inode": 116172316,
+      "sha256": "daed9e29822c4f47aded4df108836b33cbfcc836608ba11e408d9945b038b503",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.9.app",
+    {
+      "size": 76620,
+      "mtime": 1785475526815.8647,
+      "device": 16777224,
+      "inode": 116250486,
+      "sha256": "a7e108015db468da9f4fe25a7b18f6675456e386548b4cd08868fed077a9beae",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-1.0.9.hap",
+    {
+      "size": 213281,
+      "mtime": 1785475526827.665,
+      "device": 16777224,
+      "inode": 116250487,
+      "sha256": "c8a07f90f6c90fb46f31f026831cbba5f4549d63a9d4b8958089d3f1ee5c1360",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-latest.app",
+    {
+      "size": 328497,
+      "mtime": 1790771713490.0723,
+      "device": 16777222,
+      "inode": 114482970,
+      "sha256": "d1b01bb7b2c9391aebd8c520444edc2611ea0587d472ff3b198c1e50d287e73d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-offline-harmonyos-latest.hap",
+    {
+      "size": 327182,
+      "mtime": 1790771713587.463,
+      "device": 16777224,
+      "inode": 114482971,
+      "sha256": "40f9adad04637bb006e569f23652802e2ea46bdca5e5ff7cbd999688aae43463",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-HarmonyOS-latest-unsigned.app",
+    {
+      "size": 249952,
+      "mtime": 1785230399957.3708,
+      "device": 16777224,
+      "inode": 114548589,
+      "sha256": "27f2ffb9ad8182a3b09ece1ab65a7160f68bcc1394d2407fe6ae147bb8eb482b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-HarmonyOS-latest-unsigned.hap",
+    {
+      "size": 272455,
+      "mtime": 1785230399868.1545,
+      "device": 16777224,
+      "inode": 114548581,
+      "sha256": "94f1afa5083c17e2ba42c283678c412875a7cc18d767475b1d9ef37527259a53",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-HarmonyOS-v0.1.0-b2-unsigned.app",
+    {
+      "size": 248495,
+      "mtime": 1785072690760.4756,
+      "device": 16777224,
+      "inode": 114548588,
+      "sha256": "19ad485a00da048e4116bf86058dbdb4c719487eaeea4b1a7fba28fc6ebfb6a9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-HarmonyOS-v0.1.0-b2-unsigned.hap",
+    {
+      "size": 268287,
+      "mtime": 1785072690629.9382,
+      "device": 16777224,
+      "inode": 114548580,
+      "sha256": "e2733e17594032cb5bd078602898a2d4d6a220e15605f86742b0b55c5997ce18",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-HarmonyOS-v0.1.1-b3-unsigned.app",
+    {
+      "size": 249964,
+      "mtime": 1785074545275.2375,
+      "device": 16777224,
+      "inode": 115528910,
+      "sha256": "0bfa56923289391eb02a0cf6691f9099b1fc4d16da561e35971126332f1abe64",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-HarmonyOS-v0.1.1-b3-unsigned.hap",
+    {
+      "size": 272451,
+      "mtime": 1785074545155.288,
+      "device": 16777224,
+      "inode": 115528906,
+      "sha256": "985252cdb355a1452c9307a28cae70921edbbb2c4321f061eac6f1cbcba70d02",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-HarmonyOS-v0.1.2-b4-unsigned.app",
+    {
+      "size": 249952,
+      "mtime": 1785230399950.8862,
+      "device": 16777224,
+      "inode": 115724726,
+      "sha256": "27f2ffb9ad8182a3b09ece1ab65a7160f68bcc1394d2407fe6ae147bb8eb482b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-HarmonyOS-v0.1.2-b4-unsigned.hap",
+    {
+      "size": 272455,
+      "mtime": 1785230399857.7947,
+      "device": 16777224,
+      "inode": 115724720,
+      "sha256": "94f1afa5083c17e2ba42c283678c412875a7cc18d767475b1d9ef37527259a53",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-iOS-latest-unsigned.ipa",
+    {
+      "size": 196059,
+      "mtime": 1785230431653.8423,
+      "device": 16777224,
+      "inode": 114261370,
+      "sha256": "24cca34011adb501c3746b1110e664f638b153ee278e93ca4b55d217b8f3fcce",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-iOS-v0.1.0-b2-unsigned.ipa",
+    {
+      "size": 185089,
+      "mtime": 1784696962933.4065,
+      "device": 16777224,
+      "inode": 114500735,
+      "sha256": "ca4dff75fd274187ea34c2be2bef11dc330cc2e1f7718a8d3a4b2dad7b421840",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-iOS-v0.1.0-unsigned.ipa",
+    {
+      "size": 185089,
+      "mtime": 1784696670943.0132,
+      "device": 16777224,
+      "inode": 114261369,
+      "sha256": "ffe8a2981f1aa4560240c6646aaf7293ee4ae9e915bd596d354e306cc1bc7f22",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-iOS-v0.1.1-b3-unsigned.ipa",
+    {
+      "size": 196063,
+      "mtime": 1785074519591.691,
+      "device": 16777224,
+      "inode": 115528099,
+      "sha256": "8d365daf707bae023b5175e2fdac4ab553ee86d7722aa235a270464381656b61",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-iOS-v0.1.2-b4-unsigned.ipa",
+    {
+      "size": 196059,
+      "mtime": 1785230431647.921,
+      "device": 16777224,
+      "inode": 115725044,
+      "sha256": "24cca34011adb501c3746b1110e664f638b153ee278e93ca4b55d217b8f3fcce",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-macOS-latest.dmg",
+    {
+      "size": 284290,
+      "mtime": 1785230455993.139,
+      "device": 16777224,
+      "inode": 114263934,
+      "sha256": "c95d76a910d13746d622b366c40aadc01176976f8f66b4224299daa20e056753",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-macOS-v0.1.0-b2.dmg",
+    {
+      "size": 271732,
+      "mtime": 1784696984201.0398,
+      "device": 16777224,
+      "inode": 114500946,
+      "sha256": "debb213d55c555540635293486614811be7df38d95db1cd9a755cb665e83c63c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-macOS-v0.1.0.dmg",
+    {
+      "size": 271715,
+      "mtime": 1784696710062.0688,
+      "device": 16777224,
+      "inode": 114263933,
+      "sha256": "79d96c0f17cd059aaabc39318481e9594772db27c0817366504e1da75b18c591",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-macOS-v0.1.1-b3.dmg",
+    {
+      "size": 284374,
+      "mtime": 1785074563497.3547,
+      "device": 16777224,
+      "inode": 115528376,
+      "sha256": "56d4c348571426161ab4f20531cc605bb2ff0f5048561297ac7b8d59a7901bb8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/Cantonese-macOS-v0.1.2-b4.dmg",
+    {
+      "size": 284290,
+      "mtime": 1785230455985.9866,
+      "device": 16777224,
+      "inode": 115725358,
+      "sha256": "c95d76a910d13746d622b366c40aadc01176976f8f66b4224299daa20e056753",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-HarmonyOS-latest-unsigned.app",
+    {
+      "size": 250287,
+      "mtime": 1785230433471.7158,
+      "device": 16777224,
+      "inode": 114548947,
+      "sha256": "e614fc4907cb3d3ab7252f613c12cacbe5ae7c4aebc048aa8d80e9d443d7cbbb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-HarmonyOS-latest-unsigned.hap",
+    {
+      "size": 273325,
+      "mtime": 1785230433336.8005,
+      "device": 16777224,
+      "inode": 114548938,
+      "sha256": "01abec2bb2a13f70a5fb5dfbf2252cd7a7db12c7c445633cb03f8a7126d55dcc",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-HarmonyOS-v0.1.0-b2-unsigned.app",
+    {
+      "size": 255907,
+      "mtime": 1785072771412.4358,
+      "device": 16777224,
+      "inode": 114548945,
+      "sha256": "d99ad604b71dee7dc7de2cd9f5429f326ee42763ed2a3368e1d96e57d5c3df89",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-HarmonyOS-v0.1.0-b2-unsigned.hap",
+    {
+      "size": 288269,
+      "mtime": 1785072771270.5994,
+      "device": 16777224,
+      "inode": 114548937,
+      "sha256": "0fc48da4920e2461df32257793cbbfd95b7539f91238cf2bef6d7834d032c14a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-HarmonyOS-v0.1.1-b3-unsigned.app",
+    {
+      "size": 250281,
+      "mtime": 1785074592992.559,
+      "device": 16777224,
+      "inode": 115529203,
+      "sha256": "55ba62b2b0e0661f9b7b33f42b590155e079728be9dcf9a1aa6cb118c0dfa757",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-HarmonyOS-v0.1.1-b3-unsigned.hap",
+    {
+      "size": 273325,
+      "mtime": 1785074592853.7961,
+      "device": 16777224,
+      "inode": 115529199,
+      "sha256": "3ff0d99e99bf084f8eec2323a7393637fae201575dd4898abfc6d2f5cbc8f877",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-HarmonyOS-v0.1.2-b4-unsigned.app",
+    {
+      "size": 250287,
+      "mtime": 1785230433457.5894,
+      "device": 16777224,
+      "inode": 115725088,
+      "sha256": "e614fc4907cb3d3ab7252f613c12cacbe5ae7c4aebc048aa8d80e9d443d7cbbb",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-HarmonyOS-v0.1.2-b4-unsigned.hap",
+    {
+      "size": 273325,
+      "mtime": 1785230433328.312,
+      "device": 16777224,
+      "inode": 115725083,
+      "sha256": "01abec2bb2a13f70a5fb5dfbf2252cd7a7db12c7c445633cb03f8a7126d55dcc",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-iOS-latest-unsigned.ipa",
+    {
+      "size": 195284,
+      "mtime": 1785230438513.576,
+      "device": 16777224,
+      "inode": 114261487,
+      "sha256": "edf2eb395dea9c2a5bccb8060ec7144116a4d964e8c2e44af293c57440109dad",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-iOS-v0.1.0-b2-unsigned.ipa",
+    {
+      "size": 192990,
+      "mtime": 1784696969715.9993,
+      "device": 16777224,
+      "inode": 114500811,
+      "sha256": "554364282f26f0aba18ea572b8f29946babdc9a1c8202eb4c32c40a6d71051f9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-iOS-v0.1.0-unsigned.ipa",
+    {
+      "size": 192990,
+      "mtime": 1784696679675.0193,
+      "device": 16777224,
+      "inode": 114261486,
+      "sha256": "5bf2d7788db0fd3e9bce613f4c94ba81396fbc544d43dac73c549158678a9d6d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-iOS-v0.1.1-b3-unsigned.ipa",
+    {
+      "size": 195284,
+      "mtime": 1785074531656.2202,
+      "device": 16777224,
+      "inode": 115528157,
+      "sha256": "1b18d17f78c3fd9be1cfa5c260646ca854e76d26d38cdefb996ff416aa007114",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-iOS-v0.1.2-b4-unsigned.ipa",
+    {
+      "size": 195284,
+      "mtime": 1785230438506.1577,
+      "device": 16777224,
+      "inode": 115725191,
+      "sha256": "edf2eb395dea9c2a5bccb8060ec7144116a4d964e8c2e44af293c57440109dad",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-macOS-latest.dmg",
+    {
+      "size": 284716,
+      "mtime": 1785230468662.5876,
+      "device": 16777224,
+      "inode": 114264141,
+      "sha256": "5d9411e7c30a2786bfb06b4ca725edb286352cefb400aa61deb04858dde6acb9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-macOS-v0.1.0-b2.dmg",
+    {
+      "size": 281464,
+      "mtime": 1784696997124.6729,
+      "device": 16777224,
+      "inode": 114501120,
+      "sha256": "16abcc9a83904c0f415c72217b3066308c4cd94b5ce81c02b0fda7ddb3408926",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-macOS-v0.1.0.dmg",
+    {
+      "size": 281466,
+      "mtime": 1784696738816.4785,
+      "device": 16777224,
+      "inode": 114264140,
+      "sha256": "b8b22ecd96bc6f670a0df90dbe5cac5d6aed6d8121af160444ff84e243637eca",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-macOS-v0.1.1-b3.dmg",
+    {
+      "size": 284752,
+      "mtime": 1785074596748.0376,
+      "device": 16777224,
+      "inode": 115528467,
+      "sha256": "101997a5e014a4e6ae283c3ffbee712bfe10dcf6d5b8c76bcb381fc4dc214c5b",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CantoneseOffline-macOS-v0.1.2-b4.dmg",
+    {
+      "size": 284716,
+      "mtime": 1785230468656.0493,
+      "device": 16777224,
+      "inode": 115725461,
+      "sha256": "5d9411e7c30a2786bfb06b4ca725edb286352cefb400aa61deb04858dde6acb9",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-iOS-latest.ipa",
+    {
+      "size": 1189248,
+      "mtime": 1783327469622.0793,
+      "device": 16777224,
+      "inode": 111428070,
+      "sha256": "6ea460b22bf54599609ff41f24c637a55555a6ac8610fdff59b9ba5c6abe68f6",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-iOS-v0.2.1.ipa",
+    {
+      "size": 29540,
+      "mtime": 1783056864169.2593,
+      "device": 16777224,
+      "inode": 111428069,
+      "sha256": "4d6cb136dc16972c3bd63df8bdc49ae045a16d70b465087885cd60f97fcfd142",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-iOS-v0.2.2.ipa",
+    {
+      "size": 69772,
+      "mtime": 1783092065171.9106,
+      "device": 16777224,
+      "inode": 111541319,
+      "sha256": "0f27f26628453491e0de8972c1022d2e103406e442fb95a202936b014926e33c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-iOS-v0.2.3.ipa",
+    {
+      "size": 538609,
+      "mtime": 1783142734237.2798,
+      "device": 16777224,
+      "inode": 111622936,
+      "sha256": "acf99fa90f2c9f16405af8d936c8f563bf363a24db99e287bf989e0008de0bba",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-iOS-v0.2.4.ipa",
+    {
+      "size": 1203799,
+      "mtime": 1783143330732.3335,
+      "device": 16777224,
+      "inode": 111628619,
+      "sha256": "8c4aab420d7ff9c3a57a98cf0907f0b991993745a6ab32c9d9770bfba03c6eac",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-iOS-v0.2.5.ipa",
+    {
+      "size": 1189248,
+      "mtime": 1783327469607.8894,
+      "device": 16777224,
+      "inode": 111777557,
+      "sha256": "6ea460b22bf54599609ff41f24c637a55555a6ac8610fdff59b9ba5c6abe68f6",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-macOS-v0.2.1.dmg",
+    {
+      "size": 49865,
+      "mtime": 1783056864154.3374,
+      "device": 16777224,
+      "inode": 111428067,
+      "sha256": "c61b9d64dee78d7c90fc7ace70bb914d31ad1674945f273858e6a973b2781600",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-macOS-v0.2.2.dmg",
+    {
+      "size": 98280,
+      "mtime": 1783092065150.6577,
+      "device": 16777224,
+      "inode": 111541318,
+      "sha256": "cf423b3fc2fefc86e0532da06a694d5495b60418a05a4fdc54d47baede505d60",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/CiWaWa-macOS-v0.2.3.dmg",
+    {
+      "size": 1127451,
+      "mtime": 1783142734222.769,
+      "device": 16777224,
+      "inode": 111622935,
+      "sha256": "679fe200321e2b8f49224330314bb9831b044796d26e8746e03410dc3c187b92",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/HearBridge-iOS-latest-unsigned.ipa",
+    {
+      "size": 134231,
+      "mtime": 1783754047169.5747,
+      "device": 16777224,
+      "inode": 112429386,
+      "sha256": "cfd3ad8745359e2d0afd56ad1680cdb7a8a0256a1703d4c2363a539714767d7a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/HearBridge-iOS-v0.1.0-unsigned.ipa",
+    {
+      "size": 45441,
+      "mtime": 1783672678350.5745,
+      "device": 16777224,
+      "inode": 112429385,
+      "sha256": "d0add36fbe522b8d75f7c817956ace6cf67b75054fdc3b730f3866866b7b7c55",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/HearBridge-iOS-v0.1.1-unsigned.ipa",
+    {
+      "size": 134231,
+      "mtime": 1783754047165.6335,
+      "device": 16777224,
+      "inode": 112663413,
+      "sha256": "cfd3ad8745359e2d0afd56ad1680cdb7a8a0256a1703d4c2363a539714767d7a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/HearBridge-macOS-latest.dmg",
+    {
+      "size": 564589,
+      "mtime": 1783754036334.2913,
+      "device": 16777224,
+      "inode": 112429225,
+      "sha256": "3ce871a810adbcbdba743f6e44ffd4b4cb82a49e12a246d18dbf2f659be05eef",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/HearBridge-macOS-v0.1.0.dmg",
+    {
+      "size": 64199,
+      "mtime": 1783672671115.8,
+      "device": 16777224,
+      "inode": 112429224,
+      "sha256": "6fa1bfcbfaeb0e02c3f1417f9ac5e0534436b2ac08eb149a49f715be94dbe9e6",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/HearBridge-macOS-v0.1.1.dmg",
+    {
+      "size": 564589,
+      "mtime": 1783754036323.8171,
+      "device": 16777224,
+      "inode": 112663360,
+      "sha256": "3ce871a810adbcbdba743f6e44ffd4b4cb82a49e12a246d18dbf2f659be05eef",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/SurvivalDiary-HarmonyOS-Online-v0.6.0-b60002-debug.app",
+    {
+      "size": 7500268,
+      "mtime": 1787326308240.6965,
+      "device": 16777224,
+      "inode": 137839765,
+      "sha256": "d4247a8c845be7c1a1358fd86b952a16b15e64bc0b5e12f157bfc81a79e36571",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/SurvivalDiary-iOS-v0.6.0-b34-debug-unsigned.ipa",
+    {
+      "size": 19764362,
+      "mtime": 1787325989521.3079,
+      "device": 16777224,
+      "inode": 137839761,
+      "sha256": "8f89a06c4e1e2da10eb7b4b23a66aeabccf235ba7b291c3610b12d8a17071a5c",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/SurvivalDiary-iOS-v0.6.1-b35-debug-unsigned.ipa",
+    {
+      "size": 21851373,
+      "mtime": 1788012051372.6567,
+      "device": 16777224,
+      "inode": 139160785,
+      "sha256": "e3dc0258da915f79f5f543b08043d8bed04d6f270b0422450351371413cb71a0",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/SurvivalDiary-iOS-v0.6.1-b36-debug-unsigned.ipa",
+    {
+      "size": 22275563,
+      "mtime": 1788068375419.4917,
+      "device": 16777224,
+      "inode": 139391360,
+      "sha256": "d751a843fa9c53ac0324fbb9b6a34cc8e48c34ea30af661f8bcee2478dc325af",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/SurvivalDiary-iOS-v0.6.2-b37-debug-unsigned.ipa",
+    {
+      "size": 22303586,
+      "mtime": 1788095867440.776,
+      "device": 16777224,
+      "inode": 139608935,
+      "sha256": "6141d2c28a22c016cfdc79a279785296842b1502f520506907dc1888215d4916",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/download/SurvivalDiary-iOS-v0.6.2-b38-debug-unsigned.ipa",
+    {
+      "size": 22303131,
+      "mtime": 1788106285863.9646,
+      "device": 16777224,
+      "inode": 139695202,
+      "sha256": "db0a91b99bf99cdc5c31b01a2616b358db36384f51e418dcbacd34eceec3b997",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/harmonyos/ZhengZhengToolbox-v0.1.0.hap",
+    {
+      "size": 118176,
+      "mtime": 1780671519016.3252,
+      "device": 16777224,
+      "inode": 105434651,
+      "sha256": "65a2e17b63100ba51ccf15102556f58a6f9162336169f723e4a355cbc28faa2d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-macOS-latest.dmg",
+    {
+      "size": 2767153,
+      "mtime": 1783327469000,
+      "device": 16777224,
+      "inode": 150035611,
+      "sha256": "0539d1d555e7b6d651131c4c96ec1d045a2561ed7abf6363428056f5ed74907f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/CiWaWa-macOS-v0.2.5.dmg",
+    {
+      "size": 2767153,
+      "mtime": 1783327469000,
+      "device": 16777224,
+      "inode": 150035667,
+      "sha256": "0539d1d555e7b6d651131c4c96ec1d045a2561ed7abf6363428056f5ed74907f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-macOS-v0.2.0-b2-development-signed.dmg",
+    {
+      "size": 2800748,
+      "mtime": 1788093604000,
+      "device": 16777224,
+      "inode": 150035468,
+      "sha256": "02659ffe062cf9f4a52ad8e8cf73ddd5954b741e3b3400de9f452ec92f4491ab",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/MultipleBoardGames-macOS-latest 3.dmg",
+    {
+      "size": 4163991,
+      "mtime": 1780488670000,
+      "device": 16777224,
+      "inode": 150035880,
+      "sha256": "e103d1024acb9ce842eeb11bee188f1ad448e27999649377de132649ae1a1db8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/MultipleBoardGames-macOS-v1.1.1.dmg",
+    {
+      "size": 4061712,
+      "mtime": 1780327331000,
+      "device": 16777224,
+      "inode": 150035936,
+      "sha256": "6232e5c584c248d32a787c66be00705ae516717ac066dc9adfde50a286fcec54",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/MultipleBoardGames-macOS-v1.1.2.dmg",
+    {
+      "size": 4163991,
+      "mtime": 1780488670000,
+      "device": 16777224,
+      "inode": 150035821,
+      "sha256": "e103d1024acb9ce842eeb11bee188f1ad448e27999649377de132649ae1a1db8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/MultipleBoardGames-macOS-v1.1.6.dmg",
+    {
+      "size": 4206717,
+      "mtime": 1781342756000,
+      "device": 16777224,
+      "inode": 150035914,
+      "sha256": "b88ed06a10ebec4dc54b7b982083a41ff3a8b01abc5fe1433e259ec1363feb63",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/MultipleBoardGames-macOS-v1.2.16.dmg",
+    {
+      "size": 17241008,
+      "mtime": 1788184069000,
+      "device": 16777224,
+      "inode": 150035734,
+      "sha256": "d161e75f1213b95771b50e9d3aa6a5ac35b0f1894e8f1e9e7dd184b1c99993e8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/MultipleBoardGames-macOS-v1.2.3.dmg",
+    {
+      "size": 4350589,
+      "mtime": 1784978658000,
+      "device": 16777224,
+      "inode": 150035893,
+      "sha256": "892e5157e7a914fab689727fdbfdff82824e0233aaab1a87e677a1c4834fd3cc",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-latest 6.hap",
+    {
+      "size": 39700894,
+      "mtime": 1788326815000,
+      "device": 16777224,
+      "inode": 150035489,
+      "sha256": "326865775338fe72aa592eebaabeab0feb24f370b3bf6d6bdd1318f4d99adc3a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.0.hap",
+    {
+      "size": 53180745,
+      "mtime": 1785905914000,
+      "device": 16777224,
+      "inode": 150035830,
+      "sha256": "f5b2b98cbcce678ad500988b59e6cded525c73063172eb75197f719fca72b081",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.2.hap",
+    {
+      "size": 73938439,
+      "mtime": 1785923477000,
+      "device": 16777224,
+      "inode": 150035778,
+      "sha256": "516fb6bcc9e29f184a545e9f4c7e3e1375f4f6d432c971d1145ea12b63652785",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.20.hap",
+    {
+      "size": 33011886,
+      "mtime": 1787318878000,
+      "device": 16777224,
+      "inode": 150035802,
+      "sha256": "de67045acb309726d406f1d37155cceccf4fc30da755a82c31c0e329f607d6a4",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.10.9.hap",
+    {
+      "size": 49317901,
+      "mtime": 1786287041000,
+      "device": 16777224,
+      "inode": 150035910,
+      "sha256": "0d8f3a9dce7e8cec26eb9a1eade73a2b002681aa9ebabaee3966d5a7a5c2e85e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.11.hap",
+    {
+      "size": 49308113,
+      "mtime": 1788497997000,
+      "device": 16777224,
+      "inode": 150035920,
+      "sha256": "89ef52e4e6f36ffd9e85ca8cddabe9de41d202bcc7e5d7c8cd338f2ab60b5948",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.13.hap",
+    {
+      "size": 49307748,
+      "mtime": 1788516222000,
+      "device": 16777224,
+      "inode": 150035858,
+      "sha256": "bb622d534040f85ecdf11d43a80c361d9ef715a003510ae103d814b1c4684653",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.17.hap",
+    {
+      "size": 59954578,
+      "mtime": 1789136185000,
+      "device": 16777224,
+      "inode": 150035525,
+      "sha256": "bd274e13053597b7ac8a70caeaca56d1b0143ea96cc165ee8343b9a8463185d7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.11.2.hap",
+    {
+      "size": 54127768,
+      "mtime": 1788089201000,
+      "device": 16777224,
+      "inode": 150035890,
+      "sha256": "e170c7e04645d4be6cd6b36eb86968112e44aa4df2b7db131b27af3c0f4cdac7",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Offline-latest 6.hap",
+    {
+      "size": 11723449,
+      "mtime": 1788496629000,
+      "device": 16777224,
+      "inode": 150035865,
+      "sha256": "22f6b798ccf779392e56c08cc1d922f47e57386dbff140ed00750f18f665f2cf",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Offline-v0.6.0-b60001.hap",
+    {
+      "size": 9203476,
+      "mtime": 1787309558000,
+      "device": 16777224,
+      "inode": 150035487,
+      "sha256": "2c31280cff48ea1fc9df0ed75b504e7896614c1348ddb7544e306653f3486dee",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Offline-v0.6.2-b60203 2.hap",
+    {
+      "size": 11723449,
+      "mtime": 1788496629000,
+      "device": 16777224,
+      "inode": 150035583,
+      "sha256": "22f6b798ccf779392e56c08cc1d922f47e57386dbff140ed00750f18f665f2cf",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Online-v0.6.1-b60102-debug.hap",
+    {
+      "size": 9659077,
+      "mtime": 1788012001000,
+      "device": 16777224,
+      "inode": 150035592,
+      "sha256": "147d796569b9af64130f78efb47ae7902eb2b8af157528d2cc05144c94764182",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SurvivalDiary-HarmonyOS-Online-v0.6.2-b60204-debug 2.hap",
+    {
+      "size": 10119164,
+      "mtime": 1788274374000,
+      "device": 16777224,
+      "inode": 150035516,
+      "sha256": "23606cffc859a8b1eb84b118344610d188e1b0e77c6c644da590c8d01424a607",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-HarmonyOS-v1.3.0-signed.hap",
+    {
+      "size": 16496471,
+      "mtime": 1790767511000,
+      "device": 16777224,
+      "inode": 150035879,
+      "sha256": "a584d0938a58241f1a1eb2ad7e73f3b29795fdea9b0ffc9d59c4dc12420f0aff",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Online-HarmonyOS-v1.4.0-signed.hap",
+    {
+      "size": 6076561,
+      "mtime": 1790862994000,
+      "device": 16777224,
+      "inode": 150035796,
+      "sha256": "046c38904630f168ddabe3e3cf3008546887374f0a90a9125e927f9415ed56c8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengStock-macOS-v1.0.0.dmg",
+    {
+      "size": 2174656,
+      "mtime": 1781310688000,
+      "device": 16777224,
+      "inode": 150035795,
+      "sha256": "4a6ad82f402ad364da2ded67450601bfdcfded94761db905c76f11b33d600a79",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-macos-1.1.0.dmg",
+    {
+      "size": 8837120,
+      "mtime": 1780313771000,
+      "device": 16777224,
+      "inode": 150035877,
+      "sha256": "e757e9341ee86709257bb45b4d847434972e6278b658cc61c96d680ef77ab799",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-macos-1.1.1.dmg",
+    {
+      "size": 9226240,
+      "mtime": 1780315454000,
+      "device": 16777224,
+      "inode": 150035863,
+      "sha256": "b30481284ffe2ec969cfdfe3e36e105222c5e292cf9bc7aa2ba74395fb84fde4",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-macos-1.1.17.dmg",
+    {
+      "size": 2402677,
+      "mtime": 1784540373000,
+      "device": 16777224,
+      "inode": 150035870,
+      "sha256": "7c051f4bbc5cabd3349d4212be2fc93f33b181c2ca60890fa669a6637d24fd81",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-macos-1.1.18.dmg",
+    {
+      "size": 2640645,
+      "mtime": 1786460145000,
+      "device": 16777224,
+      "inode": 150035780,
+      "sha256": "ef666ded4d47f936f8b42385c15ac3e6b9be62ab254ea1ed5a6bf5ba23a930a5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-macos-1.1.3.dmg",
+    {
+      "size": 2220382,
+      "mtime": 1780490091000,
+      "device": 16777224,
+      "inode": 150035783,
+      "sha256": "9bc689cca3774d7734f6b54d8934267a0585466cc15839c720a7b4ed368434ed",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-macos-1.1.6.dmg",
+    {
+      "size": 2269782,
+      "mtime": 1780738022000,
+      "device": 16777224,
+      "inode": 150035766,
+      "sha256": "3a6d2706381514948beb2d308d95e908d4ea48e710d565309e687e7476b31fb3",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-macos-1.1.7.dmg",
+    {
+      "size": 2243636,
+      "mtime": 1780825864000,
+      "device": 16777224,
+      "inode": 150035838,
+      "sha256": "45fdfdb17319640a3bfc7a42a0a359164969147f556348972e61042855547891",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-macos-latest 6.dmg",
+    {
+      "size": 2220382,
+      "mtime": 1780490091000,
+      "device": 16777224,
+      "inode": 150035868,
+      "sha256": "9bc689cca3774d7734f6b54d8934267a0585466cc15839c720a7b4ed368434ed",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-macos-latest 7.dmg",
+    {
+      "size": 2218496,
+      "mtime": 1780500517000,
+      "device": 16777224,
+      "inode": 150035845,
+      "sha256": "363baefe63d173fefbc6e25386df8dc04483031cbb0864ee268d603bbd54c5b8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/battery-organizer-macos-latest 9.dmg",
+    {
+      "size": 2269782,
+      "mtime": 1780738022000,
+      "device": 16777224,
+      "inode": 150035809,
+      "sha256": "3a6d2706381514948beb2d308d95e908d4ea48e710d565309e687e7476b31fb3",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Windows-v1.5.0-ia32-portable.exe",
+    {
+      "size": 75046207,
+      "mtime": 1792066967727.6487,
+      "device": 16777222,
+      "inode": 151602127,
+      "sha256": "16f99e092ae3fb7c520d93a7bb22b6fbdb93f453bdd51fcb3491d8b075a56ab4",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Windows-v1.5.0-ia32.exe",
+    {
+      "size": 82084924,
+      "mtime": 1792066969090.6638,
+      "device": 16777222,
+      "inode": 151602135,
+      "sha256": "19bad60c86647ed2a1a4ebd055fcca62cd114dff24e115abbfb368d496c385fa",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Windows-v1.5.0-x64-portable.exe",
+    {
+      "size": 79999975,
+      "mtime": 1792066967239.3027,
+      "device": 16777222,
+      "inode": 151602124,
+      "sha256": "546af0fe3a32e4c5afa553e9bdd2dc6c2c138df17034ca143a228b02350f1865",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Windows-v1.5.0-x64.exe",
+    {
+      "size": 87367868,
+      "mtime": 1792066968487.631,
+      "device": 16777222,
+      "inode": 151602131,
+      "sha256": "335daba75211667526306a2c2051500598dda394fc9c052e5ca46648a46fc352",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Windows-v1.6.0-ia32-portable.exe",
+    {
+      "size": 107047745,
+      "mtime": 1791217387352.9055,
+      "device": 16777224,
+      "inode": 147192726,
+      "sha256": "6484ba501ebb14343ee89b96a5fc076a5ce54b7889eeef508062632d2eab4e70",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Windows-v1.6.0-x64-portable.exe",
+    {
+      "size": 115141242,
+      "mtime": 1791217369618.8115,
+      "device": 16777224,
+      "inode": 147192709,
+      "sha256": "ad1af5da1265d5a9618f9311708f1d59780f815ce4bf317039249acde7928338",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-HarmonyOS-latest.hap",
+    {
+      "size": 59761872,
+      "mtime": 1792066960943.4558,
+      "device": 16777224,
+      "inode": 151602048,
+      "sha256": "ef4cf99a529515bfd7e415d668e6f8f0a75323f6bb9424a43c9f6737aef3f6a8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-HarmonyOS-v0.11.16.hap",
+    {
+      "size": 59761872,
+      "mtime": 1792066960546.715,
+      "device": 16777224,
+      "inode": 151602042,
+      "sha256": "ef4cf99a529515bfd7e415d668e6f8f0a75323f6bb9424a43c9f6737aef3f6a8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.6.0-signed.hap",
+    {
+      "size": 7489105,
+      "mtime": 1792066961056.2576,
+      "device": 16777224,
+      "inode": 151602054,
+      "sha256": "e54dcaa8ad38d26319ce824b57501af0f45a59c2c48cdeb5154910b1f5ff9d66",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengBoardGames-Online-HarmonyOS-v1.7.0-signed.hap",
+    {
+      "size": 7425556,
+      "mtime": 1792066960986.1284,
+      "device": 16777224,
+      "inode": 151602052,
+      "sha256": "a4e7d7d13c929d3f7435a694f8ee8ea1d0760fd78096aa070222a8310e7942a5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-latest.hap",
+    {
+      "size": 6234603,
+      "mtime": 1792066961146.6934,
+      "device": 16777224,
+      "inode": 151602056,
+      "sha256": "9590fde8624e7f38dcabd1f23a639d78b9fe6c100b0bfea60a99ad2df43db7a4",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengBoardGames-Windows-v1.5.0-ia32-portable.exe",
+    {
+      "size": 75046207,
+      "mtime": 1792066962147.7158,
+      "device": 16777224,
+      "inode": 151602062,
+      "sha256": "16f99e092ae3fb7c520d93a7bb22b6fbdb93f453bdd51fcb3491d8b075a56ab4",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengBoardGames-Windows-v1.5.0-ia32.exe",
+    {
+      "size": 82084924,
+      "mtime": 1792066963472.6106,
+      "device": 16777224,
+      "inode": 151602077,
+      "sha256": "19bad60c86647ed2a1a4ebd055fcca62cd114dff24e115abbfb368d496c385fa",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengBoardGames-Windows-v1.5.0-x64-portable.exe",
+    {
+      "size": 79999975,
+      "mtime": 1792066961657.3188,
+      "device": 16777224,
+      "inode": 151602058,
+      "sha256": "546af0fe3a32e4c5afa553e9bdd2dc6c2c138df17034ca143a228b02350f1865",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengBoardGames-Windows-v1.5.0-x64.exe",
+    {
+      "size": 87367868,
+      "mtime": 1792066962902.6128,
+      "device": 16777224,
+      "inode": 151602069,
+      "sha256": "335daba75211667526306a2c2051500598dda394fc9c052e5ca46648a46fc352",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-latest.hap",
+    {
+      "size": 51130398,
+      "mtime": 1793286086056.9255,
+      "device": 16777224,
+      "inode": 155624737,
+      "sha256": "6d75eaf7212fb801daf1d90d0e14472d7b25fc1767a2835ddef0b0afae3e9c7f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.12.0.hap",
+    {
+      "size": 51130398,
+      "mtime": 1793286084627.121,
+      "device": 16777224,
+      "inode": 155624734,
+      "sha256": "6d75eaf7212fb801daf1d90d0e14472d7b25fc1767a2835ddef0b0afae3e9c7f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-latest.hap",
+    {
+      "size": 59761872,
+      "mtime": 1789112002000,
+      "device": 16777224,
+      "inode": 151602112,
+      "sha256": "ef4cf99a529515bfd7e415d668e6f8f0a75323f6bb9424a43c9f6737aef3f6a8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-v0.11.16.hap",
+    {
+      "size": 59761872,
+      "mtime": 1789112001000,
+      "device": 16777224,
+      "inode": 151602109,
+      "sha256": "ef4cf99a529515bfd7e415d668e6f8f0a75323f6bb9424a43c9f6737aef3f6a8",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-latest.hap",
+    {
+      "size": 6234603,
+      "mtime": 1792066966605.7915,
+      "device": 16777224,
+      "inode": 151602121,
+      "sha256": "9590fde8624e7f38dcabd1f23a639d78b9fe6c100b0bfea60a99ad2df43db7a4",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.6.0-signed.hap",
+    {
+      "size": 7489105,
+      "mtime": 1792066966524.5693,
+      "device": 16777224,
+      "inode": 151602119,
+      "sha256": "e54dcaa8ad38d26319ce824b57501af0f45a59c2c48cdeb5154910b1f5ff9d66",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-Online-HarmonyOS-v1.7.0-signed.hap",
+    {
+      "size": 7425556,
+      "mtime": 1792066966427.5627,
+      "device": 16777224,
+      "inode": 151602116,
+      "sha256": "a4e7d7d13c929d3f7435a694f8ee8ea1d0760fd78096aa070222a8310e7942a5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-macOS-latest-debug.dmg",
+    {
+      "size": 58003310,
+      "mtime": 1792066970359.496,
+      "device": 16777224,
+      "inode": 151602145,
+      "sha256": "99f99b395153bac7daa12a40f2488cb6ef8cf5c5ea9ca2730eb398c975aeed6a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-macOS-v0.11.7-debug.dmg",
+    {
+      "size": 58003310,
+      "mtime": 1792066969919.9514,
+      "device": 16777224,
+      "inode": 151602142,
+      "sha256": "99f99b395153bac7daa12a40f2488cb6ef8cf5c5ea9ca2730eb398c975aeed6a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengBoardGames-Offline-HarmonyOS-v1.6.0-signed 2.hap",
+    {
+      "size": 7489105,
+      "mtime": 1792066961000,
+      "device": 16777224,
+      "inode": 151602054,
+      "sha256": "e54dcaa8ad38d26319ce824b57501af0f45a59c2c48cdeb5154910b1f5ff9d66",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengBoardGames-Online-HarmonyOS-v1.7.0-signed 2.hap",
+    {
+      "size": 7425556,
+      "mtime": 1792066960000,
+      "device": 16777224,
+      "inode": 151602052,
+      "sha256": "a4e7d7d13c929d3f7435a694f8ee8ea1d0760fd78096aa070222a8310e7942a5",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengBoardGames-macOS-v1.4.0.zip",
+    {
+      "size": 16939724,
+      "mtime": 1792066965200.2651,
+      "device": 16777224,
+      "inode": 151602097,
+      "sha256": "d6064ad2672910b1d307eea27a2e1704692f9e86cbadbf4cba54ae0004ddf8ea",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SurvivalDiary-HarmonyOS-Online-v0.6.2-b60204-unsigned-debug.app",
+    {
+      "size": 10120615,
+      "mtime": 1788496905926.629,
+      "device": 16777224,
+      "inode": 140089474,
+      "sha256": "4acb7cdc33f44bf5192644ec21a72fdf79364b714fac2256d988e4ce8caadeba",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SurvivalDiary-HarmonyOS-Offline-v0.6.2-b60203.app",
+    {
+      "size": 11503480,
+      "mtime": 1788496628100.0137,
+      "device": 16777224,
+      "inode": 139687943,
+      "sha256": "f03a85fa951dcd6d6cca76c9fe9e3f3bdcb0cd4bf1563398d08134aaad623b19",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SurvivalDiary-HarmonyOS-Offline-latest.app",
+    {
+      "size": 11503480,
+      "mtime": 1788496628897.1968,
+      "device": 16777224,
+      "inode": 117065096,
+      "sha256": "f03a85fa951dcd6d6cca76c9fe9e3f3bdcb0cd4bf1563398d08134aaad623b19",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-HarmonyOS-latest.hap",
+    {
+      "size": 276029,
+      "mtime": 1792736137043.3303,
+      "device": 16777224,
+      "inode": 139081289,
+      "sha256": "162641e3e6addf47a75115644aa58767cf88441cfe2fba69366027059038507e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-HarmonyOS-v1.0.2-unsigned.hap",
+    {
+      "size": 258569,
+      "mtime": 1792647357461.8782,
+      "device": 16777224,
+      "inode": 152981614,
+      "sha256": "609f22d0c2ae3c7b4dd1b5a3528dbfba0bec86335b7acf0d4400ad18c6fb3bcc",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-HarmonyOS-v1.0.2-unsigned.hap",
+    {
+      "size": 258569,
+      "mtime": 1792647359101.2925,
+      "device": 16777224,
+      "inode": 152981658,
+      "sha256": "609f22d0c2ae3c7b4dd1b5a3528dbfba0bec86335b7acf0d4400ad18c6fb3bcc",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-macOS-v0.1.6.zip",
+    {
+      "size": 644958,
+      "mtime": 1792647358227.8823,
+      "device": 16777224,
+      "inode": 152981635,
+      "sha256": "13c503d18432214985e0421e5eb55ffee3a9ba441e7e84f8ca6319842a9ce4c1",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengGlasses-HarmonyOS-v1.0.3-unsigned.hap",
+    {
+      "size": 276029,
+      "mtime": 1792736110094.2268,
+      "device": 16777224,
+      "inode": 153193095,
+      "sha256": "162641e3e6addf47a75115644aa58767cf88441cfe2fba69366027059038507e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-HarmonyOS-v1.0.3-unsigned.hap",
+    {
+      "size": 276029,
+      "mtime": 1792736112509.0867,
+      "device": 16777222,
+      "inode": 153193120,
+      "sha256": "162641e3e6addf47a75115644aa58767cf88441cfe2fba69366027059038507e",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengGlasses-macOS-v0.1.7.zip",
+    {
+      "size": 680040,
+      "mtime": 1792736480305.5076,
+      "device": 16777222,
+      "inode": 153197663,
+      "sha256": "1c810e3a0be87648e1b48c75cd666c70fbc976bcd03d217e4146d0d6316dd614",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-HarmonyOS-Offline-v0.12.0 2.hap",
+    {
+      "size": 51130398,
+      "mtime": 1793283612000,
+      "device": 16777224,
+      "inode": 155616207,
+      "sha256": "6d75eaf7212fb801daf1d90d0e14472d7b25fc1767a2835ddef0b0afae3e9c7f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/SpaceFight-HarmonyOS-Offline-latest 11.hap",
+    {
+      "size": 51130398,
+      "mtime": 1793283615000,
+      "device": 16777224,
+      "inode": 155616241,
+      "sha256": "6d75eaf7212fb801daf1d90d0e14472d7b25fc1767a2835ddef0b0afae3e9c7f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-v0.12.0 2.hap",
+    {
+      "size": 51130398,
+      "mtime": 1793283613000,
+      "device": 16777224,
+      "inode": 155616216,
+      "sha256": "6d75eaf7212fb801daf1d90d0e14472d7b25fc1767a2835ddef0b0afae3e9c7f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/SpaceFight-HarmonyOS-Offline-latest 9.hap",
+    {
+      "size": 51130398,
+      "mtime": 1793283617000,
+      "device": 16777224,
+      "inode": 155616269,
+      "sha256": "6d75eaf7212fb801daf1d90d0e14472d7b25fc1767a2835ddef0b0afae3e9c7f",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengDebugAssistant-HarmonyOS-v0.1.0-unsigned.hap",
+    {
+      "size": 5155855,
+      "mtime": 1793494581792.2456,
+      "device": 16777224,
+      "inode": 156604435,
+      "sha256": "f790b8234651d3fc8aacef11350831932b260ab4c0d63149a14fd7302a1a3a6a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "api/apps/ZhengZhengDebugAssistant-HarmonyOS-v0.1.0-unsigned.hap",
+    {
+      "size": 5155855,
+      "mtime": 1793494580963.0474,
+      "device": 16777224,
+      "inode": 156604430,
+      "sha256": "f790b8234651d3fc8aacef11350831932b260ab4c0d63149a14fd7302a1a3a6a",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/LifeDiary-macOS-v0.3.1-b4-development-signed.dmg",
+    {
+      "size": 2884497,
+      "mtime": 1793542602443.7517,
+      "device": 16777224,
+      "inode": 156681620,
+      "sha256": "80af7962b8ce2abc73ee3dca5d49d28b7d22f2279a86230cc99388be3030057d",
+      "targetKey": ""
+    }
+  ],
+  [
+    "zhengzhengstudio.cn/api/apps/ZhengZhengDebugAssistant-HarmonyOS-latest.hap",
+    {
+      "size": 5155855,
+      "mtime": 1793541803150.2444,
+      "device": 16777224,
+      "inode": 156674119,
+      "sha256": "f790b8234651d3fc8aacef11350831932b260ab4c0d63149a14fd7302a1a3a6a",
+      "targetKey": ""
+    }
+  ]
+]

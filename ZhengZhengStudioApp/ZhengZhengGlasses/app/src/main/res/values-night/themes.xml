@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.ZhengZhengGlasses" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorAccent">@color/zz_primary</item>
+        <item name="android:statusBarColor">@color/zz_bg</item>
+        <item name="android:navigationBarColor">@color/zz_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">@color/zz_bg</item>
+    </style>
+</resources>

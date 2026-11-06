@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.FurnaceRulesTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-04T08:57:34" hostname="LJGdeMacBook-Pro.local" time="0.005">
+  <properties/>
+  <testcase name="inputAndFuelAreValidatedSeparately" classname="cn.zhengzhengstudio.survivaldiary.FurnaceRulesTest" time="0.003"/>
+  <testcase name="sameItemUsedAsInputAndFuelConsumesTheCombinedAmount" classname="cn.zhengzhengstudio.survivaldiary.FurnaceRulesTest" time="0.001"/>
+  <testcase name="processAdvancesWithWorldTimeAndOutputMustBeClaimed" classname="cn.zhengzhengstudio.survivaldiary.FurnaceRulesTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

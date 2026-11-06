@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.WildlifeEngineTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-09-04T10:01:34" hostname="LJGdeMacBook-Pro.local" time="0.014">
+  <properties/>
+  <testcase name="create accepts every frozen species id without resetting stored ecology" classname="cn.zhengzhengstudio.survivaldiary.WildlifeEngineTest" time="0.002"/>
+  <testcase name="nonlethal attack at nonzero time uses absolute warning deadline across segmented steps" classname="cn.zhengzhengstudio.survivaldiary.WildlifeEngineTest" time="0.001"/>
+  <testcase name="rabbit flees and boar threatens under identical proximity" classname="cn.zhengzhengstudio.survivaldiary.WildlifeEngineTest" time="0.0"/>
+  <testcase name="damage rounds to four decimals and lethal action updates population once" classname="cn.zhengzhengstudio.survivaldiary.WildlifeEngineTest" time="0.002"/>
+  <testcase name="warning duration is identical for one step or segmented steps" classname="cn.zhengzhengstudio.survivaldiary.WildlifeEngineTest" time="0.003"/>
+  <testcase name="four decimal rounding matches JavaScript positive and negative ties" classname="cn.zhengzhengstudio.survivaldiary.WildlifeEngineTest" time="0.002"/>
+  <testcase name="population recovery is identical for one day or four six hour steps" classname="cn.zhengzhengstudio.survivaldiary.WildlifeEngineTest" time="0.001"/>
+  <testcase name="nonlethal action id retry returns first state without applying damage twice" classname="cn.zhengzhengstudio.survivaldiary.WildlifeEngineTest" time="0.001"/>
+  <testcase name="warning deadline is absolute for one step or segmented steps" classname="cn.zhengzhengstudio.survivaldiary.WildlifeEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

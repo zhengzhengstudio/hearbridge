@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "realSecondsPerGameDay": 1800,
+  "healthRecovery": { "minimumHunger": 65, "minimumThirst": 65, "temperatureBand": "safe", "blockedBy": ["bleeding"] },
+  "staminaRecovery": { "minimumHunger": 30, "minimumThirst": 30, "blockedBy": ["overloaded"] },
+  "consumables": {
+    "grilled-fish": { "health": 2, "stamina": 9, "hunger": 22, "thirst": -1, "animationId": "eat-cooked-fish" }
+  }
+}

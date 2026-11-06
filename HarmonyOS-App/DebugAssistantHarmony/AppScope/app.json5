@@ -1,0 +1,10 @@
+{
+  "app": {
+    "bundleName": "cn.zhengzhengstudio.debugassistant",
+    "vendor": "铮铮实验室",
+    "versionCode": 1,
+    "versionName": "0.1.0",
+    "icon": "$media:layered_image",
+    "label": "$string:app_name"
+  }
+}

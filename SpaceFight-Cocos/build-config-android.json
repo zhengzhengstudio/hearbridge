@@ -1,0 +1,14 @@
+{
+  "platform": "android",
+  "debug": true,
+  "buildPath": "project://build/android",
+  "options": {
+    "packages": {
+      "android": {
+        "packageName": "cn.zhengzhengstudio.spacefight",
+        "appABIs": ["arm64-v8a", "armeabi-v7a"]
+      }
+    }
+  },
+  "autoCompile": true
+}

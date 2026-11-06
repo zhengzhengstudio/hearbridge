@@ -1,0 +1,30 @@
+{
+  "platform": "web-desktop",
+  "debug": false,
+  "buildPath": "project://release",
+  "outputName": "web-desktop",
+  "taskName": "spacefight-web-release",
+  "buildMode": "normal",
+  "mainBundleCompressionType": "merge_dep",
+  "packages": {
+    "web-desktop": {
+      "useWebGPU": false,
+      "resolution": {
+        "designWidth": 1280,
+        "designHeight": 720
+      }
+    }
+  },
+  "name": "spacefight-cocos",
+  "mangleProperties": false,
+  "md5Cache": true,
+  "sourceMaps": false,
+  "useSplashScreen": false,
+  "startScene": "ee9bc189-ccbe-45a5-bafb-2a39c70b4b08",
+  "scenes": [
+    {
+      "url": "db://assets/scenes/Combat.scene",
+      "uuid": "ee9bc189-ccbe-45a5-bafb-2a39c70b4b08"
+    }
+  ]
+}

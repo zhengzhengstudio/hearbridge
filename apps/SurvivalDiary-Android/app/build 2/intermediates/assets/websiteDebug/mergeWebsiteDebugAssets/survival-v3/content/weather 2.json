@@ -1,0 +1,9 @@
+[
+  { "id": "clear", "minTemperature": 0, "maxTemperature": 1, "wetness": 0, "wind": 0.15 },
+  { "id": "cloudy", "minTemperature": 0, "maxTemperature": 1, "wetness": 0.05, "wind": 0.25 },
+  { "id": "fog", "minTemperature": 0.2, "maxTemperature": 0.8, "wetness": 0.2, "wind": 0.08 },
+  { "id": "rain", "minTemperature": 0.25, "maxTemperature": 1, "wetness": 0.8, "wind": 0.45 },
+  { "id": "storm", "minTemperature": 0.3, "maxTemperature": 1, "wetness": 1, "wind": 0.9 },
+  { "id": "snow", "minTemperature": 0, "maxTemperature": 0.35, "wetness": 0.5, "wind": 0.3 },
+  { "id": "blizzard", "minTemperature": 0, "maxTemperature": 0.2, "wetness": 0.85, "wind": 1 }
+]

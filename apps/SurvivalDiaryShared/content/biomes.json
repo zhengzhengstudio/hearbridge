@@ -1,0 +1,7 @@
+[
+  { "id": "lagoon", "name": "浅蓝潟湖", "terrainModel": "continuous-low-poly", "resources": ["shell", "reef-fish", "fresh-water"] },
+  { "id": "palm-grove", "name": "棕榈林", "terrainModel": "continuous-low-poly", "resources": ["driftwood", "fiber", "fresh-water"] },
+  { "id": "basalt-ridge", "name": "玄武岩脊", "terrainModel": "continuous-low-poly", "resources": ["stone", "fiber"] },
+  { "id": "mangrove", "name": "红树林", "terrainModel": "continuous-low-poly", "resources": ["driftwood", "fiber", "reef-fish"] },
+  { "id": "ruins", "name": "潮汐遗迹", "terrainModel": "continuous-low-poly", "resources": ["stone", "shell"] }
+]

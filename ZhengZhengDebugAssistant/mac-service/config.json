@@ -1,0 +1,11 @@
+{
+  "_说明": "铮铮调试助手 Mac 构建服务配置。workspaceDir 是手机端能浏览/编辑的根目录；builds 是项目名→构建命令（在项目目录内用 bash 执行）；token 手机端与服务必须一致。",
+  "port": 8124,
+  "token": "zhengzheng-debug-2026",
+  "workspaceDir": "/Users/ljg/Desktop/开发者/TRAE/ZhengZhengDebugAssistant/workspace",
+  "artifactExtensions": [".apk", ".apks", ".hap", ".app", ".haps", ".aab"],
+  "builds": {
+    "_示例项目": "cd 进项目目录后执行；可引用 gradle/hvigor 环境变量，见 README",
+    "*": "echo '在 config.json 的 builds 里为这个项目配置构建命令'"
+  }
+}

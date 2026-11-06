@@ -1,0 +1,20 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "铮铮眼镜原生 HarmonyOS 客户端"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "铮铮眼镜"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "铮铮眼镜"
+    },
+    {
+      "name": "app_name",
+      "value": "铮铮眼镜"
+    }
+  ]
+}

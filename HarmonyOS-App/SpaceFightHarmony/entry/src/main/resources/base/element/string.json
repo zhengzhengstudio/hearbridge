@@ -1,0 +1,20 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "SpaceFight HarmonyOS 客户端"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "SpaceFight"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "SpaceFight"
+    },
+    {
+      "name": "app_name",
+      "value": "SpaceFight"
+    }
+  ]
+}

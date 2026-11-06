@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://survival-diary.zhengzhengstudio.cn/schemas/animals-v1.json",
+  "title": "Survival Diary animal and habitat definitions",
+  "definitions": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "quantityRange": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 0 },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "animal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "category", "maxHealth", "moveSpeed", "fleeSpeed", "awarenessRadius", "retaliationTriggers", "activityWindows", "tameable", "drops", "presentationKey"],
+      "properties": {
+        "id": { "$ref": "#/definitions/id" },
+        "name": { "type": "string", "minLength": 1 },
+        "category": { "enum": ["bird", "crustacean", "fish", "mammal", "reptile"] },
+        "maxHealth": { "type": "number", "minimum": 0 },
+        "moveSpeed": { "type": "number", "minimum": 0 },
+        "fleeSpeed": { "type": "number", "minimum": 0 },
+        "awarenessRadius": { "type": "number", "minimum": 0 },
+        "retaliationTriggers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["proximity", "surprise", "nest", "young", "attacked"] }
+        },
+        "activityWindows": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["dawn", "day", "dusk", "night"] }
+        },
+        "tameable": { "type": "boolean" },
+        "drops": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/quantityRange" },
+          "propertyNames": { "$ref": "#/definitions/id" }
+        },
+        "presentationKey": { "type": "string", "pattern": "^animal\\.[a-z0-9]+(?:-[a-z0-9]+)*$" }
+      }
+    },
+    "habitat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["animalId", "biomes", "minWaterDepth", "maxWaterDepth", "weatherWeights", "baseCapacity", "foodTags", "waterRequired"],
+      "properties": {
+        "animalId": { "$ref": "#/definitions/id" },
+        "biomes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["lagoon", "palm-grove", "basalt-ridge", "mangrove", "cloud-forest", "dry-savanna", "limestone-upland", "ruins"] }
+        },
+        "minWaterDepth": { "type": "number", "minimum": 0 },
+        "maxWaterDepth": { "type": "number", "minimum": 0 },
+        "weatherWeights": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": { "enum": ["clear", "cloudy", "fog", "rain", "storm", "snow", "blizzard"] },
+          "additionalProperties": { "type": "number", "minimum": 0 }
+        },
+        "baseCapacity": { "type": "integer", "minimum": 0 },
+        "foodTags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/definitions/id" }
+        },
+        "waterRequired": { "type": "boolean" }
+      }
+    }
+  }
+}

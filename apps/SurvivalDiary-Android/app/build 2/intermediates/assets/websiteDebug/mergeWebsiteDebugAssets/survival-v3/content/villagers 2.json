@@ -1,0 +1,3 @@
+[
+  { "id": "castaway-builder", "kind": "villager", "role": "builder", "assetId": "character.survivor", "anchor": { "x": 0.5, "y": 0.94 }, "collision": { "shape": "circle", "width": 0.65, "height": 0.65 }, "footprint": { "width": 1, "height": 1 }, "heightLayer": 4, "requiredStates": ["idle", "walk", "work", "talk"], "needs": ["shelter", "food", "fresh-water"], "allowedOrders": ["haul", "build", "repair"] }
+]

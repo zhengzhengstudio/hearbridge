@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"><style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 952px; height: 1115px; overflow: hidden; background: #FFFFFF; }
+  #board { position: relative; width: 952px; height: 1115px; border-radius: 26px;
+    background: radial-gradient(circle at 50% 50%, #FFFCF3 0%, #F6EBD2 68%, #E7D7B4 100%); }
+  .frame { position: absolute; left: 12px; top: 12px; width: 928px; height: 1091px;
+    border: 5px solid #C79A3C; border-radius: 22px; opacity: .8; }
+  .hole { position: absolute; width: 51px; height: 51px; border-radius: 50%;
+    background: #FFFFFF; border: 2.5px solid #8A7856; transform: translate(-50%, -50%);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.10); }
+  .zone { position: absolute; width: 71px; height: 71px; border-radius: 50%;
+    transform: translate(-50%, -50%); }
+  .tag { position: absolute; transform: translate(-50%, -50%); text-align: center;
+    font-family: "PingFang SC", "Heiti SC", sans-serif; font-weight: 800; white-space: nowrap; }
+</style></head><body><div id="board">
+  <div class="frame"></div>
+  <div class="zone" style="left:476.0px;top:56.0px;background:rgba(233,75,60,.16)"></div>
+  <div class="zone" style="left:441.0px;top:116.6px;background:rgba(233,75,60,.16)"></div>
+  <div class="zone" style="left:511.0px;top:116.6px;background:rgba(233,75,60,.16)"></div>
+  <div class="zone" style="left:406.0px;top:177.2px;background:rgba(233,75,60,.16)"></div>
+  <div class="zone" style="left:476.0px;top:177.2px;background:rgba(233,75,60,.16)"></div>
+  <div class="zone" style="left:546.0px;top:177.2px;background:rgba(233,75,60,.16)"></div>
+  <div class="zone" style="left:371.0px;top:237.9px;background:rgba(233,75,60,.16)"></div>
+  <div class="zone" style="left:441.0px;top:237.9px;background:rgba(233,75,60,.16)"></div>
+  <div class="zone" style="left:511.0px;top:237.9px;background:rgba(233,75,60,.16)"></div>
+  <div class="zone" style="left:581.0px;top:237.9px;background:rgba(233,75,60,.16)"></div>
+  <div class="zone" style="left:371.0px;top:844.1px;background:rgba(233,75,60,.16);border:2.5px dashed #E94B3C"></div>
+  <div class="zone" style="left:441.0px;top:844.1px;background:rgba(233,75,60,.16);border:2.5px dashed #E94B3C"></div>
+  <div class="zone" style="left:511.0px;top:844.1px;background:rgba(233,75,60,.16);border:2.5px dashed #E94B3C"></div>
+  <div class="zone" style="left:581.0px;top:844.1px;background:rgba(233,75,60,.16);border:2.5px dashed #E94B3C"></div>
+  <div class="zone" style="left:406.0px;top:904.7px;background:rgba(233,75,60,.16);border:2.5px dashed #E94B3C"></div>
+  <div class="zone" style="left:476.0px;top:904.7px;background:rgba(233,75,60,.16);border:2.5px dashed #E94B3C"></div>
+  <div class="zone" style="left:546.0px;top:904.7px;background:rgba(233,75,60,.16);border:2.5px dashed #E94B3C"></div>
+  <div class="zone" style="left:441.0px;top:965.3px;background:rgba(233,75,60,.16);border:2.5px dashed #E94B3C"></div>
+  <div class="zone" style="left:511.0px;top:965.3px;background:rgba(233,75,60,.16);border:2.5px dashed #E94B3C"></div>
+  <div class="zone" style="left:476.0px;top:1025.9px;background:rgba(233,75,60,.16);border:2.5px dashed #E94B3C"></div>
+  <div class="zone" style="left:161.0px;top:601.6px;background:rgba(245,166,35,.16)"></div>
+  <div class="zone" style="left:126.0px;top:662.2px;background:rgba(245,166,35,.16)"></div>
+  <div class="zone" style="left:196.0px;top:662.2px;background:rgba(245,166,35,.16)"></div>
+  <div class="zone" style="left:91.0px;top:722.8px;background:rgba(245,166,35,.16)"></div>
+  <div class="zone" style="left:161.0px;top:722.8px;background:rgba(245,166,35,.16)"></div>
+  <div class="zone" style="left:231.0px;top:722.8px;background:rgba(245,166,35,.16)"></div>
+  <div class="zone" style="left:56.0px;top:783.4px;background:rgba(245,166,35,.16)"></div>
+  <div class="zone" style="left:126.0px;top:783.4px;background:rgba(245,166,35,.16)"></div>
+  <div class="zone" style="left:196.0px;top:783.4px;background:rgba(245,166,35,.16)"></div>
+  <div class="zone" style="left:266.0px;top:783.4px;background:rgba(245,166,35,.16)"></div>
+  <div class="zone" style="left:686.0px;top:298.5px;background:rgba(245,166,35,.16);border:2.5px dashed #F5A623"></div>
+  <div class="zone" style="left:756.0px;top:298.5px;background:rgba(245,166,35,.16);border:2.5px dashed #F5A623"></div>
+  <div class="zone" style="left:826.0px;top:298.5px;background:rgba(245,166,35,.16);border:2.5px dashed #F5A623"></div>
+  <div class="zone" style="left:896.0px;top:298.5px;background:rgba(245,166,35,.16);border:2.5px dashed #F5A623"></div>
+  <div class="zone" style="left:721.0px;top:359.1px;background:rgba(245,166,35,.16);border:2.5px dashed #F5A623"></div>
+  <div class="zone" style="left:791.0px;top:359.1px;background:rgba(245,166,35,.16);border:2.5px dashed #F5A623"></div>
+  <div class="zone" style="left:861.0px;top:359.1px;background:rgba(245,166,35,.16);border:2.5px dashed #F5A623"></div>
+  <div class="zone" style="left:756.0px;top:419.7px;background:rgba(245,166,35,.16);border:2.5px dashed #F5A623"></div>
+  <div class="zone" style="left:826.0px;top:419.7px;background:rgba(245,166,35,.16);border:2.5px dashed #F5A623"></div>
+  <div class="zone" style="left:791.0px;top:480.3px;background:rgba(245,166,35,.16);border:2.5px dashed #F5A623"></div>
+  <div class="zone" style="left:791.0px;top:601.6px;background:rgba(59,125,216,.16)"></div>
+  <div class="zone" style="left:756.0px;top:662.2px;background:rgba(59,125,216,.16)"></div>
+  <div class="zone" style="left:826.0px;top:662.2px;background:rgba(59,125,216,.16)"></div>
+  <div class="zone" style="left:721.0px;top:722.8px;background:rgba(59,125,216,.16)"></div>
+  <div class="zone" style="left:791.0px;top:722.8px;background:rgba(59,125,216,.16)"></div>
+  <div class="zone" style="left:861.0px;top:722.8px;background:rgba(59,125,216,.16)"></div>
+  <div class="zone" style="left:686.0px;top:783.4px;background:rgba(59,125,216,.16)"></div>
+  <div class="zone" style="left:756.0px;top:783.4px;background:rgba(59,125,216,.16)"></div>
+  <div class="zone" style="left:826.0px;top:783.4px;background:rgba(59,125,216,.16)"></div>
+  <div class="zone" style="left:896.0px;top:783.4px;background:rgba(59,125,216,.16)"></div>
+  <div class="zone" style="left:56.0px;top:298.5px;background:rgba(59,125,216,.16);border:2.5px dashed #3B7DD8"></div>
+  <div class="zone" style="left:126.0px;top:298.5px;background:rgba(59,125,216,.16);border:2.5px dashed #3B7DD8"></div>
+  <div class="zone" style="left:196.0px;top:298.5px;background:rgba(59,125,216,.16);border:2.5px dashed #3B7DD8"></div>
+  <div class="zone" style="left:266.0px;top:298.5px;background:rgba(59,125,216,.16);border:2.5px dashed #3B7DD8"></div>
+  <div class="zone" style="left:91.0px;top:359.1px;background:rgba(59,125,216,.16);border:2.5px dashed #3B7DD8"></div>
+  <div class="zone" style="left:161.0px;top:359.1px;background:rgba(59,125,216,.16);border:2.5px dashed #3B7DD8"></div>
+  <div class="zone" style="left:231.0px;top:359.1px;background:rgba(59,125,216,.16);border:2.5px dashed #3B7DD8"></div>
+  <div class="zone" style="left:126.0px;top:419.7px;background:rgba(59,125,216,.16);border:2.5px dashed #3B7DD8"></div>
+  <div class="zone" style="left:196.0px;top:419.7px;background:rgba(59,125,216,.16);border:2.5px dashed #3B7DD8"></div>
+  <div class="zone" style="left:161.0px;top:480.3px;background:rgba(59,125,216,.16);border:2.5px dashed #3B7DD8"></div>
+  <div class="hole" style="left:476.0px;top:56.0px"></div>
+  <div class="hole" style="left:441.0px;top:116.6px"></div>
+  <div class="hole" style="left:511.0px;top:116.6px"></div>
+  <div class="hole" style="left:406.0px;top:177.2px"></div>
+  <div class="hole" style="left:476.0px;top:177.2px"></div>
+  <div class="hole" style="left:546.0px;top:177.2px"></div>
+  <div class="hole" style="left:371.0px;top:237.9px"></div>
+  <div class="hole" style="left:441.0px;top:237.9px"></div>
+  <div class="hole" style="left:511.0px;top:237.9px"></div>
+  <div class="hole" style="left:581.0px;top:237.9px"></div>
+  <div class="hole" style="left:56.0px;top:298.5px"></div>
+  <div class="hole" style="left:126.0px;top:298.5px"></div>
+  <div class="hole" style="left:196.0px;top:298.5px"></div>
+  <div class="hole" style="left:266.0px;top:298.5px"></div>
+  <div class="hole" style="left:336.0px;top:298.5px"></div>
+  <div class="hole" style="left:406.0px;top:298.5px"></div>
+  <div class="hole" style="left:476.0px;top:298.5px"></div>
+  <div class="hole" style="left:546.0px;top:298.5px"></div>
+  <div class="hole" style="left:616.0px;top:298.5px"></div>
+  <div class="hole" style="left:686.0px;top:298.5px"></div>
+  <div class="hole" style="left:756.0px;top:298.5px"></div>
+  <div class="hole" style="left:826.0px;top:298.5px"></div>
+  <div class="hole" style="left:896.0px;top:298.5px"></div>
+  <div class="hole" style="left:91.0px;top:359.1px"></div>
+  <div class="hole" style="left:161.0px;top:359.1px"></div>
+  <div class="hole" style="left:231.0px;top:359.1px"></div>
+  <div class="hole" style="left:301.0px;top:359.1px"></div>
+  <div class="hole" style="left:371.0px;top:359.1px"></div>
+  <div class="hole" style="left:441.0px;top:359.1px"></div>
+  <div class="hole" style="left:511.0px;top:359.1px"></div>
+  <div class="hole" style="left:581.0px;top:359.1px"></div>
+  <div class="hole" style="left:651.0px;top:359.1px"></div>
+  <div class="hole" style="left:721.0px;top:359.1px"></div>
+  <div class="hole" style="left:791.0px;top:359.1px"></div>
+  <div class="hole" style="left:861.0px;top:359.1px"></div>
+  <div class="hole" style="left:126.0px;top:419.7px"></div>
+  <div class="hole" style="left:196.0px;top:419.7px"></div>
+  <div class="hole" style="left:266.0px;top:419.7px"></div>
+  <div class="hole" style="left:336.0px;top:419.7px"></div>
+  <div class="hole" style="left:406.0px;top:419.7px"></div>
+  <div class="hole" style="left:476.0px;top:419.7px"></div>
+  <div class="hole" style="left:546.0px;top:419.7px"></div>
+  <div class="hole" style="left:616.0px;top:419.7px"></div>
+  <div class="hole" style="left:686.0px;top:419.7px"></div>
+  <div class="hole" style="left:756.0px;top:419.7px"></div>
+  <div class="hole" style="left:826.0px;top:419.7px"></div>
+  <div class="hole" style="left:161.0px;top:480.3px"></div>
+  <div class="hole" style="left:231.0px;top:480.3px"></div>
+  <div class="hole" style="left:301.0px;top:480.3px"></div>
+  <div class="hole" style="left:371.0px;top:480.3px"></div>
+  <div class="hole" style="left:441.0px;top:480.3px"></div>
+  <div class="hole" style="left:511.0px;top:480.3px"></div>
+  <div class="hole" style="left:581.0px;top:480.3px"></div>
+  <div class="hole" style="left:651.0px;top:480.3px"></div>
+  <div class="hole" style="left:721.0px;top:480.3px"></div>
+  <div class="hole" style="left:791.0px;top:480.3px"></div>
+  <div class="hole" style="left:196.0px;top:541.0px"></div>
+  <div class="hole" style="left:266.0px;top:541.0px"></div>
+  <div class="hole" style="left:336.0px;top:541.0px"></div>
+  <div class="hole" style="left:406.0px;top:541.0px"></div>
+  <div class="hole" style="left:476.0px;top:541.0px"></div>
+  <div class="hole" style="left:546.0px;top:541.0px"></div>
+  <div class="hole" style="left:616.0px;top:541.0px"></div>
+  <div class="hole" style="left:686.0px;top:541.0px"></div>
+  <div class="hole" style="left:756.0px;top:541.0px"></div>
+  <div class="hole" style="left:161.0px;top:601.6px"></div>
+  <div class="hole" style="left:231.0px;top:601.6px"></div>
+  <div class="hole" style="left:301.0px;top:601.6px"></div>
+  <div class="hole" style="left:371.0px;top:601.6px"></div>
+  <div class="hole" style="left:441.0px;top:601.6px"></div>
+  <div class="hole" style="left:511.0px;top:601.6px"></div>
+  <div class="hole" style="left:581.0px;top:601.6px"></div>
+  <div class="hole" style="left:651.0px;top:601.6px"></div>
+  <div class="hole" style="left:721.0px;top:601.6px"></div>
+  <div class="hole" style="left:791.0px;top:601.6px"></div>
+  <div class="hole" style="left:126.0px;top:662.2px"></div>
+  <div class="hole" style="left:196.0px;top:662.2px"></div>
+  <div class="hole" style="left:266.0px;top:662.2px"></div>
+  <div class="hole" style="left:336.0px;top:662.2px"></div>
+  <div class="hole" style="left:406.0px;top:662.2px"></div>
+  <div class="hole" style="left:476.0px;top:662.2px"></div>
+  <div class="hole" style="left:546.0px;top:662.2px"></div>
+  <div class="hole" style="left:616.0px;top:662.2px"></div>
+  <div class="hole" style="left:686.0px;top:662.2px"></div>
+  <div class="hole" style="left:756.0px;top:662.2px"></div>
+  <div class="hole" style="left:826.0px;top:662.2px"></div>
+  <div class="hole" style="left:91.0px;top:722.8px"></div>
+  <div class="hole" style="left:161.0px;top:722.8px"></div>
+  <div class="hole" style="left:231.0px;top:722.8px"></div>
+  <div class="hole" style="left:301.0px;top:722.8px"></div>
+  <div class="hole" style="left:371.0px;top:722.8px"></div>
+  <div class="hole" style="left:441.0px;top:722.8px"></div>
+  <div class="hole" style="left:511.0px;top:722.8px"></div>
+  <div class="hole" style="left:581.0px;top:722.8px"></div>
+  <div class="hole" style="left:651.0px;top:722.8px"></div>
+  <div class="hole" style="left:721.0px;top:722.8px"></div>
+  <div class="hole" style="left:791.0px;top:722.8px"></div>
+  <div class="hole" style="left:861.0px;top:722.8px"></div>
+  <div class="hole" style="left:56.0px;top:783.4px"></div>
+  <div class="hole" style="left:126.0px;top:783.4px"></div>
+  <div class="hole" style="left:196.0px;top:783.4px"></div>
+  <div class="hole" style="left:266.0px;top:783.4px"></div>
+  <div class="hole" style="left:336.0px;top:783.4px"></div>
+  <div class="hole" style="left:406.0px;top:783.4px"></div>
+  <div class="hole" style="left:476.0px;top:783.4px"></div>
+  <div class="hole" style="left:546.0px;top:783.4px"></div>
+  <div class="hole" style="left:616.0px;top:783.4px"></div>
+  <div class="hole" style="left:686.0px;top:783.4px"></div>
+  <div class="hole" style="left:756.0px;top:783.4px"></div>
+  <div class="hole" style="left:826.0px;top:783.4px"></div>
+  <div class="hole" style="left:896.0px;top:783.4px"></div>
+  <div class="hole" style="left:371.0px;top:844.1px"></div>
+  <div class="hole" style="left:441.0px;top:844.1px"></div>
+  <div class="hole" style="left:511.0px;top:844.1px"></div>
+  <div class="hole" style="left:581.0px;top:844.1px"></div>
+  <div class="hole" style="left:406.0px;top:904.7px"></div>
+  <div class="hole" style="left:476.0px;top:904.7px"></div>
+  <div class="hole" style="left:546.0px;top:904.7px"></div>
+  <div class="hole" style="left:441.0px;top:965.3px"></div>
+  <div class="hole" style="left:511.0px;top:965.3px"></div>
+  <div class="hole" style="left:476.0px;top:1025.9px"></div>
+  <div class="tag" style="left:476.0px;top:177.2px;font-size:19px;color:#8A6A2F;opacity:.62">红</div>
+  <div class="tag" style="left:161.0px;top:722.8px;font-size:19px;color:#8A6A2F;opacity:.62">黄</div>
+  <div class="tag" style="left:791.0px;top:722.8px;font-size:19px;color:#8A6A2F;opacity:.62">蓝</div>
+  <div class="tag" style="left:476.0px;top:904.7px;font-size:19px;color:#8A6A2F;opacity:.62">红家</div>
+  <div class="tag" style="left:791.0px;top:359.1px;font-size:19px;color:#8A6A2F;opacity:.62">黄家</div>
+  <div class="tag" style="left:161.0px;top:359.1px;font-size:19px;color:#8A6A2F;opacity:.62">蓝家</div>
+</div></body></html>

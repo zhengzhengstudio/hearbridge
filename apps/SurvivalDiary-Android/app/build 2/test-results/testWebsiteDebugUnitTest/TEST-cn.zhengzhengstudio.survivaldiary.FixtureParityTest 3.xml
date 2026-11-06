@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.FixtureParityTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-04T10:01:31" hostname="LJGdeMacBook-Pro.local" time="0.231">
+  <properties/>
+  <testcase name="switchingModePreservesIsland" classname="cn.zhengzhengstudio.survivaldiary.FixtureParityTest" time="0.044"/>
+  <testcase name="buildingsCanBeRepairedAndDismantled" classname="cn.zhengzhengstudio.survivaldiary.FixtureParityTest" time="0.046"/>
+  <testcase name="goldenFixtureMatches" classname="cn.zhengzhengstudio.survivaldiary.FixtureParityTest" time="0.14"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

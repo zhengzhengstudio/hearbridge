@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="cn.zhengzhengstudio.survivaldiary.SurvivalLoopTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2026-09-04T10:01:34" hostname="LJGdeMacBook-Pro.local" time="0.067">
+  <properties/>
+  <testcase name="inventory mass and backpack upgrades enforce a finite capacity" classname="cn.zhengzhengstudio.survivaldiary.SurvivalLoopTest" time="0.001"/>
+  <testcase name="opening chapter has an explicit completion state without ending the open game" classname="cn.zhengzhengstudio.survivaldiary.SurvivalLoopTest" time="0.003"/>
+  <testcase name="fresh water collection completes the forage objective even after the water was used" classname="cn.zhengzhengstudio.survivaldiary.SurvivalLoopTest" time="0.001"/>
+  <testcase name="new player tutorial follows real movement materials water tool and food actions" classname="cn.zhengzhengstudio.survivaldiary.SurvivalLoopTest" time="0.002"/>
+  <testcase name="eating consumes one item and restores clamped survival values" classname="cn.zhengzhengstudio.survivaldiary.SurvivalLoopTest" time="0.001"/>
+  <testcase name="starvation dehydration and storms cause health loss instead of only changing labels" classname="cn.zhengzhengstudio.survivaldiary.SurvivalLoopTest" time="0.0"/>
+  <testcase name="tools lose durability per action and break only when durability reaches zero" classname="cn.zhengzhengstudio.survivaldiary.SurvivalLoopTest" time="0.001"/>
+  <testcase name="guided objective advances from foraging through first night preparation" classname="cn.zhengzhengstudio.survivaldiary.SurvivalLoopTest" time="0.0"/>
+  <testcase name="renewable resource nodes recover with world time but mineral deposits stay depleted" classname="cn.zhengzhengstudio.survivaldiary.SurvivalLoopTest" time="0.032"/>
+  <testcase name="hotbar is an explicit eight slot loadout instead of the first eight inventory entries" classname="cn.zhengzhengstudio.survivaldiary.SurvivalLoopTest" time="0.002"/>
+  <testcase name="using a shelter advances time and restores stamina without ignoring hunger and thirst" classname="cn.zhengzhengstudio.survivaldiary.SurvivalLoopTest" time="0.015"/>
+  <testcase name="axe and pickaxe never satisfy the same harvest requirement" classname="cn.zhengzhengstudio.survivaldiary.SurvivalLoopTest" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
