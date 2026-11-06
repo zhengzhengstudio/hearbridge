@@ -1,0 +1,239 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "31108430-f842-4c8a-96cc-764b42413829",
+  "files": [],
+  "subMetas": {
+    "92111": {
+      "importer": "gltf-embeded-image",
+      "uuid": "31108430-f842-4c8a-96cc-764b42413829@92111",
+      "displayName": "",
+      "id": "92111",
+      "name": "texture_pbr_20250901_normal.image",
+      "userData": {
+        "gltfIndex": 0,
+        "fixAlphaTransparencyArtifacts": true,
+        "hasAlpha": false,
+        "type": "texture"
+      },
+      "ver": "1.0.3",
+      "imported": true,
+      "files": [
+        ".json",
+        ".png"
+      ],
+      "subMetas": {}
+    },
+    "99380": {
+      "importer": "gltf-material",
+      "uuid": "31108430-f842-4c8a-96cc-764b42413829@99380",
+      "displayName": "",
+      "id": "99380",
+      "name": "Material.001.material",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "70c05": {
+      "importer": "gltf-mesh",
+      "uuid": "31108430-f842-4c8a-96cc-764b42413829@70c05",
+      "displayName": "",
+      "id": "70c05",
+      "name": "material.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 3584
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "7e97f": {
+      "importer": "gltf-embeded-image",
+      "uuid": "31108430-f842-4c8a-96cc-764b42413829@7e97f",
+      "displayName": "",
+      "id": "7e97f",
+      "name": "texture_pbr_20250901.image",
+      "userData": {
+        "gltfIndex": 1,
+        "fixAlphaTransparencyArtifacts": true,
+        "hasAlpha": false,
+        "type": "texture"
+      },
+      "ver": "1.0.3",
+      "imported": true,
+      "files": [
+        ".json",
+        ".png"
+      ],
+      "subMetas": {}
+    },
+    "df027": {
+      "importer": "gltf-embeded-image",
+      "uuid": "31108430-f842-4c8a-96cc-764b42413829@df027",
+      "displayName": "",
+      "id": "df027",
+      "name": "texture_pbr_20250901_metallic-texture_pbr_20250901_roughness.image",
+      "userData": {
+        "gltfIndex": 2,
+        "fixAlphaTransparencyArtifacts": true,
+        "hasAlpha": false,
+        "type": "texture"
+      },
+      "ver": "1.0.3",
+      "imported": true,
+      "files": [
+        ".json",
+        ".png"
+      ],
+      "subMetas": {}
+    },
+    "3effa": {
+      "importer": "texture",
+      "uuid": "31108430-f842-4c8a-96cc-764b42413829@3effa",
+      "displayName": "",
+      "id": "3effa",
+      "name": "UnnamedTexture-0.texture",
+      "userData": {
+        "wrapModeS": "repeat",
+        "wrapModeT": "repeat",
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "linear",
+        "anisotropy": 0,
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "31108430-f842-4c8a-96cc-764b42413829@92111"
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "221a5": {
+      "importer": "texture",
+      "uuid": "31108430-f842-4c8a-96cc-764b42413829@221a5",
+      "displayName": "",
+      "id": "221a5",
+      "name": "UnnamedTexture-1.texture",
+      "userData": {
+        "wrapModeS": "repeat",
+        "wrapModeT": "repeat",
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "linear",
+        "anisotropy": 0,
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "31108430-f842-4c8a-96cc-764b42413829@7e97f"
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "0089c": {
+      "importer": "texture",
+      "uuid": "31108430-f842-4c8a-96cc-764b42413829@0089c",
+      "displayName": "",
+      "id": "0089c",
+      "name": "UnnamedTexture-2.texture",
+      "userData": {
+        "wrapModeS": "repeat",
+        "wrapModeT": "repeat",
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "linear",
+        "anisotropy": 0,
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "31108430-f842-4c8a-96cc-764b42413829@df027"
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "8c21b": {
+      "importer": "gltf-scene",
+      "uuid": "31108430-f842-4c8a-96cc-764b42413829@8c21b",
+      "displayName": "",
+      "id": "8c21b",
+      "name": "interceptor.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [
+      {
+        "name": "texture_pbr_20250901_normal",
+        "uri": "31108430-f842-4c8a-96cc-764b42413829@92111"
+      },
+      {
+        "name": "texture_pbr_20250901",
+        "uri": "31108430-f842-4c8a-96cc-764b42413829@7e97f"
+      },
+      {
+        "name": "texture_pbr_20250901_metallic-texture_pbr_20250901_roughness",
+        "uri": "31108430-f842-4c8a-96cc-764b42413829@df027"
+      }
+    ],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "31108430-f842-4c8a-96cc-764b42413829@70c05"
+      ],
+      "skeletons": [],
+      "textures": [
+        "31108430-f842-4c8a-96cc-764b42413829@3effa",
+        "31108430-f842-4c8a-96cc-764b42413829@221a5",
+        "31108430-f842-4c8a-96cc-764b42413829@0089c"
+      ],
+      "materials": [
+        "31108430-f842-4c8a-96cc-764b42413829@99380"
+      ],
+      "scenes": [
+        "31108430-f842-4c8a-96cc-764b42413829@8c21b"
+      ]
+    }
+  }
+}

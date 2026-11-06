@@ -1,0 +1,143 @@
+{
+  "ver": "2.3.14",
+  "importer": "gltf",
+  "imported": true,
+  "uuid": "bca0b082-0af9-44c2-88d9-67b26d31eeba",
+  "files": [],
+  "subMetas": {
+    "0b568": {
+      "importer": "gltf-mesh",
+      "uuid": "bca0b082-0af9-44c2-88d9-67b26d31eeba@0b568",
+      "displayName": "",
+      "id": "0b568",
+      "name": "Cylinder.001.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 3366
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "55b19": {
+      "importer": "gltf-embeded-image",
+      "uuid": "bca0b082-0af9-44c2-88d9-67b26d31eeba@55b19",
+      "displayName": "",
+      "id": "55b19",
+      "name": "Insurgent_Orange.image",
+      "userData": {
+        "gltfIndex": 0,
+        "fixAlphaTransparencyArtifacts": true,
+        "hasAlpha": false,
+        "type": "texture"
+      },
+      "ver": "1.0.3",
+      "imported": true,
+      "files": [
+        ".jpg",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "e39f7": {
+      "importer": "texture",
+      "uuid": "bca0b082-0af9-44c2-88d9-67b26d31eeba@e39f7",
+      "displayName": "",
+      "id": "e39f7",
+      "name": "UnnamedTexture.texture",
+      "userData": {
+        "wrapModeS": "repeat",
+        "wrapModeT": "repeat",
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "linear",
+        "anisotropy": 0,
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "bca0b082-0af9-44c2-88d9-67b26d31eeba@55b19"
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "bc290": {
+      "importer": "gltf-material",
+      "uuid": "bca0b082-0af9-44c2-88d9-67b26d31eeba@bc290",
+      "displayName": "",
+      "id": "bc290",
+      "name": "Texture.material",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "31eee": {
+      "importer": "gltf-scene",
+      "uuid": "bca0b082-0af9-44c2-88d9-67b26d31eeba@31eee",
+      "displayName": "",
+      "id": "31eee",
+      "name": "bomber.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [
+      {
+        "name": "Insurgent_Orange",
+        "uri": "bca0b082-0af9-44c2-88d9-67b26d31eeba@55b19"
+      }
+    ],
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "bca0b082-0af9-44c2-88d9-67b26d31eeba@0b568"
+      ],
+      "skeletons": [],
+      "textures": [
+        "bca0b082-0af9-44c2-88d9-67b26d31eeba@e39f7"
+      ],
+      "materials": [
+        "bca0b082-0af9-44c2-88d9-67b26d31eeba@bc290"
+      ],
+      "scenes": [
+        "bca0b082-0af9-44c2-88d9-67b26d31eeba@31eee"
+      ]
+    }
+  }
+}

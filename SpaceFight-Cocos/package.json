@@ -1,0 +1,34 @@
+{
+  "name": "spacefight-cocos",
+  "version": "0.13.9",
+  "build": 73,
+  "private": true,
+  "scripts": {
+    "build:web:release": "node tools/build-web-release.js",
+    "build:native:android": "node tools/build-native-target.js android",
+    "build:native:ios": "node tools/build-native-target.js ios",
+    "build:native:mac": "node tools/build-native-target.js mac",
+    "build:native:harmony": "node tools/build-native-target.js harmonyos",
+    "build:native:harmony-offline": "node tools/build-native-target.js harmonyos-offline",
+    "package:native:harmony-offline-release": "bash tools/package-harmony-offline-release.sh",
+    "baseline:native": "node tools/create-native-migration-baseline.js",
+    "publish:web:release": "node tools/publish-web-release.js",
+    "check:toolchain": "node tools/check-toolchain.js",
+    "test:toolchain": "node --test ../tests/spacefight_cocos_toolchain.test.js",
+    "test:simulation": "node tools/run-simulation-tests.js",
+    "test:contract": "node --test ../tests/spacefight_cocos_module_contract.test.js",
+    "test:input": "node tools/run-input-tests.js",
+    "test:platform": "node tools/run-input-tests.js && node --test ../tests/spacefight_platform_bridge.test.js",
+    "test:all": "npm run test:contract && npm run test:simulation && npm run test:input && npm run test:graphics && npm run test:hud && npm run test:ship-device && npm run test:update-notes",
+    "test:graphics": "node --test ../tests/spacefight_graphics_policy.test.js",
+    "test:hud": "node --test ../tests/spacefight_cocos_hud_ui_contract.test.js",
+    "test:fullscreen": "node --test ../tests/spacefight_cocos_fullscreen_contract.test.js",
+    "verify:native": "node tools/verify-native-foundation.js",
+    "test:ship-device": "node --test ../tests/spacefight_ship_device_contract.test.js",
+    "test:update-notes": "node --test ../tests/spacefight_android_update_ui.test.js"
+  },
+  "creator": {
+    "version": "3.8.8"
+  },
+  "uuid": "40166f83-16d4-4003-a67c-151c8534ca87"
+}

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>SpaceFight | 碎光航道</title>
+  <meta name="description" content="SpaceFight 是一款支持桌面与手机横屏操作的本机 3D 太空射击游戏。">
+  <meta name="viewport" content="width=device-width,height=device-height,user-scalable=no,initial-scale=1,minimum-scale=1,maximum-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#05090c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="full-screen" content="yes">
+  <meta name="screen-orientation" content="landscape">
+  <meta name="x5-orientation" content="landscape">
+  <meta name="x5-fullscreen" content="true">
+  <meta name="360-fullscreen" content="true">
+  <link rel="icon" href="spacefight-icon.png" type="image/png">
+  <link rel="stylesheet" href="spacefight-shell.css">
+</head>
+<body data-engine-ready="false">
+  <div id="SafeAreaProbe" aria-hidden="true"></div>
+  <div id="GameDiv" cc_exact_fit_screen="false">
+    <div id="Cocos3dGameContainer">
+      <canvas id="GameCanvas" width="<%= previewWidth %>" height="<%= previewHeight %>" tabindex="0"></canvas>
+    </div>
+  </div>
+
+  <main id="LaunchGate" aria-labelledby="LaunchTitle">
+    <header class="launch-bar">
+      <div class="brand-lockup">
+        <img src="spacefight-icon.png" alt="SpaceFight">
+        <span><b>SPACEFIGHT</b><small>INTERCEPTOR COMMAND</small></span>
+      </div>
+      <div class="build-readout"><i></i> 本机战斗核心 <b>0.13.9</b></div>
+    </header>
+
+    <section class="launch-briefing">
+      <p class="sector-label">碎光航道 / 六类作战</p>
+      <h1 id="LaunchTitle">拦截敌机、守住空间站<br>或护送运输船</h1>
+      <p class="mission-copy">驾驶 SF-09 穿越动态残骸区：采集补给、猎杀精英、限时存活、守住空间站或护送运输船，每类任务的打法都不同。战斗全程在本机运行。</p>
+      <div class="mission-readout" aria-label="任务参数">
+        <span><small>任务</small><b>六类作战</b></span>
+        <span><small>威胁</small><b>四类空域</b></span>
+        <span><small>模式</small><b>单机 60 Hz</b></span>
+      </div>
+      <ol class="ops-flow" aria-label="出击流程">
+        <li class="is-current"><span>01</span><b>选择任务</b></li>
+        <li><span>02</span><b>战备装配</b></li>
+        <li><span>03</span><b>进入战场</b></li>
+      </ol>
+      <div class="launch-actions">
+        <div class="graphics-choice" role="group" aria-label="画面质量">
+          <button type="button" data-graphics-choice="low">低配模式</button>
+          <button type="button" data-graphics-choice="high">高画质</button>
+        </div>
+        <button id="LaunchButton" type="button" disabled>
+          <span><small id="LaunchStatus">战斗核心加载中</small><b id="LaunchLabel">正在准备战场</b></span>
+          <i aria-hidden="true">›</i>
+        </button>
+      </div>
+      <button id="LoadoutOpen" type="button"><span>战备装配台</span><b id="LoadoutSummary">脉冲炮 / 猎手阵列 / 均衡核心</b></button>
+      <p id="RotateMessage">请横置设备后进入战斗</p>
+    </section>
+
+    <aside class="control-brief" aria-label="操作说明">
+      <div class="craft-card">
+        <div class="craft-card__radar" aria-hidden="true"><i></i></div>
+        <div class="craft-card__head"><small>03 / AIRFRAME</small><b id="CraftCode">SF-09</b><span id="CraftRole">截击机</span></div>
+        <div class="craft-card__stats">
+          <p><span>护盾</span><i data-stat="shield"><b></b></i><output id="CraftShield">80</output></p>
+          <p><span>装甲</span><i data-stat="armor"><b></b></i><output id="CraftArmor">100</output></p>
+          <p><span>能量</span><i data-stat="energy"><b></b></i><output id="CraftEnergy">100</output></p>
+        </div>
+        <div class="craft-card__ships" role="group" aria-label="选择机型">
+          <button type="button" data-ship-choice="interceptor"><b>SF-09</b><small>截击</small></button>
+          <button type="button" data-ship-choice="scout"><b>SF-12</b><small>侦察</small></button>
+          <button type="button" data-ship-choice="fighter"><b>SF-21</b><small>制空</small></button>
+          <button type="button" data-ship-choice="bomber"><b>SF-33</b><small>重装</small></button>
+          <button type="button" data-ship-choice="gunship"><b>SF-47</b><small>炮艇</small></button>
+        </div>
+        <div class="craft-card__weapon"><span>PRI</span><b>脉冲炮</b><i>READY</i></div>
+      </div>
+      <h2>飞行控制</h2>
+      <div class="desktop-controls">
+        <p><kbd>W A S D</kbd><span><b>推进与平移</b><small>鼠标移动控制机头</small></span></p>
+        <p><kbd>左键</kbd><span><b>主武器</b><small>右键或 Q 发射副武器</small></span></p>
+        <p><kbd>Shift</kbd><span><b>加力推进</b><small>消耗能量换取速度</small></span></p>
+        <p><kbd>F2</kbd><span><b>切换视角</b><small>追尾 / 驾驶舱</small></span></p>
+        <p><kbd>Esc</kbd><span><b>暂停战斗</b><small>F5 保留为刷新网页</small></span></p>
+      </div>
+      <div class="touch-controls-copy">
+        <p><b>左侧摇杆</b><span>移动与平移</span></p>
+        <p><b>右侧拖动</b><span>转动机头与瞄准</span></p>
+        <p><b>独立战斗键</b><span>主炮、副炮、推进、视角与暂停</span></p>
+      </div>
+    </aside>
+
+    <footer class="launch-footer">
+      <span>LOCAL SIMULATION</span>
+      <span>WEBGL 2 / LANDSCAPE</span>
+      <span>BUILD 73</span>
+    </footer>
+  </main>
+
+  <section id="LoadoutPanel" aria-labelledby="LoadoutTitle" aria-hidden="true">
+    <header><div><small>SF-09 / COMBAT FITTING</small><h2 id="LoadoutTitle">战备装配台</h2></div><button id="LoadoutClose" type="button" aria-label="关闭装配台">×</button></header>
+    <div class="loadout-grid">
+      <section><h3><span>01</span> 主武器</h3><p>决定主炮射速、命中反馈和能量消耗。</p><div class="loadout-options">
+        <button class="weapon-option" data-loadout-slot="weapon" data-loadout-value="pulse"><img src="spacefight-weapon-pulse.png" data-weapon-art="pulse" alt=""><span><b>脉冲炮</b><small>稳定连射</small></span></button>
+        <button class="weapon-option" data-loadout-slot="weapon" data-loadout-value="scatter"><img src="spacefight-weapon-scatter.png" data-weapon-art="scatter" alt=""><span><b>散射炮</b><small>近距压制</small></span></button>
+        <button class="weapon-option" data-loadout-slot="weapon" data-loadout-value="missile"><img src="spacefight-weapon-missile.png" data-weapon-art="missile" alt=""><span><b>追踪导弹</b><small>重击目标</small></span></button>
+        <button class="weapon-option" data-loadout-slot="weapon" data-loadout-value="rail"><img src="spacefight-weapon-rail.png" data-weapon-art="rail" alt=""><span><b>磁轨炮</b><small>高速贯穿</small></span></button>
+        <button class="weapon-option" data-loadout-slot="weapon" data-loadout-value="plasma"><img src="spacefight-weapon-plasma.png" data-weapon-art="plasma" alt=""><span><b>等离子炮</b><small>范围灼烧</small></span></button>
+      </div></section>
+      <section><h3><span>02</span> 战术设备</h3><p>强化锁定、续航、补给或战场回收。</p><div class="loadout-options">
+        <button data-loadout-slot="device" data-loadout-value="targeter"><b>猎手阵列</b><small>伤害 +12%</small></button>
+        <button data-loadout-slot="device" data-loadout-value="repair"><b>纳米修复</b><small>装甲再生</small></button>
+        <button data-loadout-slot="device" data-loadout-value="fabricator"><b>弹药织机</b><small>能量回复</small></button>
+        <button data-loadout-slot="device" data-loadout-value="collector"><b>牵引收集器</b><small>扩大拾取</small></button>
+        <button data-loadout-slot="device" data-loadout-value="aegis"><b>神盾投射器</b><small>护盾增幅</small></button>
+      </div></section>
+      <section><h3><span>03</span> 机体核心</h3><p>改变装甲、护盾、速度与输出上限。</p><div class="loadout-options core-options">
+        <button data-loadout-slot="core" data-loadout-value="balanced"><b>均衡核心</b><small>标准参数</small></button>
+        <button data-loadout-slot="core" data-loadout-value="vector"><b>矢量核心</b><small>速度 +18%</small></button>
+        <button data-loadout-slot="core" data-loadout-value="bastion"><b>堡垒核心</b><small>重装防护</small></button>
+        <button data-loadout-slot="core" data-loadout-value="reactor"><b>反应堆核心</b><small>能量 +25%</small></button>
+        <button data-loadout-slot="core" data-loadout-value="phantom"><b>幻影核心</b><small>高速轻甲</small></button>
+        <button data-loadout-slot="core" data-loadout-value="dreadnought"><b>无畏核心</b><small>重火力平台</small></button>
+      </div></section>
+    </div>
+    <footer><p><small>当前方案</small><b id="LoadoutDetail">脉冲炮 / 猎手阵列 / 均衡核心</b></p><button id="LoadoutApply" type="button">确认装配</button></footer>
+  </section>
+
+  <section id="LandscapeGuard" aria-live="polite"><img src="spacefight-icon.png" alt=""><small>MOBILE FLIGHT MODE</small><h2>请横置设备</h2><p>战斗已自动冻结，横屏后会恢复完整摇杆与战斗按键。</p></section>
+
+  <section id="CombatHud" aria-label="战斗状态">
+    <div class="hud-brand"><b>SF-09</b><span>INTERCEPTOR</span></div>
+    <div class="vital-stack">
+      <div class="vital-row shield"><span>护盾</span><i><b id="ShieldBar"></b></i><output id="ShieldValue">80</output></div>
+      <div class="vital-row hull"><span>装甲</span><i><b id="HealthBar"></b></i><output id="HealthValue">100</output></div>
+      <div class="vital-row energy"><span>能量</span><i><b id="EnergyBar"></b></i><output id="EnergyValue">100</output></div>
+    </div>
+    <div class="mission-track">
+      <span>当前任务</span>
+      <b id="MissionLabel">清除航道威胁</b>
+      <small><output id="SectorValue">碎光航道</output> · 波次 <output id="WaveValue">1</output> · <output id="EventValue">敌袭预警</output></small>
+      <small><output id="KillValue">0</output> / <output id="KillTarget">1</output> 目标已击毁</small>
+    </div>
+    <div class="camera-readout"><span>视角</span><b id="CameraValue">追尾</b><small class="desktop-only">F2</small></div>
+    <div class="weapon-readout"><span>01</span><img id="WeaponArt" src="spacefight-weapon-pulse.png" alt=""><div><small>主武器</small><b id="WeaponName">脉冲炮</b></div><i>READY</i></div>
+    <div class="desktop-flight-hint">WASD 飞行　鼠标瞄准　左键开火　Shift 加速</div>
+  </section>
+
+  <div id="CombatReticle" aria-hidden="true"><i></i></div>
+
+  <div id="TouchHud" aria-hidden="true">
+    <div id="MoveStick" class="touch-control"><i></i></div>
+    <div id="AimSurface"><span>拖动瞄准</span><i></i></div>
+    <div id="PrimaryControl" class="touch-control action-primary"><small>PRI</small><b>主炮</b></div>
+    <div id="SecondaryControl" class="touch-control"><small>SEC</small><b>副炮</b></div>
+    <div id="BoostControl" class="touch-control"><small>ENG</small><b>推进</b></div>
+    <div id="CameraControl" class="touch-control utility-control" title="切换视角"><span aria-hidden="true">◉</span></div>
+    <div id="PauseControl" class="touch-control utility-control" title="暂停"><span aria-hidden="true">Ⅱ</span></div>
+  </div>
+
+  <section id="PauseOverlay" aria-labelledby="PauseTitle">
+    <div>
+      <span>SIMULATION HOLD</span>
+      <h2 id="PauseTitle">战斗已暂停</h2>
+      <p>飞行与武器系统已冻结。</p>
+      <button id="ResumeButton" type="button">继续战斗</button>
+    </div>
+  </section>
+
+  <section id="MissionComplete" aria-live="polite">
+    <span>MISSION COMPLETE</span>
+    <h2>本波威胁已清除</h2>
+    <p>下一批敌机正在进入区域。</p>
+  </section>
+
+  <section id="MissionFailed" aria-live="assertive">
+    <div><span>CRAFT LOST</span><h2>战机失去响应</h2><p>重新装填当前装备并从本区域再次出击。</p><button id="RestartButton" type="button">重新出击</button></div>
+  </section>
+
+  <script src="spacefight-shell.js"></script>
+  <%- include(cocosTemplate, {}) %>
+</body>
+</html>
