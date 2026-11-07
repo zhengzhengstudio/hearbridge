@@ -134,6 +134,12 @@ export class NativeCombatHud implements NativeInputFeedback {
   private readonly root = new Node('NativeCombatHud');
   private readonly actions = new Map<BrowserPointerRole, ActionVisual>();
   private readonly touchEnabled: boolean;
+  /** 战斗 HUD 是否可见（打开装配台/前哨/暂停时收起）。 */
+  private combatChromeVisible = true;
+  /** 返航过场中：期间收起开火/切武器/加速/摇杆，避免「返航中还能开火」的状态矛盾。 */
+  private returning = false;
+  /** 返航压暗的第二层（靠近屏幕外沿），用于做两级羽化。 */
+  private returnVeilInner: Graphics | null = null;
   private statusLabel: Label | null = null;
   private objectiveLabel: Label | null = null;
   private sectorLabel: Label | null = null;
@@ -422,6 +428,13 @@ export class NativeCombatHud implements NativeInputFeedback {
     }
     this.canReturn = snapshot.expedition.canReturn;
     this.canDock = snapshot.navigation.canDock;
+    const returning = snapshot.expedition.phase === 'returning';
+    if (returning !== this.returning) {
+      this.returning = returning;
+      this.refreshActionVisibility();
+      if (this.stickThumb) this.stickThumb.active = this.combatChromeVisible && !returning;
+      if (this.loadoutButton) this.loadoutButton.active = this.combatChromeVisible && !returning;
+    }
     if (this.outpostStatusLabel) {
       this.outpostStatusLabel.string = this.text('outpost.status', {
         hull: Math.ceil(snapshot.player.health),
@@ -511,7 +524,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       }
       const nearestStr = enemies.length > 0 ? `${Math.round(nearest)}m` : '—';
       this.debugTelemetryLabel.string =
-        `DBG 0.13.2 | 敌机:${enemies.length} 最近:${nearestStr} ` +
+        `DBG ${BUILD_INFO.version} | 敌机:${enemies.length} 最近:${nearestStr} ` +
         `速度:${Math.round(snapshot.player.speedScale * 100)}% ` +
         `前哨:${Math.round(snapshot.navigation.outpostRange)}m ` +
         `dock:${snapshot.navigation.canDock ? 'Y' : 'N'} ret:${snapshot.expedition.canReturn ? 'Y' : 'N'}`;
@@ -682,6 +695,8 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.weaponLabel.node.active = true;
     this.debugTelemetryLabel = this.createLabel('DebugTelemetry', 11, new Color(180, 255, 180, 255));
     this.debugTelemetryLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    // 调试遥测只供本地排查，正式包必须隐藏（此前直接泄漏在战斗 HUD 左上角）。
+    this.debugTelemetryLabel.node.active = false;
     this.objectiveLabel.node.name = 'ExpeditionObjectiveStrip';
     this.layoutStatus();
   }
@@ -703,12 +718,13 @@ export class NativeCombatHud implements NativeInputFeedback {
     const statusBarX = this.leftHanded
       ? this.width - this.safeInsets.right - 12 - statusWidth
       : this.safeInsets.left + 12;
+    // 三条资源条拉开到 12px 间距，避免首尾相接糊成一条双色格带。
     this.hullStatusBar?.node.setPosition(this.canvasPosition(statusBarX, this.safeInsets.top + 41, 2));
-    this.shieldStatusBar?.node.setPosition(this.canvasPosition(statusBarX, this.safeInsets.top + 49, 2));
-    this.energyStatusBar?.node.setPosition(this.canvasPosition(statusBarX, this.safeInsets.top + 57, 2));
+    this.shieldStatusBar?.node.setPosition(this.canvasPosition(statusBarX, this.safeInsets.top + 53, 2));
+    this.energyStatusBar?.node.setPosition(this.canvasPosition(statusBarX, this.safeInsets.top + 65, 2));
     this.debugTelemetryLabel?.node.setPosition(this.canvasPosition(
       this.safeInsets.left + 12,
-      this.safeInsets.top + 72,
+      this.safeInsets.top + 82,
     ));
     this.objectiveLabel?.node.setPosition(this.canvasPosition(
       this.width / 2,
@@ -727,20 +743,21 @@ export class NativeCombatHud implements NativeInputFeedback {
       Math.min(320, usableWidth * 0.48),
       22,
     );
+    // 目标锁定读数下移到航区行下方，避免「无目标」压在「当前区域…」上。
     this.targetLabel?.node.setPosition(this.canvasPosition(
       this.width / 2,
-      this.safeInsets.top + 76,
+      this.safeInsets.top + 100,
     ));
     this.targetLabel?.getComponent(UITransform)?.setContentSize(
       Math.min(360, usableWidth * 0.58),
       28,
     );
-    this.targetHealthBar?.node.setPosition(this.canvasPosition(this.width / 2, this.safeInsets.top + 96, 2));
+    this.targetHealthBar?.node.setPosition(this.canvasPosition(this.width / 2, this.safeInsets.top + 120, 2));
     this.hitMarker?.node.setPosition(this.canvasPosition(this.width / 2, this.height / 2, 4));
     this.combatFeedLabel?.node.setPosition(this.canvasPosition(this.width / 2, (this.height / 2) + 48, 5));
     this.combatFeedLabel?.getComponent(UITransform)?.setContentSize(Math.min(420, usableWidth - 32), 34);
     this.navigationLabel?.node.setPosition(this.canvasPosition(this.width / 2, this.height - this.safeInsets.bottom - 76, 4));
-    this.comboLabel?.node.setPosition(this.canvasPosition(this.width / 2, this.safeInsets.top + 120, 6));
+    this.comboLabel?.node.setPosition(this.canvasPosition(this.width / 2, this.safeInsets.top + 144, 6));
     this.comboLabel?.getComponent(UITransform)?.setContentSize(Math.min(340, usableWidth - 40), 30);
     this.upgradeLabel?.node.setPosition(this.canvasPosition(this.width / 2, this.height - this.safeInsets.bottom - 108, 5));
     this.upgradeLabel?.getComponent(UITransform)?.setContentSize(Math.min(440, usableWidth - 32), 28);
@@ -1273,34 +1290,58 @@ export class NativeCombatHud implements NativeInputFeedback {
   private createReturnOverlay(): void {
     this.returnOverlay = this.createNode('NativeReturnOverlay');
     this.returnOverlay.addComponent(UIOpacity);
-    this.returnVeil = this.createNode('NativeReturnVeil', this.returnOverlay).addComponent(Graphics);
+    // 压暗层挂到 HUD 最底层：只压暗 3D 战场，不再把顶部状态/目标文字一起压暗。
+    this.returnVeil = this.createNode('NativeReturnVeil', this.root).addComponent(Graphics);
+    this.returnVeil.node.setSiblingIndex(0);
+    this.returnVeilInner = this.createNode('NativeReturnVeilInner', this.root).addComponent(Graphics);
+    this.returnVeilInner.node.setSiblingIndex(1);
     this.returnBanner = this.createLabel('NativeReturnBanner', 26, HUD_ACTIVE, this.returnOverlay);
     this.returnBanner.horizontalAlign = HorizontalTextAlignment.CENTER;
     this.returnOverlay.active = false;
+    this.returnVeil.node.active = false;
+    this.returnVeilInner.node.active = false;
   }
 
   private updateReturnOverlay(snapshot: CombatSnapshot): void {
     if (!this.returnOverlay || !this.returnBanner || !this.returnVeil) return;
     const returning = snapshot.expedition.phase === 'returning';
-    if (!returning) {
-      if (this.returnOverlay.active) this.returnOverlay.active = false;
-      return;
-    }
-    if (!this.returnOverlay.active) this.returnOverlay.active = true;
+    // 打开任意面板时不再压暗：修复 setOutpostOpen 关遮罩、下一帧又被这里重开的冲突。
+    const blocked = this.outpostOpen || this.homeOpen || this.loadoutOpen
+      || this.pauseOpen || this.defeatOpen;
+    const active = returning && !blocked;
+    this.returnOverlay.active = active;
+    this.returnVeil.node.active = active;
+    if (this.returnVeilInner) this.returnVeilInner.node.active = active;
+    if (!active) return;
     const progress = Math.max(0, Math.min(1, snapshot.expedition.returnProgress));
     const pct = Math.round(progress * 100);
     this.returnBanner.string = `返航中 ${pct}%`;
     this.returnBanner.node.setPosition(this.canvasPosition(this.width / 2, this.height * 0.5, 6));
-    // 四边压暗带随进度加深，形成「脱战返航」的过场动画。
+    // 两级压暗：外层整条带 + 靠屏幕外沿的半宽叠加，形成由外向内渐亮的羽化，
+    // 不再是一刀切的硬边矩形；整体强度也比旧版轻，HUD 保持可读。
+    const halfW = this.width / 2;
+    const halfH = this.height / 2;
+    const band = Math.min(this.width, this.height) * 0.12 * (0.45 + progress * 0.55);
+    const alpha = Math.round(78 + 46 * progress);
     const veil = this.returnVeil;
     veil.clear();
-    const band = Math.min(this.width, this.height) * 0.16 * (0.45 + progress * 0.55);
-    veil.fillColor = new Color(0, 8, 12, Math.round(140 + 80 * progress));
-    veil.rect(-this.width / 2, -this.height / 2, this.width, band);
-    veil.rect(-this.width / 2, this.height / 2 - band, this.width, band);
-    veil.rect(-this.width / 2, -this.height / 2, band, this.height);
-    veil.rect(this.width / 2 - band, -this.height / 2, band, this.height);
+    veil.fillColor = new Color(0, 8, 12, alpha);
+    veil.rect(-halfW, -halfH, this.width, band);
+    veil.rect(-halfW, halfH - band, this.width, band);
+    veil.rect(-halfW, -halfH, band, this.height);
+    veil.rect(halfW - band, -halfH, band, this.height);
     veil.fill();
+    const inner = this.returnVeilInner;
+    if (inner) {
+      const ib = band * 0.5;
+      inner.clear();
+      inner.fillColor = new Color(0, 8, 12, alpha);
+      inner.rect(-halfW, -halfH, this.width, ib);
+      inner.rect(-halfW, halfH - ib, this.width, ib);
+      inner.rect(-halfW, -halfH, ib, this.height);
+      inner.rect(halfW - ib, -halfH, ib, this.height);
+      inner.fill();
+    }
   }
 
   private createKeyArt(name: string, parent: Node): Sprite {    const node = this.createNode(name, parent);
@@ -1322,7 +1363,8 @@ export class NativeCombatHud implements NativeInputFeedback {
     });
     this.loadKeyArtTexture('ui/station/orbital-outpost-exterior', '[SpaceFight outpost]', (frame) => {
       this.outpostArtFrame = frame;
-      if (this.bootKeyArt) this.bootKeyArt.spriteFrame = frame;
+      // 不要覆盖 bootKeyArt：前哨背景是一整张带文案的宣传图，
+      // 异步加载完成后盖到启动页会让「SPACEFIGHT」与宣传标题叠成两套文字。
       if (this.outpostKeyArt) this.outpostKeyArt.spriteFrame = frame;
       this.updateHomeKeyArt();
     });
@@ -1574,7 +1616,11 @@ export class NativeCombatHud implements NativeInputFeedback {
 
   private setOutpostOpen(open: boolean): void {
     if (this.outpostOpen === open && this.outpostPanel?.active === open) return;
-    if (open && this.returnOverlay) this.returnOverlay.active = false;
+    if (open) {
+      if (this.returnOverlay) this.returnOverlay.active = false;
+      if (this.returnVeil) this.returnVeil.node.active = false;
+      if (this.returnVeilInner) this.returnVeilInner.node.active = false;
+    }
     if (open) this.activateOnly('outpost');
     this.outpostOpen = open;
     if (this.outpostPanel) {
@@ -1610,6 +1656,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   }
 
   private setCombatChromeVisible(visible: boolean): void {
+    this.combatChromeVisible = visible;
     for (const label of [this.statusLabel, this.objectiveLabel, this.sectorLabel, this.targetLabel, this.cargoLabel, this.combatFeedLabel, this.navigationLabel]) {
       if (label) label.node.active = visible;
     }
@@ -1617,9 +1664,20 @@ export class NativeCombatHud implements NativeInputFeedback {
     for (const graphics of [this.hullStatusBar, this.shieldStatusBar, this.energyStatusBar, this.targetHealthBar, this.hitMarker]) {
       if (graphics) graphics.node.active = visible;
     }
-    if (this.loadoutButton) this.loadoutButton.active = visible;
-    if (this.stickThumb) this.stickThumb.active = visible;
-    for (const visual of this.actions.values()) visual.node.active = visible;
+    if (this.loadoutButton) this.loadoutButton.active = visible && !this.returning;
+    if (this.stickThumb) this.stickThumb.active = visible && !this.returning;
+    this.refreshActionVisibility();
+    // 调试遥测任何情况下都不显示。
+    if (this.debugTelemetryLabel) this.debugTelemetryLabel.node.active = false;
+  }
+
+  /** 返航中只保留暂停/视角/返航进度按钮，其余战斗输入全部收起。 */
+  private refreshActionVisibility(): void {
+    for (const [role, visual] of this.actions) {
+      const allowed = !this.returning
+        || role === 'pause' || role === 'cameraToggle' || role === 'returnRequested';
+      visual.node.active = this.combatChromeVisible && allowed;
+    }
   }
 
   private layoutHomePanel(): void {
@@ -1774,7 +1832,8 @@ export class NativeCombatHud implements NativeInputFeedback {
       this.outpostBackdrop.fillColor = new Color(1, 7, 10, 54);
       this.outpostBackdrop.rect(-this.width / 2, -this.height / 2, this.width, this.height);
       this.outpostBackdrop.fill();
-      this.outpostBackdrop.fillColor = new Color(2, 10, 14, 224);
+      // 面板底色必须完全不透明，否则底下宣传图的英文标语会透过标题。
+      this.outpostBackdrop.fillColor = new Color(2, 10, 14, 255);
       this.outpostBackdrop.rect(right - panelWidth, bottom, panelWidth, top - bottom);
       this.outpostBackdrop.fill();
       this.outpostBackdrop.strokeColor = new Color(59, 211, 255, 116);
@@ -1805,8 +1864,11 @@ export class NativeCombatHud implements NativeInputFeedback {
     place('NativeOutpostEyebrow', top - (ultraCompact ? 16 : 24), 20);
     place('NativeOutpostTitle', top - (ultraCompact ? 42 : 62), ultraCompact ? 30 : 44);
     place('NativeOutpostDetail', top - (ultraCompact ? 73 : 108), ultraCompact ? 34 : 48);
-    place('NativeOutpostStatus', top - (ultraCompact ? 126 : 184), ultraCompact ? 56 : 78);
-    place('NativeOutpostCargo', bottom + (ultraCompact ? 94 : 124), ultraCompact ? 26 : 34);
+    // 结算区自上而下排布：状态 → 货物明细 → 底部按钮。
+    // 旧版把货物标签放在 bottom+124，正好被「进入装配台」按钮上沿压掉半行字，
+    // 且状态与按钮之间留下一大片空白，这里一并收拢。
+    place('NativeOutpostStatus', top - (ultraCompact ? 126 : 184), ultraCompact ? 30 : 34);
+    place('NativeOutpostCargo', top - (ultraCompact ? 160 : 236), ultraCompact ? 26 : 34);
     const gap = ultraCompact ? 6 : 10;
     const actionHeight = ultraCompact ? 40 : compact ? 46 : 54;
     this.outpostLoadoutButton?.setPosition(centerX, bottom + actionHeight * 1.5 + gap + 10, 4);

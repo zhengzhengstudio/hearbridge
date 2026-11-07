@@ -222,7 +222,15 @@ public class AppActivity extends CocosActivity {
         brand.setGravity(Gravity.BOTTOM | Gravity.START);
         brand.setPadding(dp(34), dp(26), dp(32), dp(34));
 
-        TextView signal = updateLabel("ORBITAL FRONTIER  /  CLIENT 57", 11, Color.rgb(113, 199, 210), true);
+        // 启动页版本必须来自 APK 自身（versionName/versionCode），不能写死。
+        // 之前硬编码 "CLIENT 57"，导致 0.13.x 包仍显示老客户端号。
+        String launcherVersionLabel;
+        try {
+            launcherVersionLabel = "ORBITAL FRONTIER  /  v" + localVersion() + "  BUILD " + localBuild();
+        } catch (Exception error) {
+            launcherVersionLabel = "ORBITAL FRONTIER";
+        }
+        TextView signal = updateLabel(launcherVersionLabel, 11, Color.rgb(113, 199, 210), true);
         signal.setLetterSpacing(0.12f);
         TextView title = updateLabel("SPACEFIGHT", 38, Color.WHITE, true);
         title.setLetterSpacing(0.04f);
