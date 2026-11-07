@@ -149,20 +149,25 @@ export const SKINS: Readonly<Record<SkinId, { readonly id: SkinId }>> = {
   hazard: { id: 'hazard' }, azure: { id: 'azure' }, desert: { id: 'desert' },
 };
 
+/** 只认表上自有键：`in` 会把 toString/constructor 等原型链属性误判为合法 id。 */
+function owns(table: object, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(table, key);
+}
+
 export function resolveLoadout(value?: Partial<CombatLoadout>): ResolvedCombatLoadout {
   const candidateShip = value?.ship;
   const ship: PlayerShipId = isPlayerShipId(candidateShip) ? candidateShip : DEFAULT_PLAYER_SHIP;
   return {
     ship,
-    weapon: value?.weapon && value.weapon in PRIMARY_WEAPONS ? value.weapon : DEFAULT_LOADOUT.weapon,
-    device: value?.device && value.device in TACTICAL_DEVICES ? value.device : DEFAULT_LOADOUT.device,
-    core: value?.core && value.core in FRAME_CORES ? value.core : DEFAULT_LOADOUT.core,
-    secondary: value?.secondary && value.secondary in SECONDARY_WEAPONS ? value.secondary : DEFAULT_LOADOUT.secondary!,
-    engine: value?.engine && value.engine in ENGINE_MODULES ? value.engine : DEFAULT_LOADOUT.engine!,
-    shield: value?.shield && value.shield in SHIELD_MODULES ? value.shield : DEFAULT_LOADOUT.shield!,
-    utility: value?.utility && value.utility in UTILITY_MODULES ? value.utility : DEFAULT_LOADOUT.utility!,
-    boost: value?.boost && value.boost in BOOST_MODULES ? value.boost : DEFAULT_LOADOUT.boost!,
-    skin: value?.skin && value.skin in SKINS ? value.skin : 'graphite',
+    weapon: value?.weapon && owns(PRIMARY_WEAPONS, value.weapon) ? value.weapon : DEFAULT_LOADOUT.weapon,
+    device: value?.device && owns(TACTICAL_DEVICES, value.device) ? value.device : DEFAULT_LOADOUT.device,
+    core: value?.core && owns(FRAME_CORES, value.core) ? value.core : DEFAULT_LOADOUT.core,
+    secondary: value?.secondary && owns(SECONDARY_WEAPONS, value.secondary) ? value.secondary : DEFAULT_LOADOUT.secondary!,
+    engine: value?.engine && owns(ENGINE_MODULES, value.engine) ? value.engine : DEFAULT_LOADOUT.engine!,
+    shield: value?.shield && owns(SHIELD_MODULES, value.shield) ? value.shield : DEFAULT_LOADOUT.shield!,
+    utility: value?.utility && owns(UTILITY_MODULES, value.utility) ? value.utility : DEFAULT_LOADOUT.utility!,
+    boost: value?.boost && owns(BOOST_MODULES, value.boost) ? value.boost : DEFAULT_LOADOUT.boost!,
+    skin: value?.skin && owns(SKINS, value.skin) ? value.skin : 'graphite',
   };
 }
 

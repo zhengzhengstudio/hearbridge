@@ -39,6 +39,8 @@ export class ExpeditionDirector {
   }
 
   public completeEvent(eventId: string): void {
+    // 终态保护：完成/失败后不允许再把阶段拉回 decision，否则离港后会被重新推进。
+    if (this.phase === 'complete' || this.phase === 'failed') return;
     if (!this.completedEvents.includes(eventId)) this.completedEvents.push(eventId);
     if (eventId === 'primary' || this.phase === 'primary') {
       this.phase = 'decision';
@@ -70,7 +72,11 @@ export class ExpeditionDirector {
     this.damagePause = Math.max(0, this.damagePause - delta);
 
     if (!this.canReturn() || !input.returnRequested) {
-      if (this.phase === 'returning') this.phase = 'decision';
+      if (this.phase === 'returning') {
+        this.phase = 'decision';
+        // 松开返回键即清零进度：必须连续按住 2.4 秒，连点不能靠累积进度秒返航。
+        this.returnProgress = 0;
+      }
       return this.snapshot();
     }
     this.phase = 'returning';

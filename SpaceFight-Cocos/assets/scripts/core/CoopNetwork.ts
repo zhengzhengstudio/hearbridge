@@ -118,6 +118,13 @@ export function createCoopHandshake(
   };
 }
 
+/** 三维向量必须是有限数，残缺/Infinity/字符串一律拒绝。 */
+function isFiniteVec3(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  const vector = value as Record<string, unknown>;
+  return Number.isFinite(vector.x) && Number.isFinite(vector.y) && Number.isFinite(vector.z);
+}
+
 /** Validates an inbound message; returns null when the frame is corrupt. */
 export function parseCoopMessage(raw: unknown): CoopMessage | null {
   if (typeof raw !== 'object' || raw === null) return null;
@@ -130,7 +137,13 @@ export function parseCoopMessage(raw: unknown): CoopMessage | null {
   }
   if (message.t === 'presence') {
     const presence = message as unknown as CoopPresence;
-    if (typeof presence.seq !== 'number' || !presence.position) return null;
+    // seq 必须是有限非负整数；向量与所有数值字段都必须有限，避免 Infinity / 残缺帧通过。
+    if (!Number.isInteger(presence.seq) || presence.seq < 0) return null;
+    if (!isFiniteVec3(presence.position) || !isFiniteVec3(presence.velocity) || !isFiniteVec3(presence.forward)) return null;
+    for (const field of [presence.elapsed, presence.health, presence.shield, presence.energy, presence.score]) {
+      if (!Number.isFinite(field)) return null;
+    }
+    if (typeof presence.firing !== 'boolean' || typeof presence.boosting !== 'boolean') return null;
     return presence;
   }
   if (message.t === 'signal') {
@@ -160,7 +173,9 @@ export class CoopPresenceBuffer {
   ) {}
 
   public push(frame: CoopPresence): void {
-    if (typeof frame.seq !== 'number' || Number.isNaN(frame.seq)) return;
+    if (!Number.isFinite(frame.seq) || Number.isNaN(frame.seq)) return;
+    // 迟到/重复帧（seq 不大于已应用的最大 seq）直接丢弃，避免旧状态覆盖新状态。
+    if (frame.seq <= this.lastAppliedSeq) return;
     const had = this.frames.has(frame.seq);
     this.frames.set(frame.seq, frame);
     if (!had) this.order.push(frame.seq);
@@ -173,7 +188,16 @@ export class CoopPresenceBuffer {
 
   public latest(): CoopPresence | null {
     if (this.order.length === 0) return null;
-    return this.frames.get(this.order[this.order.length - 1]) || null;
+    // 返回最大 seq 对应帧，而不是最后插入帧，乱序到达也不会让状态回退。
+    let maxSeq = -1;
+    let newest: CoopPresence | null = null;
+    for (const [seq, frame] of this.frames) {
+      if (seq > maxSeq) {
+        maxSeq = seq;
+        newest = frame;
+      }
+    }
+    return newest;
   }
 
   public clear(): void {

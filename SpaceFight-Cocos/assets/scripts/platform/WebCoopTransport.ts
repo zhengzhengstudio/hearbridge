@@ -23,6 +23,8 @@ export interface WebCoopCallbacks {
   onSignalOffer(payload: string): void;
   onConnected(): void;
   onDisconnected(): void;
+  /** 可选：连接失败 / 超时 / 异常时上报明确原因；旧调用方省略也兼容。 */
+  onError?(reason: string): void;
 }
 
 export interface WebCoopOptions {
@@ -33,6 +35,13 @@ export interface WebCoopOptions {
 const RTC = () => (globalThis as {
   RTCPeerConnection?: typeof RTCPeerConnection;
 }).RTCPeerConnection;
+
+/** 15s 内没有建立数据通道即视为连接失败。 */
+const CONNECTION_TIMEOUT_MS = 15000;
+
+function describeError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
 
 export function webRtcAvailable(): boolean {
   return typeof RTC() === 'function';
@@ -48,6 +57,9 @@ export class WebCoopHost implements CoopTransport {
   private readonly callbacks: WebCoopCallbacks;
   private readonly options: WebCoopOptions;
   private messageHandler: ((message: CoopMessage) => void) | null = null;
+  private connectionTimer: ReturnType<typeof setTimeout> | null = null;
+  private closed = false;
+  private failed = false;
 
   public constructor(
     callbacks: WebCoopCallbacks,
@@ -58,37 +70,53 @@ export class WebCoopHost implements CoopTransport {
   }
 
   public async createOffer(): Promise<string> {
-    const Peer = RTC();
-    if (!Peer) throw new Error('WebRTC is not available on this device.');
-    const connection = new Peer({
-      iceServers: (this.options.iceServers || []).map((server) => ({ urls: server.urls })),
-    });
-    this.connection = connection;
-    const channel = connection.createDataChannel('coop');
-    this.bindChannel(channel);
-    this.channel = channel;
-    connection.ondatachannel = (event) => this.bindChannel(event.channel);
+    try {
+      const Peer = RTC();
+      if (!Peer) throw new Error('WebRTC is not available on this device.');
+      const connection = new Peer({
+        iceServers: (this.options.iceServers || []).map((server) => ({ urls: server.urls })),
+      });
+      this.connection = connection;
+      this.closed = false;
+      this.failed = false;
+      const channel = connection.createDataChannel('coop');
+      this.bindChannel(channel);
+      this.channel = channel;
+      connection.ondatachannel = (event) => this.bindChannel(event.channel);
 
-    connection.onicecandidate = (event) => {
-      if (event.candidate) return;
-      if (this.messageHandler && connection.remoteDescription) {
+      // 修复：ICE gathering 完成即回调 onSignalOffer，不再要求 messageHandler /
+      // remoteDescription（主机此时还没有 remoteDescription，旧条件导致永远不发邀请码）。
+      connection.onicecandidate = (event) => {
+        if (event.candidate) return;
         // Full ICE gathering (trickle unsupported is fine for 1v1 on LAN/same-host).
         const local = connection.localDescription;
         if (local) this.callbacks.onSignalOffer(JSON.stringify(local));
-      }
-    };
+      };
 
-    // 数据通道由 createDataChannel 单独建，offer 不需要音视频接收选项。
-    const offer = await connection.createOffer();
-    await connection.setLocalDescription(offer);
-    return JSON.stringify(connection.localDescription);
+      // 修复：监听 ICE / 连接状态并加连接超时，失败时上报 error 并清理。
+      this.watchConnection(connection);
+      this.startConnectionTimeout();
+
+      // 数据通道由 createDataChannel 单独建，offer 不需要音视频接收选项。
+      const offer = await connection.createOffer();
+      await connection.setLocalDescription(offer);
+      return JSON.stringify(connection.localDescription);
+    } catch (error) {
+      this.fail(`Failed to create offer: ${describeError(error)}`);
+      throw error;
+    }
   }
 
   public async acceptAnswer(serialized: string): Promise<void> {
-    const connection = this.connection;
-    if (!connection) throw new Error('No host connection to accept an answer on.');
-    const answer = JSON.parse(serialized) as RTCSessionDescriptionInit;
-    await connection.setRemoteDescription(answer);
+    try {
+      const connection = this.connection;
+      if (!connection) throw new Error('No host connection to accept an answer on.');
+      const answer = JSON.parse(serialized) as RTCSessionDescriptionInit;
+      await connection.setRemoteDescription(answer);
+    } catch (error) {
+      this.fail(`Failed to accept answer: ${describeError(error)}`);
+      throw error;
+    }
   }
 
   public send(message: CoopMessage): void {
@@ -100,14 +128,56 @@ export class WebCoopHost implements CoopTransport {
   }
 
   public close(): void {
-    this.channel?.close();
-    this.connection?.close();
+    if (this.closed) return;
+    this.closed = true;
+    this.clearConnectionTimeout();
+    try {
+      this.channel?.close();
+      this.connection?.close();
+    } catch (_) {
+      // 关闭已失效的连接可能抛错，忽略即可。
+    }
     this.channel = null;
     this.connection = null;
   }
 
+  private startConnectionTimeout(): void {
+    this.clearConnectionTimeout();
+    this.connectionTimer = setTimeout(() => {
+      this.fail(`Connection timed out after ${CONNECTION_TIMEOUT_MS / 1000}s.`);
+    }, CONNECTION_TIMEOUT_MS);
+  }
+
+  private clearConnectionTimeout(): void {
+    if (this.connectionTimer !== null) {
+      clearTimeout(this.connectionTimer);
+      this.connectionTimer = null;
+    }
+  }
+
+  private watchConnection(connection: RTCPeerConnection): void {
+    const checkState = (state: string): void => {
+      if (this.closed || this.failed) return;
+      // failed / disconnected 都视为连接失败：回调 error 并清理。
+      if (state === 'failed' || state === 'disconnected') {
+        this.fail(`Connection ${state}.`);
+      }
+    };
+    connection.oniceconnectionstatechange = () => checkState(String(connection.iceConnectionState));
+    connection.onconnectionstatechange = () => checkState(String(connection.connectionState));
+  }
+
+  private fail(reason: string): void {
+    if (this.closed || this.failed) return;
+    this.failed = true;
+    this.clearConnectionTimeout();
+    this.callbacks.onError?.(reason);
+    this.close();
+  }
+
   private bindChannel(channel: RTCDataChannel): void {
     channel.onopen = () => {
+      this.clearConnectionTimeout();
       this.callbacks.onConnected();
       // Host announces readiness so the guest knows when to start streaming.
       const ready: CoopMessage = { t: 'signal', kind: 'ready', client: '' };
@@ -117,7 +187,10 @@ export class WebCoopHost implements CoopTransport {
       const message = parseCoopMessage(JSON.parse(String(event.data)));
       if (message && this.messageHandler) this.messageHandler(message);
     };
-    channel.onclose = () => this.callbacks.onDisconnected();
+    channel.onclose = () => {
+      // 已上报失败的断开不再回调 idle，避免状态抖动。
+      if (!this.failed) this.callbacks.onDisconnected();
+    };
   }
 }
 
@@ -131,6 +204,9 @@ export class WebCoopGuest implements CoopTransport {
   private readonly callbacks: WebCoopCallbacks;
   private readonly options: WebCoopOptions;
   private messageHandler: ((message: CoopMessage) => void) | null = null;
+  private connectionTimer: ReturnType<typeof setTimeout> | null = null;
+  private closed = false;
+  private failed = false;
 
   public constructor(
     callbacks: WebCoopCallbacks,
@@ -141,26 +217,36 @@ export class WebCoopGuest implements CoopTransport {
   }
 
   public async acceptOffer(serialized: string): Promise<string> {
-    const Peer = RTC();
-    if (!Peer) throw new Error('WebRTC is not available on this device.');
-    const offer = JSON.parse(serialized) as RTCSessionDescriptionInit;
-    const connection = new Peer({
-      iceServers: (this.options.iceServers || []).map((server) => ({ urls: server.urls })),
-    });
-    this.connection = connection;
-    connection.ondatachannel = (event) => {
-      this.channel = event.channel;
-      this.bindChannel(event.channel);
-    };
-    connection.onicecandidate = (event) => {
-      if (event.candidate) return;
-      const local = connection.localDescription;
-      if (local) this.callbacks.onSignalOffer(JSON.stringify(local));
-    };
-    await connection.setRemoteDescription(offer);
-    const answer = await connection.createAnswer();
-    await connection.setLocalDescription(answer);
-    return JSON.stringify(connection.localDescription);
+    try {
+      const Peer = RTC();
+      if (!Peer) throw new Error('WebRTC is not available on this device.');
+      const offer = JSON.parse(serialized) as RTCSessionDescriptionInit;
+      const connection = new Peer({
+        iceServers: (this.options.iceServers || []).map((server) => ({ urls: server.urls })),
+      });
+      this.connection = connection;
+      this.closed = false;
+      this.failed = false;
+      connection.ondatachannel = (event) => {
+        this.channel = event.channel;
+        this.bindChannel(event.channel);
+      };
+      connection.onicecandidate = (event) => {
+        if (event.candidate) return;
+        const local = connection.localDescription;
+        if (local) this.callbacks.onSignalOffer(JSON.stringify(local));
+      };
+      // 修复：坏 offer / 连接失败时统一上报 error 并清理。
+      this.watchConnection(connection);
+      this.startConnectionTimeout();
+      await connection.setRemoteDescription(offer);
+      const answer = await connection.createAnswer();
+      await connection.setLocalDescription(answer);
+      return JSON.stringify(connection.localDescription);
+    } catch (error) {
+      this.fail(`Failed to accept offer: ${describeError(error)}`);
+      throw error;
+    }
   }
 
   public send(message: CoopMessage): void {
@@ -172,18 +258,65 @@ export class WebCoopGuest implements CoopTransport {
   }
 
   public close(): void {
-    this.channel?.close();
-    this.connection?.close();
+    if (this.closed) return;
+    this.closed = true;
+    this.clearConnectionTimeout();
+    try {
+      this.channel?.close();
+      this.connection?.close();
+    } catch (_) {
+      // 关闭已失效的连接可能抛错，忽略即可。
+    }
     this.channel = null;
     this.connection = null;
   }
 
+  private startConnectionTimeout(): void {
+    this.clearConnectionTimeout();
+    this.connectionTimer = setTimeout(() => {
+      this.fail(`Connection timed out after ${CONNECTION_TIMEOUT_MS / 1000}s.`);
+    }, CONNECTION_TIMEOUT_MS);
+  }
+
+  private clearConnectionTimeout(): void {
+    if (this.connectionTimer !== null) {
+      clearTimeout(this.connectionTimer);
+      this.connectionTimer = null;
+    }
+  }
+
+  private watchConnection(connection: RTCPeerConnection): void {
+    const checkState = (state: string): void => {
+      if (this.closed || this.failed) return;
+      // failed / disconnected 都视为连接失败：回调 error 并清理。
+      if (state === 'failed' || state === 'disconnected') {
+        this.fail(`Connection ${state}.`);
+      }
+    };
+    connection.oniceconnectionstatechange = () => checkState(String(connection.iceConnectionState));
+    connection.onconnectionstatechange = () => checkState(String(connection.connectionState));
+  }
+
+  private fail(reason: string): void {
+    if (this.closed || this.failed) return;
+    this.failed = true;
+    this.clearConnectionTimeout();
+    this.callbacks.onError?.(reason);
+    this.close();
+  }
+
   private bindChannel(channel: RTCDataChannel): void {
-    channel.onopen = () => this.callbacks.onConnected();
+    channel.onopen = () => {
+      this.clearConnectionTimeout();
+      this.callbacks.onConnected();
+    };
     channel.onmessage = (event) => {
       const message = parseCoopMessage(JSON.parse(String(event.data)));
       if (message && this.messageHandler) this.messageHandler(message);
     };
-    channel.onclose = () => this.callbacks.onDisconnected();
+    channel.onclose = () => {
+      // 已上报失败的断开不再回调 idle，避免状态抖动。
+      if (!this.failed) this.callbacks.onDisconnected();
+    };
   }
 }

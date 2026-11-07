@@ -1,6 +1,5 @@
 import {
   assetManager,
-  builtinResMgr,
   CapsuleCollider,
   Color,
   EAxisDirection,
@@ -65,10 +64,19 @@ export const ENGINE_GLOW_TEXTURE = 'textures/engine-glow/texture';
 const PLAYER_VISUAL_BOOT_BUDGET_MS = 1200;
 /** 未显式指定 graphics profile 时的敌机渲染上限。 */
 const DEFAULT_MAX_VISIBLE_ENEMIES = 24;
+/** 机体视觉偏小：只对玩家视觉额外放大；碰撞体半径仍按原值，见 replaceVisual 注释。 */
+const COMBAT_VISUAL_SCALE = 1.45;
+
+/** loadModel 结果带画质标记：高模失败回落低模时 quality='low'，不得写进高模缓存。 */
+interface LoadedModel {
+  readonly prefab: Prefab;
+  readonly quality: 'high' | 'low';
+}
 
 /** Player hull paint tints, keyed by the loadout skin id. */
 export const SKIN_TINTS: Readonly<Record<string, Color>> = {
-  graphite: new Color(104, 110, 118, 255),
+  // 缺省涂装接近白色：乘色叠加时不会把 GLB 贴图压成灰。
+  graphite: new Color(230, 236, 245, 255),
   rescue: new Color(226, 100, 72, 255),
   void: new Color(72, 48, 96, 255),
   hazard: new Color(216, 164, 40, 255),
@@ -211,7 +219,7 @@ function enemyDistanceSq(
   return dx * dx + dy * dy + dz * dz;
 }
 
-async function loadModel(graphicsTier: GraphicsTier, model: ModelNormalization): Promise<Prefab> {
+async function loadModel(graphicsTier: GraphicsTier, model: ModelNormalization): Promise<LoadedModel> {
   const highQuality = selectAssetBundles(graphicsTier).includes('spacefight-high');
   const paths = highQuality
     ? candidatePaths(model.highPath, true)
@@ -220,7 +228,8 @@ async function loadModel(graphicsTier: GraphicsTier, model: ModelNormalization):
   let lastError: unknown;
   for (const path of paths) {
     try {
-      return await loadPrefab(bundle, path);
+      const prefab = await loadPrefab(bundle, path);
+      return { prefab, quality: highQuality ? 'high' : 'low' };
     } catch (error) {
       lastError = error;
     }
@@ -231,7 +240,8 @@ async function loadModel(graphicsTier: GraphicsTier, model: ModelNormalization):
     // 这里必须把原因打出来，方便真机排查是「包缺失 / 内存不足 / prefab 损坏」。
     console.warn(`[SpaceFight] high-quality ship model failed, falling back to LOW model: ${model.highPath}`, lastError);
     try {
-      return await loadPrefab(resources, model.lowPath);
+      // 回退结果必须标记 quality='low'：低模只写 prefabs，绝不写 highPrefabs。
+      return { prefab: await loadPrefab(resources, model.lowPath), quality: 'low' };
     } catch (error) {
       lastError = error;
     }
@@ -248,9 +258,9 @@ export class ShipPresenter {
   private readonly missingEnemyStreak = new Map<string, number>();
   private readonly missingEnemyWarned = new Set<string>();
   private readonly prefabs = new Map<ShipKind, Prefab>();
-  private readonly prefabLoads = new Map<ShipKind, Promise<Prefab>>();
+  private readonly prefabLoads = new Map<ShipKind, Promise<LoadedModel>>();
   private readonly highPrefabs = new Map<ShipKind, Prefab>();
-  private readonly highPrefabLoads = new Map<ShipKind, Promise<Prefab>>();
+  private readonly highPrefabLoads = new Map<ShipKind, Promise<LoadedModel>>();
   private readonly shipKinds = new Map<Node, ShipKind>();
   private readonly shipVisuals = new Map<Node, Node>();
   private playerNode: Node | null = null;
@@ -274,7 +284,14 @@ export class ShipPresenter {
   private readonly modelMuzzleSockets = new Map<Node, { primary: Vec3 | null; secondary: Vec3 | null }>();
 
   private highQualityEnabled = false;
-  private readonly tintCache = new Map<string, Material | null>();
+  /** 当前玩家涂装：replaceVisual 换模后据此重放（applyPlayerSkin 启动只调一次）。 */
+  private currentSkin: string | undefined;
+  /** 玩家视觉加载请求序号：只接受最新机型请求，丢弃过期结果。 */
+  private playerVisualRequestSeq = 0;
+  /** sync 复用缓冲：敌机速度方向 / 基准前向 / 朝向四元数，避免每帧分配。 */
+  private readonly enemyVelocity = new Vec3();
+  private readonly enemyForward = new Vec3(0, 0, -1);
+  private readonly enemyRotation = new Quat();
 
   /** 引擎尾焰辉光节点：root -> 尾部 Sprite（每艘飞船一份，常驻）。 */
   private readonly shipGlows = new Map<Node, Node>();
@@ -332,15 +349,19 @@ export class ShipPresenter {
   }
 
   public async loadPlayerVisual(): Promise<void> {
+    const seq = ++this.playerVisualRequestSeq;
     const requestedHighQuality = this.highQualityEnabled;
     const kind = this.playerShipKind;
-    const prefab = await retryModelLoad(() => (
+    const loaded = await retryModelLoad(() => (
       requestedHighQuality
         ? this.ensureHighPrefab(kind)
         : this.ensurePrefab(kind)
     ));
+    // 连续换机型时丢弃过期结果：序号非最新 / 机型已变 / 画质档升为高都不再覆盖。
+    if (seq !== this.playerVisualRequestSeq) return;
+    if (kind !== this.playerShipKind) return;
     if (!this.playerNode?.isValid || (this.highQualityEnabled && !requestedHighQuality)) return;
-    this.replaceVisual(this.playerNode, kind, prefab);
+    this.replaceVisual(this.playerNode, kind, loaded.prefab);
   }
 
   /**
@@ -354,7 +375,12 @@ export class ShipPresenter {
     if (this.fallbackVisualAttempted) return;
     if (!this.playerNode?.isValid) return;
     this.fallbackVisualAttempted = true;
-    this.createFallbackVisual(this.playerNode);
+    // 原生端运行时网格可能建不出来：再兜一层，确保兜底路径不向外抛错、不阻塞战斗。
+    try {
+      this.createFallbackVisual(this.playerNode);
+    } catch (error: unknown) {
+      console.warn('[SpaceFight ships] fallback hull path failed', error);
+    }
   }
 
   /**
@@ -453,6 +479,13 @@ export class ShipPresenter {
       const enemyNode = this.enemyNodes.get(enemy.id);
       if (enemyNode) {
         enemyNode.setPosition(enemy.position.x, enemy.position.y, enemy.position.z);
+        // 用速度方向设置敌机朝向，避免侧飞/倒飞；速度近零时不改朝向（保持上一帧）。
+        this.enemyVelocity.set(enemy.velocity.x, enemy.velocity.y, enemy.velocity.z);
+        if (this.enemyVelocity.lengthSqr() > 0.0001) {
+          this.enemyVelocity.normalize();
+          Quat.rotationTo(this.enemyRotation, this.enemyForward, this.enemyVelocity);
+          enemyNode.setRotation(this.enemyRotation);
+        }
       } else {
         void this.requestEnemyVisual(
           enemy.id,
@@ -546,6 +579,12 @@ export class ShipPresenter {
     return worldPosition;
   }
 
+  /** 驾驶舱视角下隐藏玩家机体，避免相机进入模型内部穿模。 */
+  public setCockpitMode(active: boolean): void {
+    const visual = this.playerVisual;
+    if (visual?.isValid) visual.active = !active;
+  }
+
   public get primaryMuzzleTransform(): MuzzleTransform {
     return this.readMuzzle(this.primaryMuzzle, 'primary');
   }
@@ -556,24 +595,49 @@ export class ShipPresenter {
 
   public async enableHighQuality(graphicsTier: GraphicsTier): Promise<void> {
     if (!selectAssetBundles(graphicsTier).includes('spacefight-high')) return;
-    this.highQualityEnabled = true;
     const kinds = [...new Set(this.shipKinds.values())].filter(
       (kind): kind is ShipKind => Boolean(MODEL_NORMALIZATION[kind]),
     );
     const loaded = await Promise.all(kinds.map(async (kind) => {
-      const prefab = await this.ensureHighPrefab(kind);
-      return [kind, prefab] as const;
+      const model = await this.ensureHighPrefab(kind);
+      return [kind, model] as const;
     }));
-    const byKind = new Map<ShipKind, Prefab>(loaded);
+    // 任一机型高模不可用（回退成低模）：复位 flag 并保留现状，绝不把全场换成低模。
+    if (loaded.some(([, model]) => model.quality !== 'high')) {
+      this.highQualityEnabled = false;
+      this.highPrefabs.clear();
+      return;
+    }
+    // 全部 high prefab 就绪后才翻转 flag，避免窗口期内 createShipNode 读到空缓存。
+    this.highQualityEnabled = true;
+    const byKind = new Map<ShipKind, Prefab>(
+      loaded.map(([kind, model]): [ShipKind, Prefab] => [kind, model.prefab]),
+    );
     for (const [root, kind] of this.shipKinds) {
       const prefab = byKind.get(kind);
       if (root.isValid && prefab) this.replaceVisual(root, kind, prefab);
     }
   }
 
+  /**
+   * 降画质档时复位高画质状态：清空高模缓存、把已挂高模的机体换回低模，
+   * 恢复低模渲染预算。供 CombatBootstrap.applyGraphicsTier 调用。
+   */
+  public disableHighQuality(): void {
+    this.highQualityEnabled = false;
+    this.highPrefabs.clear();
+    this.highPrefabLoads.clear();
+    for (const [root, kind] of this.shipKinds) {
+      const low = this.prefabs.get(kind);
+      if (root.isValid && low) this.replaceVisual(root, kind, low);
+    }
+  }
+
   private createShipNode(name: string, kind: ShipKind, isPlayer: boolean): Node {
+    // 高画质 flag 翻转前 highPrefabs 可能尚未填好：缺失时回退到 prefabs 低模，
+    // 避免窗口期内 spawnEnemy 抛错导致敌机不显。
     const prefab = this.highQualityEnabled
-      ? this.highPrefabs.get(kind)
+      ? (this.highPrefabs.get(kind) ?? this.prefabs.get(kind))
       : this.prefabs.get(kind);
     if (!prefab) {
       throw new Error(`Required ship model is unavailable: ${kind}`);
@@ -668,17 +732,20 @@ export class ShipPresenter {
     }
   }
 
-  private ensurePrefab(kind: ShipKind): Promise<Prefab> {
+  private ensurePrefab(kind: ShipKind): Promise<LoadedModel> {
     if (this.highQualityEnabled) return this.ensureHighPrefab(kind);
-    const loaded = this.prefabs.get(kind);
-    if (loaded) return Promise.resolve(loaded);
+    const cached = this.prefabs.get(kind);
+    if (cached) {
+      const result: LoadedModel = { prefab: cached, quality: 'low' };
+      return Promise.resolve(result);
+    }
     const pending = this.prefabLoads.get(kind);
     if (pending) return pending;
     const request = loadModel('low', MODEL_NORMALIZATION[kind]).then(
-      (prefab) => {
-        this.prefabs.set(kind, prefab);
+      (result) => {
+        this.prefabs.set(kind, result.prefab);
         this.prefabLoads.delete(kind);
-        return prefab;
+        return result;
       },
       (error: unknown) => {
         this.prefabLoads.delete(kind);
@@ -689,18 +756,28 @@ export class ShipPresenter {
     return request;
   }
 
-  private ensureHighPrefab(kind: ShipKind): Promise<Prefab> {
+  private ensureHighPrefab(kind: ShipKind): Promise<LoadedModel> {
     const model = MODEL_NORMALIZATION[kind];
     if (!model) return Promise.reject(new Error(`Unknown ship model kind: ${String(kind)}`));
-    const loaded = this.highPrefabs.get(kind);
-    if (loaded) return Promise.resolve(loaded);
+    const cached = this.highPrefabs.get(kind);
+    if (cached) {
+      const result: LoadedModel = { prefab: cached, quality: 'high' };
+      return Promise.resolve(result);
+    }
     const pending = this.highPrefabLoads.get(kind);
     if (pending) return pending;
     const request = loadModel('high', model).then(
-      (prefab) => {
-        this.highPrefabs.set(kind, prefab);
+      (result) => {
+        // 高模失败回落的低模只写 prefabs，不写 highPrefabs，并复位高画质 flag。
+        if (result.quality === 'high') {
+          this.highPrefabs.set(kind, result.prefab);
+        } else {
+          this.prefabs.set(kind, result.prefab);
+          this.highQualityEnabled = false;
+          this.highPrefabs.clear();
+        }
         this.highPrefabLoads.delete(kind);
-        return prefab;
+        return result;
       },
       (error: unknown) => {
         this.highPrefabLoads.delete(kind);
@@ -755,7 +832,12 @@ export class ShipPresenter {
     const visual = instantiate(prefab);
     visual.name = `${root.name}.Model`;
     visual.setParent(root);
-    visual.setScale(normalization.scale, normalization.scale, normalization.scale);
+    // 机体偏小：仅对玩家视觉额外放大。碰撞体半径仍用 colliderRadius 原值（物理不变）；
+    // 尾焰 glow 尺寸基于 colliderRadius 属于独立视觉表现，也不随此系数缩放。
+    const visualScale = root === this.playerNode
+      ? normalization.scale * COMBAT_VISUAL_SCALE
+      : normalization.scale;
+    visual.setScale(visualScale, visualScale, visualScale);
     const modelRotation = new Quat();
     Quat.fromEuler(modelRotation, 0, normalization.orientationY, 0);
     visual.setRotation(modelRotation);
@@ -764,33 +846,39 @@ export class ShipPresenter {
     // 从模型节点树里读出作者提供的枪口挂点（socket_weapon_primary_l / _r 等）。
     // 没有 socket 的旧低模会返回 null，syncMuzzle 随后回退到硬编码枪口位置。
     this.modelMuzzleSockets.set(root, this.readModelMuzzleSockets(visual));
+    // 换模后统一重放涂装：applyPlayerSkin 只在启动调一次，覆盖 playerNode 与其它 root 路径。
+    this.replayPlayerSkin();
     return visual;
   }
 
   /**
-   * Apply a loadout skin tint to the player hull. Falls back to default tint
-   * for unknown skin ids (e.g. the default interceptor finish).
+   * 玩家涂装：在原 PBR 材质实例上以 mainColor 乘色叠加，保留 albedo/normal/metallic 贴图。
+   * 不再用 unlit 材质整体替换（旧写法丢贴图、把机体压成纯灰，且只作用于第 0 个 submesh）。
    */
   public applyPlayerSkin(skin?: string): void {
-    if (!this.playerVisual?.isValid) return;
-    const tint = skin && SKIN_TINTS[skin] ? SKIN_TINTS[skin] : SKIN_TINTS.graphite;
-    const renderers = this.playerVisual.getComponentsInChildren(MeshRenderer);
-    if (renderers.length === 0) return;
-    const base = builtinResMgr.get('missing-material') as Material | null;
-    const key = `${tint.r}|${tint.g}|${tint.b}`;
-    let material = this.tintCache.get(key);
-    if (material === undefined) {
-      if (base) {
-        material = new Material();
-        material.copy(base);
-        material.setProperty('mainColor', tint);
-      } else {
-        material = null;
-      }
-      this.tintCache.set(key, material);
+    this.currentSkin = skin;
+    this.replayPlayerSkin();
+  }
+
+  /** 重放涂装：遍历所有已挂载视觉（含 playerNode 与其它 root），只对玩家节点上色。 */
+  private replayPlayerSkin(): void {
+    if (this.currentSkin === undefined) return;
+    const tint = SKIN_TINTS[this.currentSkin] ?? SKIN_TINTS.graphite;
+    for (const [root, visual] of this.shipVisuals) {
+      if (root !== this.playerNode || !visual.isValid) continue;
+      this.applyTint(visual, tint);
     }
-    for (const renderer of renderers) {
-      if (material) renderer.setMaterial(material, 0);
+  }
+
+  private applyTint(visual: Node, tint: Color): void {
+    for (const renderer of visual.getComponentsInChildren(MeshRenderer)) {
+      // 逐 submesh 取原材质实例：保留贴图，仅改乘色；没有 mainColor 的材质跳过，不替换。
+      const materials = renderer.sharedMaterials;
+      for (let index = 0; index < materials.length; index += 1) {
+        const instance = renderer.getMaterialInstance(index);
+        if (!instance || instance.getProperty('mainColor') == null) continue;
+        instance.setProperty('mainColor', tint);
+      }
     }
   }
 

@@ -131,7 +131,33 @@ export interface CombatSimulationOptions {
   cargoCapacityBonus?: number;
   pickupRadiusBonus?: number;
   shieldCapacityBonus?: number;
+  /**
+   * 星港服务经济端口。core 层不能依赖 `cc`（PlayerEconomy 用 sys.localStorage），
+   * 由外层用 PlayerEconomy 现有 API 注入；未注入时退回到内置券，保证服务仍可用。
+   */
+  economy?: OutpostServiceEconomy;
 }
+
+export type OutpostService = 'repair' | 'resupply' | 'refit';
+
+export interface OutpostServiceEconomy {
+  /** 读取当前星港券余额 */
+  getTickets(): number;
+  /** 扣券成功返回 true；余额不足返回 false */
+  spendTickets(amount: number, receipt: string): boolean;
+}
+
+/** 三项站内服务的星港券价格（合理常数，与商城 120~420 档位错开）。 */
+export const OUTPOST_SERVICE_PRICES: Readonly<Record<OutpostService, number>> = {
+  repair: 40,
+  resupply: 30,
+  refit: 90,
+};
+
+/** 未注入经济端口时的内置券额度，与 PlayerEconomy 默认余额对齐。 */
+const OUTPOST_DEFAULT_TICKETS = 360;
+/** refit 每次永久提升的护盾上限。 */
+const REFIT_SHIELD_BONUS = 8;
 
 export type EnemyFaction = 'raider' | 'corsair';
 export type WorldEventKind = 'rivalry' | 'ion-storm' | 'supply-drop';
@@ -213,7 +239,7 @@ interface ProjectileState {
 export type CombatEventSource = 'player' | 'enemy' | 'world';
 export type CombatEventType = 'hit' | 'destroyed' | 'player-hit' | 'shield-break' | 'wave-start'
   | 'rivalry-start' | 'rivalry-end' | 'ion-storm' | 'supply-drop' | 'weapon-fired' | 'outpost-serviced'
-  | 'upgrade-activated' | 'weapons-swapped';
+  | 'outpost-service' | 'upgrade-activated' | 'weapons-swapped';
 
 export interface CombatEvent {
   readonly id: number;
@@ -231,6 +257,8 @@ export interface CombatEvent {
   /** 受击强度分级（light / medium / heavy），供 HUD 做差异化反馈 */
   readonly intensity?: 'light' | 'medium' | 'heavy';
   readonly cargoValue?: number;
+  /** 星港改装累计次数（outpost-service 事件携带，供 HUD 提示） */
+  readonly refitCount?: number;
 }
 
 interface PickupState {
@@ -539,6 +567,14 @@ export class CombatSimulation {
   private eliteKills = 0;
   /** 本波存活计时（survive 目标进度） */
   private surviveElapsed = 0;
+  /** hunt 波内固定目标：等于开波时本波精英投放数，不随全局 kills 膨胀 */
+  private huntTargetKills = 1;
+  /** defense 已守住秒数：从 0 起递增，敌人压制时倒扣 */
+  private defenseHeldSeconds = 0;
+  /** escort 已护送进度 0..100：从 0 起递增，不再拿满血当完成量 */
+  private escortProgress = 0;
+  /** 开局目标量，离港重开战局时恢复（避免沿用上一局膨胀后的 requiredKills） */
+  private readonly baseRequiredKills: number;
   private readonly loadout: ResolvedCombatLoadout;
   /** 机型倍率。基线 interceptor 全为 1，保证默认装配的确定性数值不变。 */
   private readonly shipDefinition: PlayerShipDefinition;
@@ -637,6 +673,30 @@ export class CombatSimulation {
       return active.remaining > 0;
     });
   }
+
+  /**
+   * 把 shield 增益倍率真正作用到护盾上限（此前 upgradeEffects() 算出的倍率无人读取）。
+   * 每帧按当前增益重算，倍率到期后自动复原到 baseMaxShield；生效时当前护盾按上限增量补足。
+   */
+  private syncUpgradeShieldCapacity(): void {
+    const nextMax = this.baseMaxShield * this.upgradeEffects().shield;
+    const delta = nextMax - this.player.maxShield;
+    this.player.maxShield = nextMax;
+    if (delta > 0) {
+      this.player.shield = Math.min(nextMax, this.player.shield + delta);
+    } else if (delta < 0) {
+      this.player.shield = Math.min(nextMax, this.player.shield);
+    }
+  }
+
+  /** hunt 目标固定为开波时本波精英数，避免用全局累计 kills 导致越往后越不可达。 */
+  private syncHuntTarget(): void {
+    if (this.objectiveType !== 'hunt') return;
+    this.huntTargetKills = Math.max(1, this.enemies.filter(
+      (enemy) => enemy.role === 'elite' || enemy.kind === this.objectiveEliteKind,
+    ).length);
+  }
+
   private readonly worldEventsEnabled: boolean;
   private readonly forcedWorldEvents: WorldEventKind[];
   private worldEventSequence = 0;
@@ -645,6 +705,13 @@ export class CombatSimulation {
   private worldEventRemaining = 0;
   private docked = false;
   private securedCargoValue = 0;
+  /** 护盾容量基准（不含局内增益倍率），增益到期/离港据此复原；refit 永久提升累加在此 */
+  private baseMaxShield: number;
+  /** 累计改装次数（refit），供 HUD 事件提示 */
+  private refitCount = 0;
+  /** 未注入经济端口时使用的内置星港券 */
+  private fallbackTickets = OUTPOST_DEFAULT_TICKETS;
+  private readonly economy: OutpostServiceEconomy;
   private assistedTargetId: string | null = null;
   private aimAssistGrace = 0;
 
@@ -680,6 +747,8 @@ export class CombatSimulation {
    * 运输船跟在玩家身后，挨打或被甩开都会掉进度。
    */
   private escortPosition: Vector3 = { x: 0, y: 0, z: 0 };
+  /** 运输船起始位置，离港重开战局时恢复 */
+  private escortStart: Vector3 = { x: 0, y: 0, z: 0 };
   private escortHealth = 100;
   private escortFollowDistance = 46;
 
@@ -746,11 +815,22 @@ export class CombatSimulation {
     }
     // escort：护送目标。运输船跟在玩家身后，被甩太远或挨打都会掉进度。
     this.escortPosition = cloneVector(objective?.escortStart || FLIGHT_TUNING.player.startPosition);
+    this.escortStart = cloneVector(this.escortPosition);
     this.escortHealth = 100;
     this.escortFollowDistance = Math.max(6, clampFinite(objective?.escortFollowDistance, 46, 6, 140));
     if (this.objectiveType === 'escort') {
       this.requiredKills = Math.max(12, Math.floor(clampFinite(objective?.surviveSeconds, 60, 12, 240)));
     }
+    // 记录开局目标量与经济端口：离港重开战局时据此恢复，不沿用上一局膨胀后的值。
+    this.baseRequiredKills = this.requiredKills;
+    this.economy = options.economy ?? {
+      getTickets: () => this.fallbackTickets,
+      spendTickets: (amount: number) => {
+        if (this.fallbackTickets < amount) return false;
+        this.fallbackTickets -= amount;
+        return true;
+      },
+    };
     this.loadout = resolveLoadout(options.loadout);
     this.shipDefinition = resolvePlayerShip(this.loadout.ship);
     const ship = this.shipDefinition;
@@ -766,6 +846,8 @@ export class CombatSimulation {
       * ship.energyMultiplier;
     const maxShield = core.maxShield * shield.capacityMultiplier * ship.shieldMultiplier
       + Math.max(0, Math.floor(finiteNumber(options.shieldCapacityBonus, 0)));
+    // 基准护盾上限不含局内增益倍率，增益到期后据此复原；refit 的永久提升也累加在此。
+    this.baseMaxShield = maxShield;
     const maxHealth = Math.round(core.maxHealth * ship.healthMultiplier);
     this.player = {
       position: cloneVector(FLIGHT_TUNING.player.startPosition),
@@ -827,6 +909,9 @@ export class CombatSimulation {
       upgradeId: pickup.upgradeId,
     }));
     if (this.enemies.length === 0) this.spawnWave(1);
+    // 猎杀目标开局也要有精英可杀，否则第一波目标天然不可达。
+    if (this.objectiveType === 'hunt') this.spawnElite(1);
+    this.syncHuntTarget();
   }
 
   step(input: FlightCommandInput = {}, delta = FLIGHT_TUNING.fixedStep): CombatSnapshot {
@@ -872,8 +957,17 @@ export class CombatSimulation {
   }
 
   private updateToggles(command: FlightCommand): void {
+    // pause 边沿始终要处理（用于进入/解除暂停）。
     if (command.pause && !this.pauseHeld) {
       this.paused = !this.paused;
+    }
+    // 暂停态（含本帧刚按下暂停）只维护 held 位，不处理切镜头/换武器，
+    // 否则暂停时也会偷偷改状态并派发 weapons-swapped 事件。
+    if (this.paused) {
+      this.pauseHeld = command.pause;
+      this.cameraHeld = command.cameraToggle;
+      this.swapHeld = command.swapWeapons;
+      return;
     }
     if (command.cameraToggle && !this.cameraHeld) {
       this.cameraMode = this.cameraMode === 'chase' ? 'cockpit' : 'chase';
@@ -918,6 +1012,7 @@ export class CombatSimulation {
     this.elapsed += dt;
     this.updateCooldowns(dt);
     this.updateUpgrades(dt);
+    this.syncUpgradeShieldCapacity();
     this.updateCombo(dt);
     this.updatePlayer(command, dt);
     this.applyRegionRules(dt);
@@ -956,12 +1051,14 @@ export class CombatSimulation {
     if (this.objectiveType !== 'survive' || this.primaryCompleted || this.docked || this.failed) return;
     this.waveTransition += dt;
     if (this.waveTransition < REINFORCEMENT_INTERVAL) return;
-    this.waveTransition = 0;
     // 场上敌人越多增援越少，避免玩家被瞬间淹没
     const headroom = Math.max(0, SURVIVE_ENEMY_CAP - this.enemies.length);
+    // 敌满时保留计时：空位一出现就能立刻增援，不必再等满 7 秒。
     if (headroom <= 0) return;
     const count = Math.min(headroom, 1 + Math.floor(this.expedition.snapshot().threat / 2));
     this.spawnReinforcement(count);
+    // 只有真正投放增援后才清零计时。
+    this.waveTransition = 0;
   }
 
   private spawnReinforcement(count: number): void {
@@ -1234,12 +1331,14 @@ export class CombatSimulation {
 
   private fireWeapon(slot: WeaponSlot): void {
     const weapon = this.resolveWeaponForSlot(slot);
-    if (this.cooldowns[slot] > 0 || this.player.energy < weapon.energyCost) {
+    // 能耗强化倍率乘在本武器能耗上；倍率随增益生效/到期动态读取，无需复原状态。
+    const energyCost = weapon.energyCost * this.upgradeEffects().energy;
+    if (this.cooldowns[slot] > 0 || this.player.energy < energyCost) {
       return;
     }
     this.cooldowns[slot] = weapon.cooldown * this.upgradeEffects().fireRate
       / this.shipDefinition.fireRateMultiplier;
-    this.player.energy -= weapon.energyCost;
+    this.player.energy -= energyCost;
     const aim = this.aimSolution();
     const origin = computeMuzzlePosition(
       this.player.position,
@@ -1612,6 +1711,24 @@ export class CombatSimulation {
           });
           continue;
         }
+        // 残骸带：玩家子弹命中残骸扣血，扣到 0 后由 updateDebris 清除（此前 health 从不减少）。
+        const debrisHit = this.debris.find((debris) =>
+          segmentDistanceToPoint(previousPosition, projectile.position, debris.position)
+            <= projectile.radius + debris.radius);
+        if (debrisHit) {
+          debrisHit.health -= projectile.damage;
+          this.combatEvents.push({
+            id: this.nextCombatEventId++,
+            type: 'hit',
+            position: closestPointOnSegment(previousPosition, projectile.position, debrisHit.position),
+            targetId: debrisHit.id,
+            weapon: projectile.weapon,
+            damage: projectile.damage,
+            lethal: debrisHit.health <= 0,
+            source: 'player',
+          });
+          continue;
+        }
       }
       if (
         projectile.life > 0
@@ -1776,14 +1893,21 @@ export class CombatSimulation {
     }
     if (threat > 0) {
       this.defenseLostSeconds += threat * dt * 2.2;
+      // 敌人压制核心时倒扣已守住秒数
+      this.defenseHeldSeconds = Math.max(0, this.defenseHeldSeconds - threat * dt * 2.2);
+    } else {
+      // 已守住秒数从 0 起递增；此前进度初值就等于目标，首帧即判通关。
+      this.defenseHeldSeconds += dt;
     }
   }
 
   /** 护送：运输船跟在玩家身后，敌人打它或被甩太远都会掉血 */
   private updateEscortObjective(dt: number): void {
+    let underThreat = false;
     const gap = distance(this.player.position, this.escortPosition);
     if (gap > this.escortFollowDistance) {
       // 被甩开：运输船跟不上，开始持续受损
+      underThreat = true;
       this.escortHealth = Math.max(0, this.escortHealth - (gap - this.escortFollowDistance) * 0.22 * dt);
     } else {
       // 跟得上：运输船慢慢追上来（朝玩家方向移动）
@@ -1803,9 +1927,13 @@ export class CombatSimulation {
       if (enemy.health <= 0) continue;
       const gap = distance(enemy.position, this.escortPosition);
       if (gap < 6) {
+        underThreat = true;
         this.escortHealth = Math.max(0, this.escortHealth - 6 * dt);
       }
     }
+    // 已护送进度从 0 起递增，被甩开/挨打时倒扣；不再拿满血 100 当完成量。
+    this.escortProgress = Math.max(0, Math.min(100,
+      this.escortProgress + (underThreat ? -dt * 3 : dt * 4)));
   }
 
   private damagePlayer(damage: number): void {
@@ -1837,17 +1965,18 @@ export class CombatSimulation {
     if (damage <= 0 || this.failed) {
       return;
     }
-    // 无敌帧 / 出生保护只挡**敌人伤害**；环境伤害（撞墙、撞残骸）照样结算，
-    // 否则玩家可以在开局无敌期内贴着岩壁飞，规则形同虚设。
-    const environmentOnly = environmentDamage > 0 && environmentDamage >= damage - 1e-6;
-    if (!environmentOnly && (this.player.hitGrace > 0 || this.player.spawnProtection > 0)) {
-      return;
-    }
+    // 拆出环境伤害与敌人伤害：环境伤害始终结算，无敌帧/出生保护只豁免敌人部分。
+    // 旧逻辑只在「全部是环境伤害」时才放行，混合伤害会把环境部分一起吞掉。
+    const environment = Math.min(damage, Math.max(0, environmentDamage));
+    const enemyDamage = damage - environment;
+    const immune = this.player.hitGrace > 0 || this.player.spawnProtection > 0;
+    const appliedDamage = environment + (immune ? 0 : enemyDamage);
+    if (appliedDamage <= 0) return;
     this.damagedThisStep = true;
     const shieldBefore = this.player.shield;
-    const shieldDamage = Math.min(this.player.shield, damage);
+    const shieldDamage = Math.min(this.player.shield, appliedDamage);
     this.player.shield -= shieldDamage;
-    const hullDamage = Math.min(this.player.health, damage - shieldDamage);
+    const hullDamage = Math.min(this.player.health, appliedDamage - shieldDamage);
     this.player.health = Math.max(0, this.player.health - hullDamage);
     this.player.hitGrace = PLAYER_HIT_TUNING.hitGraceSeconds;
     // 受伤强度分级，供 HUD 做差异化反馈（轻擦 / 重击 / 破盾）
@@ -1906,18 +2035,15 @@ export class CombatSimulation {
       // 修复包：回血。之前任务里从没出现过，属于新增补给类型。
       if (pickup.kind === 'repair') {
         const definition = PICKUP_KINDS.repair;
-        this.player.health = Math.min(
-          this.player.maxHealth,
-          this.player.health + (definition.repairAmount ?? 0),
-        );
+        // 优先用任务下发的 value，常量仅作缺省回退，与 energy 分支一致。
+        const amount = pickup.value > 0 ? pickup.value : (definition.repairAmount ?? 0);
+        this.player.health = Math.min(this.player.maxHealth, this.player.health + amount);
       }
       // 护盾包：补盾。
       if (pickup.kind === 'shield') {
         const definition = PICKUP_KINDS.shield;
-        this.player.shield = Math.min(
-          this.player.maxShield,
-          this.player.shield + (definition.shieldAmount ?? 0),
-        );
+        const amount = pickup.value > 0 ? pickup.value : (definition.shieldAmount ?? 0);
+        this.player.shield = Math.min(this.player.maxShield, this.player.shield + amount);
       }
       // 实体战利品（loot / scrap / data）：进货舱。
       // ⚠️ 之前这三种拾取物**完全没有效果** —— collectPickups 只认 energy 和 upgrade，
@@ -1974,8 +2100,9 @@ export class CombatSimulation {
       case 'survive':
         return { progress: Math.min(this.surviveElapsed, this.objectiveSurviveSeconds), target: this.objectiveSurviveSeconds };
       case 'hunt': {
-        // 猎杀只认精英，清杂兵不涨进度
-        const target = Math.max(1, Math.floor(this.requiredKills / 2));
+        // 波内固定目标（本波精英投放数），不再由全局累计 requiredKills 派生，
+        // 否则第 2 波起目标无限膨胀而每波只投 1 架精英，永远不可达。
+        const target = Math.max(1, this.huntTargetKills);
         return { progress: Math.min(this.eliteKills, target), target };
       }
       case 'collect': {
@@ -1986,17 +2113,15 @@ export class CombatSimulation {
         return { progress: Math.min(cargo.usedSlots, need), target: need };
       }
       case 'defense': {
-        // 守点：进度 = 守住核心的秒数，敌人靠近核心就倒扣。
-        // 进度掉到 0 即任务失败（见 updateMission 的失败判定）。
+        // 守点：进度 = 已守住秒数，从 0 起递增，敌人压制核心时倒扣。
+        // 失败判定仍看 defenseLostSeconds（见 updateMission）。
         const target = Math.max(1, this.requiredKills);
-        const held = Math.max(0, target - this.defenseLostSeconds);
-        return { progress: Math.min(held, target), target };
+        return { progress: Math.min(Math.max(0, this.defenseHeldSeconds), target), target };
       }
       case 'escort': {
-        // 护送：进度 = 运输船的完好度百分比。
-        // 运输船挨打或被甩开都会掉血 → 逼玩家在清场与护送之间取舍。
+        // 护送：进度 = 已护送进度，从 0 起递增，被甩开/挨打时倒扣。
         const target = 100;
-        return { progress: Math.min(Math.max(0, Math.round(this.escortHealth)), target), target };
+        return { progress: Math.min(Math.max(0, Math.round(this.escortProgress)), target), target };
       }
       case 'eliminate':
       default: {
@@ -2108,6 +2233,8 @@ export class CombatSimulation {
     if (this.objectiveType === 'survive') {
       this.waveTransition = 0;
     }
+    // 本波精英投放完毕，固定本波猎杀目标
+    this.syncHuntTarget();
     this.combatEvents.push({
       id: this.nextCombatEventId++,
       type: 'wave-start',
@@ -2453,16 +2580,23 @@ export class CombatSimulation {
     };
   }
 
+  /**
+   * 外层直接驱动暂停/恢复。面板打开时主循环会整体 return，
+   * 不能依赖 step() 的 pause 按键边沿（那会让「继续战斗」永远消费不到）。
+   */
+  public setPaused(paused: boolean): CombatSnapshot {
+    this.paused = paused;
+    this.pauseHeld = false;
+    return this.snapshot();
+  }
+
   public serviceAtOutpost(): CombatSnapshot {
+    // 幂等守卫：已停靠时不再重复结算货物/派发事件/清空状态。
+    if (this.docked) return this.snapshot();
     this.combatEvents = [];
     this.docked = true;
-    this.player.health = this.player.maxHealth;
-    this.player.shield = this.player.maxShield;
-    this.player.energy = this.player.maxEnergy;
-    this.player.spawnProtection = Math.max(this.player.spawnProtection, 3);
-    // 补给后给一段无敌帧，并让速度从静止重新起步（避免瞬间满速）
-    this.player.hitGrace = Math.max(this.player.hitGrace, PLAYER_HIT_TUNING.hitGraceSeconds);
-    this.player.speedScale = 0;
+    // 保留战斗损耗：三量不再写回 max，回满改为站内主动购买服务（serviceStation）。
+    // 只清弹幕/冷却/连击/升级/速度等临时战斗状态。
     this.projectiles = [];
     this.cooldowns = { primary: 0, secondary: 0 };
     this.comboCount = 0;
@@ -2470,10 +2604,15 @@ export class CombatSimulation {
     this.weaponsSwapped = false;
     this.swapHeld = false;
     this.activeUpgrades = [];
+    this.player.speedScale = 0;
+    // 增益已清空，护盾上限复原到基准（含 refit 永久提升）。
+    this.player.maxShield = this.baseMaxShield;
+    this.player.shield = Math.min(this.player.shield, this.player.maxShield);
     this.assistedTargetId = null;
     this.aimAssistGrace = 0;
     this.activeWorldEvent = null;
     this.worldEventRemaining = 0;
+    // 触发一次货物结算（settle 后货舱清空，重复返航不会重复计入/发券）。
     const settlement = this.cargo.settleExpedition('returned');
     this.securedCargoValue = settlement.keptValue;
     this.combatEvents.push({
@@ -2486,20 +2625,103 @@ export class CombatSimulation {
     return this.snapshot();
   }
 
+  /**
+   * 站内主动购买服务：返航保留损伤，回满需付费。
+   * 只在停靠时生效；星港券不足时不生效并返回当前状态。
+   */
+  public serviceStation(service: OutpostService): CombatSnapshot {
+    if (!this.docked) return this.snapshot();
+    const price = OUTPOST_SERVICE_PRICES[service];
+    const receipt = `outpost-${service}-${this.seed}-${this.tick}-${this.nextCombatEventId}-${this.refitCount}`;
+    if (this.economy.getTickets() < price || !this.economy.spendTickets(price, receipt)) {
+      return this.snapshot();
+    }
+    if (service === 'repair') {
+      this.player.health = this.player.maxHealth;
+    } else if (service === 'resupply') {
+      this.player.energy = this.player.maxEnergy;
+    } else {
+      // refit：永久小幅提升护盾上限并回满护盾，记录改装次数。
+      this.refitCount += 1;
+      this.baseMaxShield += REFIT_SHIELD_BONUS;
+      this.player.maxShield = this.baseMaxShield * this.upgradeEffects().shield;
+      this.player.shield = this.player.maxShield;
+    }
+    // 派发事件供 HUD 提示（替换事件数组，保证返回值只含本次服务事件）。
+    this.combatEvents = [{
+      id: this.nextCombatEventId++,
+      type: 'outpost-service',
+      position: cloneVector(PRIMARY_OUTPOST_POSITION),
+      targetId: service,
+      source: 'world',
+      cargoValue: price,
+      refitCount: this.refitCount,
+    }];
+    return this.snapshot();
+  }
+
   public departOutpost(): CombatSnapshot {
     this.combatEvents = [];
     this.docked = false;
-    // 离港即开启一份新的远征：把远征阶段从 'complete' 复位回 'primary'。
-    // 否则 mission.status 永远为 'complete'，CombatBootstrap.update() 会在玩家点
-    // 「离港」后的下一帧再次自动入港 → 无限再入港循环，飞船被永久钉在前哨站
-    // （表现为「画面冻住 / 飞不了 / 前哨站 3D 模型被 2D 面板盖住」）。
-    // 原生端 enterOutpost 不设 pausedByLaunchGate，循环直接暴露成整屏冻结。
+    // 完整重置战局：否则离港首帧沿用上一局 wave/kills，会「立刻通关」并再次自动入港。
+    this.wave = 1;
+    this.kills = 0;
+    this.waveKillBaseline = 0;
+    this.eliteKills = 0;
+    this.surviveElapsed = 0;
+    this.defenseLostSeconds = 0;
+    this.defenseHeldSeconds = 0;
+    this.escortHealth = 100;
+    this.escortProgress = 0;
+    this.escortPosition = cloneVector(this.escortStart);
+    this.decisionElapsed = 0;
+    this.decisionUrged = false;
+    this.primaryCompleted = false;
+    this.failed = false;
+    this.paused = false;
+    this.pauseHeld = false;
+    this.cameraHeld = false;
+    this.swapHeld = false;
+    this.weaponsSwapped = false;
+    this.comboCount = 0;
+    this.comboTimer = 0;
+    this.comboBest = 0;
+    this.activeUpgrades = [];
+    this.projectiles = [];
+    this.debris = [];
+    this.canyonScraping = false;
+    this.pickups = [];
+    this.waveTransition = 0;
+    this.sector = 1;
+    this.regionId = this.regionForSector(this.sector);
+    this.requiredKills = this.baseRequiredKills;
+    this.cargo.clear();
+    this.securedCargoValue = 0;
+    this.activeWorldEvent = null;
+    this.worldEventRemaining = 0;
+    this.worldEventSequence = 0;
+    this.nextWorldEventAt = this.elapsed + 20 + this.seededUnit(1701) * 14;
+    this.assistedTargetId = null;
+    this.aimAssistGrace = 0;
+    this.pendingPlayerDamage = 0;
+    this.pendingEnvironmentDamage = 0;
+    this.damagedThisStep = false;
+    this.accumulator = 0;
+    this.cooldowns = { primary: 0, secondary: 0 };
+    // 保留 player 的 health/shield/energy/maxShield、score、loadout：
+    // 站内买没买服务决定下一局开局状态。增益已清空，护盾上限复原到基准。
+    this.player.maxShield = this.baseMaxShield;
+    this.player.shield = Math.min(this.player.shield, this.player.maxShield);
+    this.player.speedScale = 0;
+    // 重建远征并重新投放第一波敌人。
     this.expedition = new ExpeditionDirector({
       seed: (this.seed ^ Math.floor(this.elapsed * 1000 + this.tick + 1)) >>> 0,
       primaryEvent: this.primaryEvent,
     });
-    this.primaryCompleted = false;
-    this.decisionElapsed = 0;
+    this.enemies = [];
+    this.spawnWave(1);
+    if (this.objectiveType === 'hunt') this.spawnElite(1);
+    this.syncHuntTarget();
     this.player.position = {
       x: PRIMARY_OUTPOST_POSITION.x,
       y: PRIMARY_OUTPOST_POSITION.y,

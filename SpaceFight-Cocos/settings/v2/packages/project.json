@@ -1,8 +1,8 @@
 {
   "project": {
     "name": "SpaceFight-Cocos",
-    "version": "0.13.11",
-    "build": 75,
+    "version": "0.13.12",
+    "build": 76,
     "creatorVersion": "3.8.8"
   },
   "__version__": "1.0.6",

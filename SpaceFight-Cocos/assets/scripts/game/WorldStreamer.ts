@@ -695,4 +695,48 @@ export class WorldStreamer {
     renderer.setMaterial(material, 0);
     return part;
   }
+
+  /**
+   * 切换画质档 / 销毁时显式释放自建的 7 份材质与 22 个运行时网格
+   * （Cocos 3.8 的 Asset.destroy），避免这些 GPU 资源在场景切换后常驻。
+   */
+  public dispose(): void {
+    const materials: Material[] = [
+      this.stationMaterial,
+      this.stationGlowMaterial,
+      this.stationDarkMaterial,
+      this.stationBeaconMaterial,
+      this.stationInteriorMaterial,
+      this.stationGlassMaterial,
+      this.debrisMaterial,
+    ];
+    const meshes = [
+      this.stationRingMesh,
+      this.stationCoreMesh,
+      this.stationHubMesh,
+      this.stationArmMesh,
+      this.stationDockMesh,
+      this.stationPanelMesh,
+      this.stationBeaconMesh,
+      this.armorShellMesh,
+      this.hangarFrameMesh,
+      this.hangarDeckMesh,
+      this.corridorWallMesh,
+      this.bulkheadMesh,
+      this.interiorCoverMesh,
+      this.commandDeckMesh,
+      this.stationAntennaMesh,
+      this.facilityBlockMesh,
+      this.facilityBeamMesh,
+      this.approachWallMesh,
+      this.approachCargoMesh,
+      this.approachPylonMesh,
+      this.jumpGateMesh,
+      this.asteroidMesh,
+    ];
+    for (const material of materials) material.destroy();
+    for (const mesh of meshes) mesh.destroy();
+    this.activeChunks.clear();
+    this.chunkPool.length = 0;
+  }
 }

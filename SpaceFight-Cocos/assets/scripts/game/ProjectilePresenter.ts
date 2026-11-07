@@ -19,6 +19,8 @@ import type { CombatSnapshot } from '../core/CombatSimulation';
 interface ProjectileVisual {
   readonly node: Node;
   readonly trail: Line | null;
+  /** 每个弹体独立的拖尾端点缓冲：复用时不与其它弹体串味。 */
+  readonly trailPositions: Vec3[];
 }
 
 export interface ProjectilePresenterOptions {
@@ -104,6 +106,11 @@ export class ProjectilePresenter {
   private readonly enemyMaterial = unlitMaterial(new Color(255, 61, 48, 255));
   /** 每种武器一份材质（按需创建并缓存） */
   private readonly weaponMaterials = new Map<string, Material>();
+  /** sync 每帧复用缓冲：可见 id 集合 + 位置/方向/尾端向量，避免每帧分配。 */
+  private readonly visibleIdsBuffer = new Set<string>();
+  private readonly scratchPosition = new Vec3();
+  private readonly scratchDirection = new Vec3();
+  private readonly scratchTrailEnd = new Vec3();
 
   public constructor(
     private readonly parent: Node,
@@ -119,9 +126,13 @@ export class ProjectilePresenter {
   }
 
   public sync(snapshot: CombatSnapshot): void {
-    const visibleIds = new Set(snapshot.projectiles.map((projectile) => projectile.id));
+    // 复用成员缓冲：避免每帧新建 Set / map 临时数组 / position Vec3。
+    this.visibleIdsBuffer.clear();
+    for (const projectile of snapshot.projectiles) {
+      this.visibleIdsBuffer.add(projectile.id);
+    }
     for (const [projectileId] of this.activeProjectiles) {
-      if (!visibleIds.has(projectileId)) {
+      if (!this.visibleIdsBuffer.has(projectileId)) {
         this.recycle(projectileId);
       }
     }
@@ -132,13 +143,15 @@ export class ProjectilePresenter {
         visual = this.acquire(projectile.id, projectile.weapon, projectile.owner);
       }
 
-      const position = new Vec3(
+      this.scratchPosition.set(
         projectile.position.x,
         projectile.position.y,
         projectile.position.z,
       );
-      visual.node.setWorldPosition(position);
-      if (visual.trail) this.updateTrail(visual.trail, position, projectile.velocity);
+      visual.node.setWorldPosition(this.scratchPosition);
+      if (visual.trail) {
+        this.updateTrail(visual.trail, this.scratchPosition, projectile.velocity, visual.trailPositions);
+      }
     }
   }
 
@@ -180,7 +193,12 @@ export class ProjectilePresenter {
         : this.weaponTint(weapon);
       trail.color = constantColor(tint);
     }
-    const visual = { node, trail };
+    // 每发子弹一份独立拖尾缓冲（仅 acquire 时分配，非每帧）。
+    const visual: ProjectileVisual = {
+      node,
+      trail,
+      trailPositions: [new Vec3(), new Vec3()],
+    };
     this.activeProjectiles.set(projectileId, visual);
     return visual;
   }
@@ -250,15 +268,18 @@ export class ProjectilePresenter {
     trail: Line,
     position: Vec3,
     velocity: { x: number; y: number; z: number },
+    positions: Vec3[],
   ): void {
-    const direction = new Vec3(velocity.x, velocity.y, velocity.z);
-    if (direction.lengthSqr() < 0.0001) {
-      direction.set(0, 0, -1);
+    this.scratchDirection.set(velocity.x, velocity.y, velocity.z);
+    if (this.scratchDirection.lengthSqr() < 0.0001) {
+      this.scratchDirection.set(0, 0, -1);
     } else {
-      direction.normalize();
+      this.scratchDirection.normalize();
     }
-    const trailEnd = new Vec3();
-    Vec3.scaleAndAdd(trailEnd, position, direction, -TRAIL_LENGTH);
-    trail.positions = [position.clone(), trailEnd];
+    Vec3.scaleAndAdd(this.scratchTrailEnd, position, this.scratchDirection, -TRAIL_LENGTH);
+    // 复用端点与数组：每弹体独立缓冲，每帧重设 values 后 Line 每帧重设 positions，行为一致。
+    positions[0].set(position.x, position.y, position.z);
+    positions[1].set(this.scratchTrailEnd.x, this.scratchTrailEnd.y, this.scratchTrailEnd.z);
+    trail.positions = positions;
   }
 }

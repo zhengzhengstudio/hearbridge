@@ -65,7 +65,24 @@ const HUD_ACTIVE = new Color(240, 168, 60, 228);
 const HUD_RED = new Color(224, 90, 79, 235);
 const HUD_GREEN = new Color(91, 211, 170, 230);
 
-type NativeHomeView = 'operations' | 'hangar' | 'cargo' | 'market' | 'settings';
+// 联机/前哨服务接口：外层 CombatBootstrap 与 web shell 负责接线；native 无 WebRTC 时 available 传 false。
+export type StationServiceId = 'repair' | 'resupply' | 'refit';
+export type CoopHudState = 'idle' | 'hosting' | 'joining' | 'connected' | 'error';
+export interface CoopHudBridge {
+  readonly available: boolean;
+  host(): void;
+  join(): void;
+  accept(): void;
+  close(): void;
+  copyCode?(): void;
+}
+export interface NativeHudActions {
+  onReturnHome?: () => void;
+  onStationService?: (service: StationServiceId) => void;
+  coop?: CoopHudBridge;
+}
+
+type NativeHomeView = 'operations' | 'hangar' | 'cargo' | 'market' | 'settings' | 'coop';
 type NativeOverlay = 'home' | 'loadout' | 'outpost' | 'defeat' | 'pause';
 type PanelButtonKind = 'standard' | 'primary' | 'nav' | 'slot' | 'danger';
 
@@ -132,7 +149,8 @@ interface LoadoutMetrics {
 export class NativeCombatHud implements NativeInputFeedback {
   private readonly locale = detectCombatLocale();
   private readonly root = new Node('NativeCombatHud');
-  private readonly actions = new Map<BrowserPointerRole, ActionVisual>();
+  /** 触控动作视觉表（原字段名 actions，因构造函数新增同名 actions 桥接参数而改名避免冲突）。 */
+  private readonly actionVisuals = new Map<BrowserPointerRole, ActionVisual>();
   private readonly touchEnabled: boolean;
   /** 战斗 HUD 是否可见（打开装配台/前哨/暂停时收起）。 */
   private combatChromeVisible = true;
@@ -257,6 +275,30 @@ export class NativeCombatHud implements NativeInputFeedback {
   private trainingSkipButton: Node | null = null;
   private trainingStep = 0;
   private trainingDone = false;
+  /** 销毁标记：异步贴图回调销毁后不得再写节点。 */
+  private destroyed = false;
+  /** 首飞校准当前开合状态：setTrainingOpen 的守卫，避免每帧重置摇杆回中。 */
+  private trainingOpen = false;
+  /** 前哨服务按钮与「从战场带回」的真实三量 / 星港券读数。 */
+  private outpostRepairButton: Node | null = null;
+  private outpostResupplyButton: Node | null = null;
+  private outpostRefitButton: Node | null = null;
+  private outpostHomeButton: Node | null = null;
+  private outpostVitalsLabel: Label | null = null;
+  private outpostTicketsLabel: Label | null = null;
+  /** 主页「行动」视图的远征档案读数。 */
+  private homeOpsLabel: Label | null = null;
+  /** 联机面板按钮 / 标签，以及外层回灌的状态缓存。 */
+  private coopHostButton: Node | null = null;
+  private coopJoinButton: Node | null = null;
+  private coopAcceptButton: Node | null = null;
+  private coopCloseButton: Node | null = null;
+  private coopCopyButton: Node | null = null;
+  private coopStatusLabel: Label | null = null;
+  private coopCodeLabel: Label | null = null;
+  private coopState: CoopHudState = 'idle';
+  private coopDetail = '';
+  private coopCode = '';
 
   constructor(
     scene: Node,
@@ -270,6 +312,8 @@ export class NativeCombatHud implements NativeInputFeedback {
     private readonly onEconomyChanged?: () => void,
     private readonly onUiFeedback?: () => void,
     private readonly onPauseToggle?: () => void,
+    /** 末尾可选：返航主页 / 前哨服务 / 联机桥接，由外层接线；旧调用不传也兼容。 */
+    private readonly actions?: NativeHudActions,
   ) {
     this.touchEnabled = touchEnabled;
     this.inputSettings = { sensitivity: 1, invertY: false, leftHanded: false, controlScale: 1, ...initialInputSettings };
@@ -344,7 +388,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.layoutTrainingPanel();
     this.layoutBootPanel();
     if (!this.touchEnabled) return;
-    if (this.actions.size === 0) this.createTouchControls();
+    if (this.actionVisuals.size === 0) this.createTouchControls();
     this.layoutTouchControls();
     this.setCombatChromeVisible(!this.homeOpen && !this.outpostOpen && !this.loadoutOpen && !this.defeatOpen && !this.pauseOpen && !this.shouldShowTraining());
   }
@@ -388,24 +432,36 @@ export class NativeCombatHud implements NativeInputFeedback {
   }
 
   setAction(role: BrowserPointerRole, active: boolean): void {
-    const visual = this.actions.get(role);
+    // 返航过场被 touchLayout 过滤掉的 role 即便有残留输入也不生效（bug 1 双保险；
+    // 仅拦截按下，放行释放以免视觉卡在按下态）。
+    if (this.returning && active
+      && role !== 'pause' && role !== 'cameraToggle' && role !== 'returnRequested') return;
+    const visual = this.actionVisuals.get(role);
     if (!visual) return;
     this.drawActionControl(visual.graphics, role, visual.radius, active);
     visual.node.setScale(active ? new Vec3(0.92, 0.92, 1) : Vec3.ONE);
   }
 
   touchLayout(): NativeTouchLayout {
-    const actions = touchActionLayout(
+    const all = touchActionLayout(
       this.width,
       this.height,
       this.leftHanded,
       this.safeInsets,
       this.controlScale,
     );
+    // 返航过场：命中判定只认暂停/视角/返航按钮。此前只把节点 active=false，
+    // 但 CocosInputBridge 仍按 touchLayout().actions 判定，隐藏的开火/加速照样能点到。
+    const actions = this.returning
+      ? all.filter((control) => control.role === 'pause' || control.role === 'cameraToggle')
+      : all;
+    const result = [...actions];
+    // 可返航/可停靠时补上返航进度圆（去重，避免重复 role）。
+    if ((this.canReturn || this.canDock) && !result.some((control) => control.role === 'returnRequested')) {
+      result.push(returnControlCircle(this.width, this.height, this.safeInsets, this.controlScale));
+    }
     return {
-      actions: this.canReturn || this.canDock
-        ? [...actions, returnControlCircle(this.width, this.height, this.safeInsets, this.controlScale)]
-        : actions,
+      actions: result,
       movement: movementControlCircle(
         this.width,
         this.height,
@@ -447,6 +503,8 @@ export class NativeCombatHud implements NativeInputFeedback {
         value: snapshot.navigation.securedCargoValue,
       });
     }
+    // 前哨面板打开时用最新 snapshot 刷新真实三量与星港券（不写死 100/80/100）。
+    if (this.outpostOpen) this.updateOutpostReadouts();
     if (this.touchEnabled) this.ensureReturnAction();
     if (!this.loadoutOpen) {
       this.pendingLoadout = resolveLoadout(snapshot.loadout);
@@ -498,8 +556,6 @@ export class NativeCombatHud implements NativeInputFeedback {
     }
     if (this.navigationLabel) {
       const returning = snapshot.expedition.phase === 'returning';
-      // 返航是「按住持续」且期间挨打会中断，文案必须说清，
-      // 否则玩家按一下没反应就以为坏了（此前只写「R 返航」）。
       if (returning) {
         const percent = Math.round(snapshot.expedition.returnProgress * 100);
         this.navigationLabel.string = this.text('navigation.returning', { percent });
@@ -608,9 +664,11 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (this.combatFeedLabel) this.combatFeedLabel.node.active = this.combatFeedFrames > 0;
   }
 
-  showBootState(message: string): void {
+  showBootState(message: string, progress?: number): void {
     if (this.bootStatusLabel) this.bootStatusLabel.string = message;
-    this.drawBootProgress(message.includes('战机') ? 0.78 : 0.42);
+    // 外层传入真实加载进度时优先采用；未传才退回旧的中文关键字兜底（仅兼容旧调用）。
+    const value = progress !== undefined ? progress : (message.includes('战机') ? 0.78 : 0.42);
+    this.drawBootProgress(value);
     if (this.statusLabel) {
       this.statusLabel.string = this.text('status.system', { message });
       this.statusLabel.color = HUD_CYAN;
@@ -666,8 +724,26 @@ export class NativeCombatHud implements NativeInputFeedback {
   }
 
   destroy(): void {
-    this.actions.clear();
+    // 异步贴图回调可能晚于 destroy 返回：置标记并清空引用，避免写已销毁节点。
+    this.destroyed = true;
+    this.bootKeyArt = null;
+    this.homeKeyArt = null;
+    this.loadoutHangarArt = null;
+    this.outpostKeyArt = null;
+    this.outpostArtFrame = null;
+    this.combatZoneArtFrame = null;
+    this.hangarArtFrame = null;
+    this.marketArtFrame = null;
+    this.actionVisuals.clear();
     this.root.destroy();
+  }
+
+  /** 外层回灌联机状态、detail 与邀请码/应答码；面板未打开时先缓存，打开即显示。 */
+  public setCoopState(state: CoopHudState, detail?: string, code?: string): void {
+    this.coopState = state;
+    this.coopDetail = detail ?? '';
+    this.coopCode = code ?? '';
+    this.updateCoopLabels();
   }
 
   private createStatus(): void {
@@ -762,13 +838,17 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.upgradeLabel?.node.setPosition(this.canvasPosition(this.width / 2, this.height - this.safeInsets.bottom - 108, 5));
     this.upgradeLabel?.getComponent(UITransform)?.setContentSize(Math.min(440, usableWidth - 32), 28);
     this.navigationLabel?.getComponent(UITransform)?.setContentSize(Math.min(360, usableWidth - 40), 28);
+    // 窄屏(<600)：货舱读数下移一行并缩宽、保持右对齐，避免 375 宽竖屏与 statusLabel 重叠。
+    const narrow = usableWidth < 600;
+    const cargoWidth = narrow ? Math.min(200, usableWidth - 24) : 236;
     this.cargoLabel?.node.setPosition(this.canvasPosition(
-      this.width - this.safeInsets.right - 130,
-      this.safeInsets.top + 20,
+      this.width - this.safeInsets.right - (narrow ? 12 + (cargoWidth / 2) : 130),
+      this.safeInsets.top + (narrow ? 52 : 20),
     ));
-    this.cargoLabel?.getComponent(UITransform)?.setContentSize(236, 30);
+    this.cargoLabel?.getComponent(UITransform)?.setContentSize(cargoWidth, 30);
+    // weaponLabel 是 LEFT 对齐：中心需右移半个宽度(140)，否则左半截落在屏外。
     this.weaponLabel?.node.setPosition(this.canvasPosition(
-      this.leftHanded ? this.width - this.safeInsets.right - 140 : this.safeInsets.left + 12,
+      this.leftHanded ? this.width - this.safeInsets.right - 140 : this.safeInsets.left + 12 + 140,
       this.height - this.safeInsets.bottom - 34,
     ));
     this.weaponLabel?.getComponent(UITransform)?.setContentSize(280, 28);
@@ -992,6 +1072,8 @@ export class NativeCombatHud implements NativeInputFeedback {
     const returnHome = this.createPanelButton('NativeDefeatReturn', this.text('defeat.return'), () => {
       this.onRestart?.();
       this.setDefeatOpen(false);
+      // 显式回到「行动」视图，避免二次打开沿用旧 tab / 旧反馈文案。
+      this.setHomeView('operations');
       this.setHomeOpen(true);
     }, this.defeatPanel);
     restart.setPosition(-102, -84, 3);
@@ -1020,7 +1102,9 @@ export class NativeCombatHud implements NativeInputFeedback {
     }, this.pausePanel);
     // 明确的「返回基地」入口：暂停状态下也能干净地退出战斗、回到主菜单，
     // 避免此前只能从「作战(机库)」绕路、且战斗仍在后台推进的问题。
-    this.createPanelButton('NativePauseHome', '返回基地', () => {
+    this.createPanelButton('NativePauseHome', this.text('pause.home'), () => {
+      // 先解除仿真暂停，再关面板开主页（与 NativePauseOperations 一致），否则战斗仍在后台冻结。
+      this.onPauseToggle?.();
       this.setPauseOpen(false);
       this.setHomeView('operations');
       this.setHomeOpen(true);
@@ -1083,6 +1167,10 @@ export class NativeCombatHud implements NativeInputFeedback {
 
   private setTrainingOpen(open: boolean): void {
     if (!this.trainingPanel) return;
+    // 状态守卫：syncCombat 每帧调用，状态未变时不再重置摇杆 / 全量重绘，
+    // 否则回中 tween 每帧被 inputReleaseVisuals 打断，拇指永远回不了中（首次 open 仍会初始化）。
+    if (this.trainingOpen === open && this.trainingPanel.active === open) return;
+    this.trainingOpen = open;
     this.trainingPanel.active = open;
     if (open) {
       this.inputReleaseVisuals();
@@ -1103,30 +1191,33 @@ export class NativeCombatHud implements NativeInputFeedback {
     const panel = this.trainingPanel;
     if (!panel) return;
     panel.getComponent(UITransform)?.setContentSize(this.width, this.height);
+    // 框宽高由屏幕尺寸推导，窄屏不再溢出（旧版写死 540×264）。
+    const frameW = Math.min(540, this.width - 32);
+    const frameH = Math.min(300, this.height - 32);
     if (this.trainingBackdrop) {
       this.trainingBackdrop.clear();
       this.trainingBackdrop.fillColor = new Color(1, 6, 10, 168);
       this.trainingBackdrop.rect(-this.width / 2, -this.height / 2, this.width, this.height);
       this.trainingBackdrop.fill();
       this.trainingBackdrop.fillColor = new Color(3, 13, 20, 240);
-      this.trainingBackdrop.rect(-270, -132, 540, 264);
+      this.trainingBackdrop.rect(-frameW / 2, -frameH / 2, frameW, frameH);
       this.trainingBackdrop.fill();
       this.trainingBackdrop.strokeColor = HUD_CYAN;
       this.trainingBackdrop.lineWidth = 2;
-      this.trainingBackdrop.moveTo(-270, 132);
-      this.trainingBackdrop.lineTo(270, 132);
+      this.trainingBackdrop.moveTo(-frameW / 2, frameH / 2);
+      this.trainingBackdrop.lineTo(frameW / 2, frameH / 2);
       this.trainingBackdrop.stroke();
-      this.drawPanelFrame(this.trainingBackdrop, -270, -132, 540, 264, HUD_CYAN);
+      this.drawPanelFrame(this.trainingBackdrop, -frameW / 2, -frameH / 2, frameW, frameH, HUD_CYAN);
     }
     const place = (name: string, y: number, height: number): void => {
       const node = panel.getChildByName(name);
       node?.setPosition(0, y, 3);
-      node?.getComponent(UITransform)?.setContentSize(Math.min(500, this.width - 48), height);
+      node?.getComponent(UITransform)?.setContentSize(Math.min(500, frameW - 48), height);
     };
     place('NativeTrainingTitle', 76, 40);
     place('NativeTrainingStep', 40, 22);
     place('NativeTrainingHint', 0, 58);
-    const buttonWidth = Math.min(220, (this.width - 64) / 2);
+    const buttonWidth = Math.min(220, (frameW - 64) / 2);
     const next = panel.getChildByName('NativeTrainingNext');
     const skip = panel.getChildByName('NativeTrainingSkip');
     next?.setPosition((buttonWidth / 2) + 6, -78, 3);
@@ -1159,6 +1250,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       ['cargo', 'NativeHomeCargo', 'home.cargo'],
       ['market', 'NativeHomeMarket', 'home.market'],
       ['settings', 'NativeHomeSettings', 'home.settings'],
+      ['coop', 'NativeHomeCoop', 'home.coopNav'],
     ];
     for (const [viewId, nodeName, key] of navItems) {
       const button = this.createPanelButton(nodeName, this.text(key), () => this.setHomeView(viewId), this.homePanel, 'nav');
@@ -1196,6 +1288,27 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.homeControllerLabel.horizontalAlign = HorizontalTextAlignment.RIGHT;
     this.homeCargoLabel = this.createLabel('NativeHomeCargoManifest', 13, HUD_WHITE, this.homePanel);
     this.homeCargoLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    // 行动视图远征档案读数（累计结算 / 最近货物 / 星港券 / 任务 / 装配）。
+    this.homeOpsLabel = this.createLabel('NativeHomeOpsReadout', 12, HUD_WHITE, this.homePanel);
+    this.homeOpsLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    this.homeOpsLabel.verticalAlign = VerticalTextAlignment.TOP;
+    // 联机 tab：4 个动作按钮 + 可选「复制邀请码」+ 状态/邀请码标签。
+    // 房间号/呼号/扫码输入框由外层 web shell 的 DOM 负责，这里不引入 EditBox / 剪贴板 API。
+    const coopBridge = (): CoopHudBridge | null => {
+      const bridge = this.actions?.coop;
+      return bridge && bridge.available !== false ? bridge : null;
+    };
+    this.coopHostButton = this.createPanelButton('NativeCoopHost', this.text('coop.host'), () => coopBridge()?.host(), this.homePanel);
+    this.coopJoinButton = this.createPanelButton('NativeCoopJoin', this.text('coop.join'), () => coopBridge()?.join(), this.homePanel);
+    this.coopAcceptButton = this.createPanelButton('NativeCoopAccept', this.text('coop.accept'), () => coopBridge()?.accept(), this.homePanel);
+    this.coopCloseButton = this.createPanelButton('NativeCoopClose', this.text('coop.close'), () => coopBridge()?.close(), this.homePanel);
+    this.coopCopyButton = this.createPanelButton('NativeCoopCopy', this.text('coop.copyCode'), () => coopBridge()?.copyCode?.(), this.homePanel);
+    this.coopStatusLabel = this.createLabel('NativeCoopStatus', 13, HUD_CYAN, this.homePanel);
+    this.coopStatusLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    this.coopStatusLabel.verticalAlign = VerticalTextAlignment.TOP;
+    this.coopCodeLabel = this.createLabel('NativeCoopCode', 14, HUD_ACTIVE, this.homePanel);
+    this.coopCodeLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    this.coopCodeLabel.verticalAlign = VerticalTextAlignment.TOP;
     for (const item of ['cargo-expansion', 'tractor-calibration', 'shield-expansion', 'frontier-livery'] as StoreItemId[]) {
       const button = this.createPanelButton(`NativeMarket.${item}`, '', () => this.purchaseStoreItem(item), this.homePanel, 'slot');
       this.marketButtons.set(item, button);
@@ -1261,6 +1374,11 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.outpostStatusLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
     this.outpostCargoLabel = this.createLabel('NativeOutpostCargo', 13, HUD_ACTIVE, this.outpostPanel);
     this.outpostCargoLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    // 从战场带回的真实三量与星港券余额（由 syncCombat 缓存的 snapshot 渲染）。
+    this.outpostVitalsLabel = this.createLabel('NativeOutpostVitals', 13, HUD_WHITE, this.outpostPanel);
+    this.outpostVitalsLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    this.outpostTicketsLabel = this.createLabel('NativeOutpostTickets', 13, HUD_CYAN, this.outpostPanel);
+    this.outpostTicketsLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
     this.outpostLoadoutButton = this.createPanelButton(
       'NativeOutpostOpenLoadout',
       this.text('outpost.loadout'),
@@ -1283,6 +1401,15 @@ export class NativeCombatHud implements NativeInputFeedback {
       this.outpostPanel,
       'primary',
     );
+    // 前哨 4 项服务入口：文案走本地化，回调交给外层 actions（不臆造服务逻辑）。
+    this.outpostRepairButton = this.createPanelButton('NativeOutpostRepair', this.text('outpost.repair'),
+      () => this.actions?.onStationService?.('repair'), this.outpostPanel);
+    this.outpostResupplyButton = this.createPanelButton('NativeOutpostResupply', this.text('outpost.resupply'),
+      () => this.actions?.onStationService?.('resupply'), this.outpostPanel);
+    this.outpostRefitButton = this.createPanelButton('NativeOutpostRefit', this.text('outpost.refit'),
+      () => this.actions?.onStationService?.('refit'), this.outpostPanel);
+    this.outpostHomeButton = this.createPanelButton('NativeOutpostHome', this.text('outpost.home'),
+      () => this.actions?.onReturnHome?.(), this.outpostPanel);
     this.outpostPanel.active = false;
   }
 
@@ -1315,7 +1442,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (!active) return;
     const progress = Math.max(0, Math.min(1, snapshot.expedition.returnProgress));
     const pct = Math.round(progress * 100);
-    this.returnBanner.string = `返航中 ${pct}%`;
+    this.returnBanner.string = this.text('return.banner', { percent: pct });
     this.returnBanner.node.setPosition(this.canvasPosition(this.width / 2, this.height * 0.5, 6));
     // 两级压暗：外层整条带 + 靠屏幕外沿的半宽叠加，形成由外向内渐亮的羽化，
     // 不再是一刀切的硬边矩形；整体强度也比旧版轻，HUD 保持可读。
@@ -1353,19 +1480,14 @@ export class NativeCombatHud implements NativeInputFeedback {
   }
 
   private loadLauncherKeyArt(): void {
+    // 收敛为单一真源：此前三路 hangar 贴图都写 loadoutHangarArt，异步完成顺序不定 → 随机背景。
+    // 现在装配台与主页机库视图统一由 orbital-hangar-loadout 一张图决定。
     this.loadKeyArtTexture('ui/launcher/spacefight-launcher-keyart', '[SpaceFight boot]', (frame) => {
-      if (this.bootKeyArt) this.bootKeyArt.spriteFrame = frame;
-      if (this.homeKeyArt) this.homeKeyArt.spriteFrame = frame;
-    });
-    this.loadKeyArtTexture('ui/hangar/spacefight-hangar-bay', '[SpaceFight home]', (frame) => {
-      if (this.homeKeyArt) this.homeKeyArt.spriteFrame = frame;
-      if (this.loadoutHangarArt) this.loadoutHangarArt.spriteFrame = frame;
+      if (this.bootKeyArt?.node?.isValid) this.bootKeyArt.spriteFrame = frame;
     });
     this.loadKeyArtTexture('ui/station/orbital-outpost-exterior', '[SpaceFight outpost]', (frame) => {
       this.outpostArtFrame = frame;
-      // 不要覆盖 bootKeyArt：前哨背景是一整张带文案的宣传图，
-      // 异步加载完成后盖到启动页会让「SPACEFIGHT」与宣传标题叠成两套文字。
-      if (this.outpostKeyArt) this.outpostKeyArt.spriteFrame = frame;
+      if (this.outpostKeyArt?.node?.isValid) this.outpostKeyArt.spriteFrame = frame;
       this.updateHomeKeyArt();
     });
     this.loadKeyArtTexture('ui/station/orbital-combat-zone-clean', '[SpaceFight operations]', (frame) => {
@@ -1374,12 +1496,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     });
     this.loadKeyArtTexture('ui/station/orbital-hangar-loadout', '[SpaceFight hangar]', (frame) => {
       this.hangarArtFrame = frame;
-      if (this.loadoutHangarArt) this.loadoutHangarArt.spriteFrame = frame;
-      this.updateHomeKeyArt();
-    });
-    this.loadKeyArtTexture('ui/hangar/spacefight-hangar-bay-v2', '[SpaceFight hangar v2]', (frame) => {
-      this.hangarArtFrame = frame;
-      if (this.loadoutHangarArt) this.loadoutHangarArt.spriteFrame = frame;
+      if (this.loadoutHangarArt?.node?.isValid) this.loadoutHangarArt.spriteFrame = frame;
       this.updateHomeKeyArt();
     });
     this.loadKeyArtTexture('ui/market/orbital-exchange', '[SpaceFight market]', (frame) => {
@@ -1390,6 +1507,8 @@ export class NativeCombatHud implements NativeInputFeedback {
 
   private loadKeyArtTexture(path: string, channel: string, apply: (frame: SpriteFrame) => void): void {
     resources.load(`${path}/texture`, Texture2D, (error: Error | null, texture?: Texture2D) => {
+      // destroy 之后回调才返回时直接丢弃，避免写已销毁节点。
+      if (this.destroyed) return;
       if (error || !texture) {
         console.warn(`${channel} key art unavailable`, error);
         return;
@@ -1415,19 +1534,16 @@ export class NativeCombatHud implements NativeInputFeedback {
     for (const button of this.missionButtons.values()) button.active = operations;
     if (this.deployButton) this.deployButton.active = operations;
     if (this.homeMissionLabel) this.homeMissionLabel.node.active = operations;
+    if (this.homeOpsLabel) this.homeOpsLabel.node.active = operations;
     if (this.hangarButton) this.hangarButton.active = hangar;
     if (this.homeCargoLabel) this.homeCargoLabel.node.active = cargo;
     for (const button of this.marketButtons.values()) button.active = market;
     for (const button of this.settingsButtons) button.active = settings;
     if (this.homeControllerLabel) this.homeControllerLabel.node.active = settings;
-    const titleKeys: Record<NativeHomeView, CombatMessageKey> = {
-      operations: 'home.operationsTitle', hangar: 'home.hangarTitle', cargo: 'home.cargoTitle', market: 'home.marketTitle', settings: 'home.settingsTitle',
-    };
-    const detailKeys: Record<NativeHomeView, CombatMessageKey> = {
-      operations: 'home.operationsDetail', hangar: 'home.hangarDetail', cargo: 'home.cargoDetail', market: 'home.marketDetail', settings: 'home.settingsDetail',
-    };
-    if (this.homeViewTitle) this.homeViewTitle.string = this.text(titleKeys[viewId]);
-    if (this.homeViewDetail) this.homeViewDetail.string = this.text(detailKeys[viewId]);
+    // 按当前视图重刷标题/说明并复原说明色（清掉上次商城购买反馈）。
+    this.refreshHomeViewText();
+    this.refreshOperationsReadout();
+    this.updateCoopControls();
     this.updateHomeCargo();
     this.updateSettingsLabels();
     this.updateMarketLabels();
@@ -1438,7 +1554,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   }
 
   private updateHomeKeyArt(): void {
-    if (!this.homeKeyArt) return;
+    if (this.destroyed || !this.homeKeyArt?.node?.isValid) return;
     const frame = this.homeView === 'operations'
       ? this.combatZoneArtFrame || this.outpostArtFrame
       : this.homeView === 'hangar'
@@ -1612,6 +1728,16 @@ export class NativeCombatHud implements NativeInputFeedback {
     }
     this.setCombatChromeVisible(!open && !this.outpostOpen && !this.loadoutOpen && !this.defeatOpen && !this.pauseOpen);
     this.updateHomeSelection();
+    if (open) {
+      // 二次打开按当前 homeView 重刷数据：说明文案/颜色、货舱、商城、设置、行动档案、联机控件，
+      // 避免沿用旧货舱清单与上次商城购买反馈的文案/颜色。
+      this.refreshHomeViewText();
+      this.updateHomeCargo();
+      this.updateMarketLabels();
+      this.updateSettingsLabels();
+      this.refreshOperationsReadout();
+      this.updateCoopControls();
+    }
   }
 
   private setOutpostOpen(open: boolean): void {
@@ -1622,6 +1748,8 @@ export class NativeCombatHud implements NativeInputFeedback {
       if (this.returnVeilInner) this.returnVeilInner.node.active = false;
     }
     if (open) this.activateOnly('outpost');
+    // 打开前哨时用缓存 snapshot 刷新真实三量与星港券。
+    if (open) this.updateOutpostReadouts();
     this.outpostOpen = open;
     if (this.outpostPanel) {
       this.outpostPanel.active = open;
@@ -1657,7 +1785,8 @@ export class NativeCombatHud implements NativeInputFeedback {
 
   private setCombatChromeVisible(visible: boolean): void {
     this.combatChromeVisible = visible;
-    for (const label of [this.statusLabel, this.objectiveLabel, this.sectorLabel, this.targetLabel, this.cargoLabel, this.combatFeedLabel, this.navigationLabel]) {
+    // 打开面板时连击/强化/武器读数也必须一并收起，否则旧读数浮在面板上。
+    for (const label of [this.statusLabel, this.objectiveLabel, this.sectorLabel, this.targetLabel, this.cargoLabel, this.combatFeedLabel, this.navigationLabel, this.weaponLabel, this.comboLabel, this.upgradeLabel]) {
       if (label) label.node.active = visible;
     }
     if (this.reticleGraphics) this.reticleGraphics.node.active = visible;
@@ -1673,7 +1802,7 @@ export class NativeCombatHud implements NativeInputFeedback {
 
   /** 返航中只保留暂停/视角/返航进度按钮，其余战斗输入全部收起。 */
   private refreshActionVisibility(): void {
-    for (const [role, visual] of this.actions) {
+    for (const [role, visual] of this.actionVisuals) {
       const allowed = !this.returning
         || role === 'pause' || role === 'cameraToggle' || role === 'returnRequested';
       visual.node.active = this.combatChromeVisible && allowed;
@@ -1746,11 +1875,16 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.homeProfileLabel?.node.setPosition(rightEdge - (rightWidth / 2), topEdge - (ultraCompact ? 17 : compact ? 22 : 28), 4);
     this.homeProfileLabel?.getComponent(UITransform)?.setContentSize(rightWidth - 24, 26);
 
+    // 6 个 tab 后按可用高度自适应按钮高，避免窄屏竖排溢出左侧导航条。
+    const navCount = this.homeNavButtons.size;
+    const navGap = ultraCompact ? 4 : compact ? 6 : 9;
+    const navStart = ultraCompact ? 65 : compact ? 88 : 112;
+    const navAvailable = (topEdge - navStart) - bottomEdge - 8;
+    const navHeight = Math.max(28, Math.min(ultraCompact ? 38 : compact ? 44 : 54,
+      (navAvailable - (navCount - 1) * navGap) / navCount));
     [...this.homeNavButtons.values()].forEach((button, index) => {
-      const height = ultraCompact ? 38 : compact ? 44 : 54;
-      const gap = ultraCompact ? 4 : compact ? 6 : 9;
-      button.setPosition(leftEdge + (navWidth / 2), topEdge - (ultraCompact ? 65 : compact ? 88 : 112) - index * (height + gap), 4);
-      this.resizePanelButton(button, navWidth - 8, height, ultraCompact ? 9 : compact ? 10 : 12,
+      button.setPosition(leftEdge + (navWidth / 2), topEdge - navStart - index * (navHeight + navGap), 4);
+      this.resizePanelButton(button, navWidth - 8, navHeight, ultraCompact ? 9 : compact ? 10 : 12,
         [...this.homeNavButtons.keys()][index] === this.homeView ? HUD_ACTIVE : HUD_CYAN);
     });
 
@@ -1813,6 +1947,23 @@ export class NativeCombatHud implements NativeInputFeedback {
     });
     this.homeControllerLabel?.node.setPosition(boardCenterX, bottomEdge + 24, 4);
     this.homeControllerLabel?.getComponent(UITransform)?.setContentSize(rightWidth - 24, 34);
+    // 行动视图远征档案：放在左侧内容区中部（header 与底部 mission 标签之间）。
+    const opsWidth = Math.min(430, Math.max(200, rightEdge - rightWidth - contentLeft - 24));
+    this.homeOpsLabel?.node.setPosition(contentLeft + (opsWidth / 2), (topEdge + bottomEdge) / 2, 4);
+    this.homeOpsLabel?.getComponent(UITransform)?.setContentSize(opsWidth, Math.max(120, (topEdge - bottomEdge) * 0.4));
+    // 联机视图：5 个按钮单列 + 状态 / 邀请码标签，全部落在右侧 board 内。
+    const coopWidth = rightWidth - 28;
+    const coopActionHeight = Math.max(30, Math.min(ultraCompact ? 38 : compact ? 44 : 50,
+      (missionTop - missionBottom - 110) / 5));
+    const coopButtons = [this.coopHostButton, this.coopJoinButton, this.coopAcceptButton, this.coopCloseButton, this.coopCopyButton];
+    coopButtons.forEach((button, index) => {
+      button?.setPosition(boardCenterX, missionTop - (coopActionHeight / 2) - index * (coopActionHeight + 6), 4);
+      this.resizePanelButton(button, coopWidth, coopActionHeight, ultraCompact ? 9 : compact ? 10 : 12);
+    });
+    this.coopStatusLabel?.node.setPosition(boardCenterX, missionBottom + 58, 4);
+    this.coopStatusLabel?.getComponent(UITransform)?.setContentSize(coopWidth, 44);
+    this.coopCodeLabel?.node.setPosition(boardCenterX, missionBottom + 8, 4);
+    this.coopCodeLabel?.getComponent(UITransform)?.setContentSize(coopWidth, 52);
   }
 
   private layoutOutpostPanel(): void {
@@ -1868,9 +2019,27 @@ export class NativeCombatHud implements NativeInputFeedback {
     // 旧版把货物标签放在 bottom+124，正好被「进入装配台」按钮上沿压掉半行字，
     // 且状态与按钮之间留下一大片空白，这里一并收拢。
     place('NativeOutpostStatus', top - (ultraCompact ? 126 : 184), ultraCompact ? 30 : 34);
-    place('NativeOutpostCargo', top - (ultraCompact ? 160 : 236), ultraCompact ? 26 : 34);
+    const cargoY = top - (ultraCompact ? 160 : 236);
+    place('NativeOutpostCargo', cargoY, ultraCompact ? 26 : 34);
+    // 真实三量与星港券读数：紧跟货物结算行下方。
+    place('NativeOutpostVitals', cargoY - (ultraCompact ? 30 : 44), ultraCompact ? 26 : 30);
+    place('NativeOutpostTickets', cargoY - (ultraCompact ? 56 : 78), ultraCompact ? 24 : 28);
     const gap = ultraCompact ? 6 : 10;
     const actionHeight = ultraCompact ? 40 : compact ? 46 : 54;
+    // 4 项服务按钮排成 2×2 网格，落在读数与底部离港按钮之间。
+    const serviceButtons = [this.outpostRepairButton, this.outpostResupplyButton, this.outpostRefitButton, this.outpostHomeButton];
+    const serviceWidth = (contentWidth - 8) / 2;
+    const serviceHeight = Math.max(34, Math.min(actionHeight, (top - bottom) * 0.085));
+    const serviceRowStep = serviceHeight + gap;
+    const serviceCenterY = bottom + actionHeight * 2.5 + gap * 2 + 20;
+    serviceButtons.forEach((button, index) => {
+      const col = index % 2;
+      const row = Math.floor(index / 2);
+      const x = centerX + (col === 0 ? -(serviceWidth / 2) - 4 : (serviceWidth / 2) + 4);
+      const y = serviceCenterY + (row === 0 ? serviceRowStep / 2 : -serviceRowStep / 2);
+      button?.setPosition(x, y, 4);
+      this.resizePanelButton(button, serviceWidth, serviceHeight, ultraCompact ? 10 : 12);
+    });
     this.outpostLoadoutButton?.setPosition(centerX, bottom + actionHeight * 1.5 + gap + 10, 4);
     this.outpostUndockButton?.setPosition(centerX, bottom + actionHeight / 2 + 8, 4);
     this.resizePanelButton(this.outpostLoadoutButton, contentWidth, actionHeight, ultraCompact ? 11 : 14);
@@ -1924,6 +2093,9 @@ export class NativeCombatHud implements NativeInputFeedback {
     const panel = this.defeatPanel;
     if (!panel) return;
     panel.getComponent(UITransform)?.setContentSize(this.width, this.height);
+    // 框宽高由屏幕尺寸推导，窄屏不再溢出（旧版写死 460×256）。
+    const frameW = Math.min(540, this.width - 32);
+    const frameH = Math.min(300, this.height - 32);
     if (this.defeatBackdrop) {
       this.defeatBackdrop.clear();
       this.defeatBackdrop.fillColor = new Color(2, 7, 10, 224);
@@ -1931,25 +2103,27 @@ export class NativeCombatHud implements NativeInputFeedback {
       this.defeatBackdrop.fill();
       this.defeatBackdrop.strokeColor = new Color(217, 86, 66, 220);
       this.defeatBackdrop.lineWidth = 2;
-      this.defeatBackdrop.moveTo(-220, 106);
-      this.defeatBackdrop.lineTo(220, 106);
+      this.defeatBackdrop.moveTo(-frameW / 2 + 10, frameH / 2 - 22);
+      this.defeatBackdrop.lineTo(frameW / 2 - 10, frameH / 2 - 22);
       this.defeatBackdrop.stroke();
-      this.drawPanelFrame(this.defeatBackdrop, -230, -128, 460, 256, HUD_RED, 'danger');
+      this.drawPanelFrame(this.defeatBackdrop, -frameW / 2, -frameH / 2, frameW, frameH, HUD_RED, 'danger');
     }
     const place = (name: string, y: number, height: number): void => {
       const node = panel.getChildByName(name);
       node?.setPosition(0, y, 3);
-      node?.getComponent(UITransform)?.setContentSize(Math.min(520, this.width - 48), height);
+      node?.getComponent(UITransform)?.setContentSize(Math.min(520, frameW - 48), height);
     };
     place('NativeDefeatSignal', 76, 22);
     place('NativeDefeatTitle', 32, 48);
     place('NativeDefeatDetail', -16, 30);
     const compact = this.width < 700;
-    const buttonWidth = Math.min(190, (this.width - this.safeInsets.left - this.safeInsets.right - 42) / 2);
+    const buttonWidth = Math.min(190, (frameW - 42) / 2);
     const restart = panel.getChildByName('NativeDefeatRestart');
     const returnHome = panel.getChildByName('NativeDefeatReturn');
-    restart?.setPosition(-(buttonWidth / 2) - 6, -84, 3);
-    returnHome?.setPosition((buttonWidth / 2) + 6, -84, 3);
+    // 按钮 y 随框高同步，始终留在框底之上。
+    const buttonY = -(frameH / 2) + 44;
+    restart?.setPosition(-(buttonWidth / 2) - 6, buttonY, 3);
+    returnHome?.setPosition((buttonWidth / 2) + 6, buttonY, 3);
     this.resizePanelButton(restart, buttonWidth, compact ? 44 : 50, compact ? 12 : 14, HUD_ACTIVE);
     this.resizePanelButton(returnHome, buttonWidth, compact ? 44 : 50, compact ? 12 : 14);
   }
@@ -1958,39 +2132,44 @@ export class NativeCombatHud implements NativeInputFeedback {
     const panel = this.pausePanel;
     if (!panel) return;
     panel.getComponent(UITransform)?.setContentSize(this.width, this.height);
+    // 框宽高由屏幕尺寸推导，窄屏不再溢出（旧版写死 500×300）。
+    const frameW = Math.min(540, this.width - 32);
+    const frameH = Math.min(300, this.height - 32);
     if (this.pauseBackdrop) {
       this.pauseBackdrop.clear();
       this.pauseBackdrop.fillColor = new Color(1, 6, 10, 182);
       this.pauseBackdrop.rect(-this.width / 2, -this.height / 2, this.width, this.height);
       this.pauseBackdrop.fill();
       this.pauseBackdrop.fillColor = new Color(3, 13, 20, 242);
-      this.pauseBackdrop.rect(-250, -150, 500, 300);
+      this.pauseBackdrop.rect(-frameW / 2, -frameH / 2, frameW, frameH);
       this.pauseBackdrop.fill();
       this.pauseBackdrop.strokeColor = HUD_CYAN;
       this.pauseBackdrop.lineWidth = 2;
-      this.pauseBackdrop.moveTo(-250, 150);
-      this.pauseBackdrop.lineTo(250, 150);
+      this.pauseBackdrop.moveTo(-frameW / 2, frameH / 2);
+      this.pauseBackdrop.lineTo(frameW / 2, frameH / 2);
       this.pauseBackdrop.stroke();
-      this.drawPanelFrame(this.pauseBackdrop, -250, -150, 500, 300, HUD_CYAN);
+      this.drawPanelFrame(this.pauseBackdrop, -frameW / 2, -frameH / 2, frameW, frameH, HUD_CYAN);
     }
     const place = (name: string, y: number, height: number): void => {
       const node = panel.getChildByName(name);
       node?.setPosition(0, y, 3);
-      node?.getComponent(UITransform)?.setContentSize(Math.min(440, this.width - 48), height);
+      node?.getComponent(UITransform)?.setContentSize(Math.min(440, frameW - 48), height);
     };
     place('NativePauseSignal', 104, 24);
     place('NativePauseTitle', 62, 44);
     place('NativePauseDetail', 18, 34);
-    const buttonWidth = Math.min(210, (this.width - 64) / 2);
+    const buttonWidth = Math.min(210, (frameW - 64) / 2);
     const resume = panel.getChildByName('NativePauseResume');
     const operations = panel.getChildByName('NativePauseOperations');
     const home = panel.getChildByName('NativePauseHome');
-    resume?.setPosition(-(buttonWidth / 2) - 6, -52, 3);
-    operations?.setPosition((buttonWidth / 2) + 6, -52, 3);
-    home?.setPosition(0, -128, 3);
+    // 「返回基地」按钮 y 按框高比例同步：留足底边距，不再越过框底（-150）。
+    const homeY = -(frameH / 2) + 34;
+    resume?.setPosition(-(buttonWidth / 2) - 6, homeY + 76, 3);
+    operations?.setPosition((buttonWidth / 2) + 6, homeY + 76, 3);
+    home?.setPosition(0, homeY, 3);
     this.resizePanelButton(resume, buttonWidth, 52, 14, HUD_ACTIVE);
     this.resizePanelButton(operations, buttonWidth, 52, 14);
-    this.resizePanelButton(home, Math.min(440, this.width - 48), 52, 14);
+    this.resizePanelButton(home, Math.min(440, frameW - 48), 52, 14);
   }
 
   private setDefeatOpen(open: boolean): void {
@@ -2025,7 +2204,7 @@ export class NativeCombatHud implements NativeInputFeedback {
 
   private inputReleaseVisuals(): void {
     this.setStickFeedback({ active: false, axis: { x: 0, y: 0 }, travel: 0, threshold: 'center', angle: 0, crossedThreshold: false });
-    for (const [role] of this.actions) this.setAction(role, false);
+    for (const [role] of this.actionVisuals) this.setAction(role, false);
   }
 
   private commitLoadout(enteringBattle: boolean): void {
@@ -2358,20 +2537,23 @@ export class NativeCombatHud implements NativeInputFeedback {
       this.drawPanelSurface(graphics, size?.width || 214, size?.height || 82, kind === 'primary' ? HUD_ACTIVE : HUD_CYAN, kind, pressed);
       node.setScale(pressed ? new Vec3(0.975, 0.975, 1) : Vec3.ONE);
     };
+    // 同一次物理点击会先后派发 TOUCH_END 与 MOUSE_UP：用时间戳去重，
+    // 否则一次点击执行两次 action（双倍购买 / 两次部署）。
+    let lastActionAt = 0;
+    const fireAction = (): void => {
+      const now = Date.now();
+      if (now - lastActionAt < 120) return;
+      lastActionAt = now;
+      setPressed(false);
+      this.onUiFeedback?.();
+      action();
+    };
     node.on(Node.EventType.TOUCH_START, () => setPressed(true));
     node.on(Node.EventType.TOUCH_CANCEL, () => setPressed(false));
-    node.on(Node.EventType.TOUCH_END, () => {
-      setPressed(false);
-      this.onUiFeedback?.();
-      action();
-    });
+    node.on(Node.EventType.TOUCH_END, fireAction);
     node.on(Node.EventType.MOUSE_DOWN, () => setPressed(true));
     node.on(Node.EventType.MOUSE_LEAVE, () => setPressed(false));
-    node.on(Node.EventType.MOUSE_UP, () => {
-      setPressed(false);
-      this.onUiFeedback?.();
-      action();
-    });
+    node.on(Node.EventType.MOUSE_UP, fireAction);
     return node;
   }
 
@@ -2565,7 +2747,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     const stick = this.createNode('FixedMoveStick');
     const base = stick.addComponent(Graphics);
     this.drawStickDeadzone(base, layout.movement.radius);
-    this.actions.set('movement', { node: stick, graphics: base, radius: layout.movement.radius });
+    this.actionVisuals.set('movement', { node: stick, graphics: base, radius: layout.movement.radius });
 
     const directionNode = this.createNode('FixedMoveStickDirection', stick);
     this.stickDirection = directionNode.addComponent(Graphics);
@@ -2590,12 +2772,12 @@ export class NativeCombatHud implements NativeInputFeedback {
       const label = this.createLabel(`${this.actionNodeName(control.role)}Label`, 13, HUD_WHITE, node);
       label.string = this.text(labels[control.role]);
       label.getComponent(UITransform)?.setContentSize(control.radius * 2, 28);
-      this.actions.set(control.role, { node, graphics, radius: control.radius });
+      this.actionVisuals.set(control.role, { node, graphics, radius: control.radius });
     }
   }
 
   private ensureReturnAction(): void {
-    let visual = this.actions.get('returnRequested');
+    let visual = this.actionVisuals.get('returnRequested');
     if (!visual) {
       const control = returnControlCircle(this.width, this.height, this.safeInsets, this.controlScale);
       const node = this.createNode('ReturnAction');
@@ -2604,7 +2786,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       label.string = this.text(this.canDock ? 'touch.dock' : 'touch.return');
       label.getComponent(UITransform)?.setContentSize(control.radius * 2, 28);
       visual = { node, graphics, radius: control.radius };
-      this.actions.set('returnRequested', visual);
+      this.actionVisuals.set('returnRequested', visual);
     }
     const available = this.canReturn || this.canDock;
     visual.node.active = available;
@@ -2618,7 +2800,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   }
 
   private drawReturnProgress(progress: number): void {
-    const visual = this.actions.get('returnRequested');
+    const visual = this.actionVisuals.get('returnRequested');
     if (!visual || (!this.canReturn && !this.canDock)) return;
     this.drawActionControl(visual.graphics, 'returnRequested', visual.radius, progress > 0);
     if (progress <= 0) return;
@@ -2633,7 +2815,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (!this.comboLabel) return;
     if (combo && combo.count >= 2) {
       this.comboLabel.node.active = true;
-      this.comboLabel.string = `连击 ×${combo.count}  ${combo.multiplier.toFixed(1)}×`;
+      this.comboLabel.string = this.text('combo.readout', { count: combo.count, multiplier: combo.multiplier.toFixed(1) });
       this.comboLabel.color = combo.multiplier >= 2.6
         ? HUD_RED
         : combo.multiplier >= 1.5
@@ -2671,16 +2853,17 @@ export class NativeCombatHud implements NativeInputFeedback {
     const signature = `${primaryId}|${secondaryId}|${snapshot.weaponsSwapped}`;
     if (signature === this.lastWeaponSignature) return;
     this.lastWeaponSignature = signature;
-    this.weaponLabel.string = snapshot.weaponsSwapped
-      ? `主 ${primaryName} ⇄ 副 ${secondaryName}`
-      : `主 ${primaryName}  ·  副 ${secondaryName}`;
+    this.weaponLabel.string = this.text(
+      snapshot.weaponsSwapped ? 'weapon.readoutSwapped' : 'weapon.readout',
+      { primary: primaryName, secondary: secondaryName },
+    );
     this.weaponLabel.color = snapshot.weaponsSwapped ? HUD_ACTIVE : HUD_WHITE;
   }
 
   private layoutTouchControls(): void {
     const layout = this.touchLayout();
     const center = { x: layout.movement.x, y: layout.movement.y };
-    const stick = this.actions.get('movement');
+    const stick = this.actionVisuals.get('movement');
     if (stick) {
       stick.radius = layout.movement.radius;
       this.drawStickDeadzone(stick.graphics, stick.radius);
@@ -2690,7 +2873,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     const thumb = this.stickThumb?.getComponent(Graphics);
     if (thumb) this.drawDisc(thumb, layout.movement.radius * 0.34, HUD_WHITE);
     for (const control of layout.actions) {
-      const visual = this.actions.get(control.role);
+      const visual = this.actionVisuals.get(control.role);
       if (!visual) continue;
       visual.radius = control.radius;
       this.drawActionControl(visual.graphics, control.role, visual.radius, false);
@@ -2865,6 +3048,120 @@ export class NativeCombatHud implements NativeInputFeedback {
 
   private canvasPosition(x: number, y: number, z = 0): Vec3 {
     return new Vec3(x - (this.width / 2), (this.height / 2) - y, z);
+  }
+
+  /** 按当前 homeView 重刷标题/说明文案并复原说明色（清掉上次商城购买反馈）。 */
+  private refreshHomeViewText(): void {
+    const titleKeys: Record<NativeHomeView, CombatMessageKey> = {
+      operations: 'home.operationsTitle', hangar: 'home.hangarTitle', cargo: 'home.cargoTitle',
+      market: 'home.marketTitle', settings: 'home.settingsTitle', coop: 'home.coopTitle',
+    };
+    const detailKeys: Record<NativeHomeView, CombatMessageKey> = {
+      operations: 'home.operationsDetail', hangar: 'home.hangarDetail', cargo: 'home.cargoDetail',
+      market: 'home.marketDetail', settings: 'home.settingsDetail', coop: 'home.coopDetail',
+    };
+    if (this.homeViewTitle) this.homeViewTitle.string = this.text(titleKeys[this.homeView]);
+    if (this.homeViewDetail) {
+      this.homeViewDetail.string = this.text(detailKeys[this.homeView]);
+      this.homeViewDetail.color = HUD_WHITE;
+    }
+  }
+
+  /** 行动视图：从缓存 snapshot + loadEconomy 组合真实数据，缺字段用已有字段兜底，不编造。 */
+  private refreshOperationsReadout(): void {
+    if (!this.homeOpsLabel) return;
+    const economy = loadEconomy();
+    const snapshot = this.latestSnapshot;
+    // 累计结算次数：结算凭证（每次远征结算写一条）数量。
+    const settlements = economy.receipts.length;
+    // 最近带回货物：优先本局保全结算值，否则用缓存货舱清单价值组合。
+    const cargoItems = snapshot?.cargo.items || [];
+    const cargoValue = snapshot?.navigation.securedCargoValue
+      || cargoItems.reduce((total, item) => total + Math.max(0, Number(item.value) || 0), 0);
+    const mission = this.text(`home.${this.missionPreset}` as CombatMessageKey);
+    const loadout = snapshot?.loadout || this.pendingLoadout;
+    this.homeOpsLabel.string = [
+      this.text('home.opsExpeditions', { count: settlements }),
+      this.text('home.opsLastHaul', { value: cargoValue }),
+      this.text('home.opsTickets', { value: economy.starportTickets }),
+      this.text('home.opsMission', { mission }),
+      this.text('home.opsLoadout', {
+        ship: this.loadoutName(String(loadout.ship)),
+        weapon: this.loadoutName(String(loadout.weapon)),
+      }),
+    ].join('\n');
+  }
+
+  /** 前哨面板：用 syncCombat 缓存的最后一个 snapshot 渲染真实三量 + 星港券，不写死数值。 */
+  private updateOutpostReadouts(): void {
+    const player = this.latestSnapshot?.player;
+    if (this.outpostVitalsLabel) {
+      this.outpostVitalsLabel.string = this.text('outpost.vitals', {
+        hull: Math.ceil(player?.health ?? 0),
+        hullMax: Math.ceil(player?.maxHealth ?? 0),
+        shield: Math.ceil(player?.shield ?? 0),
+        shieldMax: Math.ceil(player?.maxShield ?? 0),
+        energy: Math.ceil(player?.energy ?? 0),
+        energyMax: Math.ceil(player?.maxEnergy ?? 0),
+      });
+    }
+    if (this.outpostTicketsLabel) {
+      this.outpostTicketsLabel.string = this.text('outpost.tickets', { value: loadEconomy().starportTickets });
+    }
+  }
+
+  /** 联机控件：native(available===false) 或未接线时禁用 4 个按钮，不假装能连。 */
+  private updateCoopControls(): void {
+    const coop = this.actions?.coop;
+    const unavailable = !coop || coop.available === false;
+    const viewVisible = this.homeView === 'coop';
+    const enabled = viewVisible && !unavailable;
+    for (const button of [this.coopHostButton, this.coopJoinButton, this.coopAcceptButton, this.coopCloseButton]) {
+      if (button) button.active = enabled;
+    }
+    if (this.coopCopyButton) {
+      this.coopCopyButton.active = enabled && typeof coop?.copyCode === 'function';
+    }
+    if (this.coopStatusLabel) this.coopStatusLabel.node.active = viewVisible;
+    if (this.coopCodeLabel) this.coopCodeLabel.node.active = viewVisible;
+    this.updateCoopLabels();
+  }
+
+  /** 状态文案 + detail + 可复制的 code 文本；code 折行截断，避免溢出屏幕。 */
+  private updateCoopLabels(): void {
+    const coop = this.actions?.coop;
+    const unavailable = !coop || coop.available === false;
+    if (this.coopStatusLabel) {
+      if (unavailable) {
+        this.coopStatusLabel.string = this.text('coop.unavailable');
+        this.coopStatusLabel.color = HUD_ACTIVE;
+      } else {
+        const lines = [this.text(`coop.state.${this.coopState}` as CombatMessageKey)];
+        if (this.coopDetail) lines.push(this.coopDetail);
+        this.coopStatusLabel.string = lines.join('\n');
+        this.coopStatusLabel.color = this.coopState === 'error' ? HUD_RED : HUD_CYAN;
+      }
+    }
+    if (this.coopCodeLabel) {
+      this.coopCodeLabel.string = this.coopCode
+        ? `${this.text('coop.codeTitle')}\n${this.wrapCoopCode(this.coopCode)}`
+        : this.text('coop.codeTitle');
+    }
+  }
+
+  /** 长邀请码/应答码按固定列宽折行并限制行数（Label 分行截断，别溢出屏幕）。 */
+  private wrapCoopCode(code: string): string {
+    const columns = 16;
+    const maxLines = 6;
+    const lines: string[] = [];
+    for (let index = 0; index < code.length; index += columns) {
+      lines.push(code.slice(index, index + columns));
+    }
+    if (lines.length > maxLines) {
+      lines.length = maxLines;
+      lines[maxLines - 1] = `${lines[maxLines - 1].slice(0, columns - 1)}…`;
+    }
+    return lines.join('\n');
   }
 
   private text(key: CombatMessageKey, params: Readonly<Record<string, string | number>> = {}): string {

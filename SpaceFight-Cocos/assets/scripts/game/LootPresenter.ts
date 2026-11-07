@@ -41,13 +41,18 @@ export class LootPresenter {
       const scale = distance > 45 ? 1.8 : distance > 20 ? 1.35 : 1;
       node.setScale(scale, scale, scale);
     }
-    for (const [id, node] of this.nodes) {
-      if (!active.has(id)) node.active = false;
+    // 消失的 pickup 彻底销毁并从 Map 删除，避免长时间游玩节点/Map 无限增长。
+    for (const [id, node] of [...this.nodes]) {
+      if (!active.has(id)) {
+        node.destroy();
+        this.nodes.delete(id);
+      }
     }
   }
 
   recycleAll(): void {
-    for (const node of this.nodes.values()) node.active = false;
+    for (const node of this.nodes.values()) node.destroy();
+    this.nodes.clear();
   }
 
   private create(id: string, cargo: boolean): Node {

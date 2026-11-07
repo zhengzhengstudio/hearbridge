@@ -60,6 +60,26 @@ export function buyStoreItem(item: StoreItemId): { ok: boolean; profile: PlayerE
   return { ok: true, profile: save(next) };
 }
 
+/**
+ * 站内服务扣券：供 CombatSimulation 的经济适配器调用，读写与商城同一份存档。
+ * 余额不足或 receipt 重复时不生效，返回 ok:false。
+ */
+export function spendStarportTickets(amount: number, receipt: string): { ok: boolean; profile: PlayerEconomySnapshot } {
+  const profile = loadEconomy();
+  const price = Math.max(1, Math.round(amount));
+  if (!receipt || profile.receipts.includes(receipt) || profile.starportTickets < price) {
+    return { ok: false, profile };
+  }
+  return {
+    ok: true,
+    profile: save({
+      ...profile,
+      starportTickets: profile.starportTickets - price,
+      receipts: [...profile.receipts, receipt].slice(-24),
+    }),
+  };
+}
+
 export function storePrice(item: StoreItemId, profile = loadEconomy()): number {
   if (item === 'cargo-expansion') return profile.cargoExpansion >= 2 ? -1 : [180, 320][profile.cargoExpansion];
   if (item === 'tractor-calibration') return profile.tractorCalibration >= 3 ? -1 : [120, 220, 360][profile.tractorCalibration];

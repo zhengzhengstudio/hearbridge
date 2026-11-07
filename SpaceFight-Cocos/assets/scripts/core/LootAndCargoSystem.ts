@@ -149,6 +149,11 @@ export class LootAndCargoSystem {
     return this.createDrops({ enemyId: enemy.id, role: enemy.role, eventKind, sequence, threat });
   }
 
+  /** 清空货舱：离港开新远征时调用，避免上一局货物被再次结算。 */
+  public clear(): void {
+    this.items.length = 0;
+  }
+
   public settleExpedition(outcome: ExpeditionOutcome): ExpeditionSettlement {
     const kept: CargoItem[] = [];
     const lost: CargoItem[] = [];
@@ -156,6 +161,8 @@ export class LootAndCargoSystem {
       const destination = outcome === 'returned' || isProtected(item) ? kept : lost;
       destination.push(cloneItem(item));
     }
+    // 结算后立刻转移出货物：一次远征只结算一次，重复返航不再重复计入货值/发券。
+    this.items.length = 0;
     return {
       outcome,
       kept,

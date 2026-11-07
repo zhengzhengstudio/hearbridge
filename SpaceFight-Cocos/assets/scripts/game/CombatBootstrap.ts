@@ -24,14 +24,16 @@ import {
 import { AIM_CONVERGENCE_DISTANCE, computeAimRay } from '../core/AimConvergence';
 import {
   CombatSimulation,
+  PRIMARY_OUTPOST_POSITION,
   type CombatSnapshot,
   type MissionDefinition,
+  type OutpostService,
 } from '../core/CombatSimulation';
 import { neutralFlightCommand } from '../core/FlightCommand';
 import { COMBAT_FEEL, PLAYER_HIT_TUNING } from '../core/FlightTuning';
 import { resolveLoadout } from '../core/WeaponCatalog';
 import type { CombatLoadout } from '../core/WeaponCatalog';
-import { awardStarportTickets, loadEconomy } from '../core/PlayerEconomy';
+import { awardStarportTickets, loadEconomy, spendStarportTickets } from '../core/PlayerEconomy';
 import { BrowserInputBridge } from '../input/BrowserInputBridge';
 import { CocosInputBridge, NATIVE_SAFE_INSETS } from '../input/CocosInputBridge';
 import { CocosGamepadBridge } from '../input/CocosGamepadBridge';
@@ -81,7 +83,13 @@ import { ProjectilePresenter } from './ProjectilePresenter';
 import { ShipPresenter } from './ShipPresenter';
 import { WorldStreamer } from './WorldStreamer';
 import { createWorldStreamProfile } from './WorldStreamProfile';
-import { NativeCombatHud } from './NativeCombatHud';
+import {
+  NativeCombatHud,
+  type CoopHudBridge,
+  type CoopHudState,
+  type NativeHudActions,
+  type StationServiceId,
+} from './NativeCombatHud';
 import { GameAudio } from './GameAudio';
 import { LootPresenter } from './LootPresenter';
 import { parseCoopInvite, WebCoopSession } from '../platform/WebCoopSession';
@@ -430,6 +438,36 @@ export class CombatBootstrap extends Component {
   private coopRemote: CoopPresence | null = null;
   private coopSignalHandler: ((message: CoopMessage) => void) | null = null;
   private coopSession: WebCoopSession | null = null;
+  /** 联机邀请码 / 应答码，供 HUD 显示与「复制邀请码」使用。 */
+  private coopCode = '';
+  /**
+   * 联机入口桥：native 无 WebRTC，available 传 false，HUD 明确提示改用 Web 版；
+   * web 端按钮直接复用已有的 spacefight:coop-command 事件通道。
+   */
+  private readonly coopBridge: CoopHudBridge = {
+    available: !sys.isNative && typeof RTCPeerConnection !== 'undefined',
+    host: () => this.sendCoopCommand({ action: 'host', room: 'tower-1', name: 'Host' }),
+    join: () => {
+      const invite = this.promptCoopCode('join');
+      if (invite) this.sendCoopCommand({ action: 'join', invite });
+    },
+    accept: () => {
+      const invite = this.promptCoopCode('accept');
+      if (invite) this.sendCoopCommand({ action: 'accept', invite });
+    },
+    close: () => this.sendCoopCommand({ action: 'close' }),
+    copyCode: () => {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        void navigator.clipboard.writeText(this.coopCode);
+      }
+    },
+  };
+  /** 前哨服务 / 返回主页 / 联机入口统一从这里接进 native HUD。 */
+  private readonly hudActions: NativeHudActions = {
+    onReturnHome: () => this.returnHome(),
+    onStationService: (service) => this.applyStationService(service),
+    coop: this.coopBridge,
+  };
 
   protected onLoad(): void {
     console.info('[SpaceFight boot] scene loaded');
@@ -481,6 +519,11 @@ export class CombatBootstrap extends Component {
       window.addEventListener('spacefight:gamepad-calibration', this.handleInputSettings);
       window.addEventListener('spacefight:graphics-advice-action', this.handleGraphicsAdviceAction);
       window.addEventListener('spacefight:coop-command', this.handleCoopCommand);
+      // 会话状态/邀请码回灌到 HUD 联机面板（此前只有 command 监听，UI 入口完全缺失）。
+      window.addEventListener('spacefight:coop-invite', this.handleCoopInvite);
+      window.addEventListener('spacefight:coop-answer', this.handleCoopAnswer);
+      window.addEventListener('spacefight:coop-connected', this.handleCoopConnected);
+      window.addEventListener('spacefight:coop-state', this.handleCoopState);
       this.browserEventsAttached = true;
     }
     this.initializeBrowserInput();
@@ -488,6 +531,17 @@ export class CombatBootstrap extends Component {
 
   protected update(deltaTime: number): void {
     this.cocosInput?.refreshInteractionState();
+    // 暂停/恢复必须最先处理：任意覆盖面板打开时下面的闸门会直接 return，
+    // 旧版把 togglePauseRequested 的消费放在 return 之后，导致暂停后「继续战斗」
+    // 永远消费不到、仿真永不推进 —— 游戏彻底冻死。这里绕过闸门直接翻转仿真暂停。
+    if (this.togglePauseRequested) {
+      this.togglePauseRequested = false;
+      if (this.initialized) {
+        this.snapshot = this.simulation.setPaused(!this.snapshot.paused);
+        this.dispatchCombatState(0, true);
+      }
+      return;
+    }
     if (
       this.pausedByLaunchGate
       || browserDataset()?.orientationBlocked === 'true'
@@ -512,10 +566,6 @@ export class CombatBootstrap extends Component {
     }
 
     const command = this.inputRouter?.consumeCommand() || neutralFlightCommand();
-    if (this.togglePauseRequested) {
-      command.pause = true;
-      this.togglePauseRequested = false;
-    }
     // 返航闩锁：点一下即持续返航（不必一直按住，松手也不会中断）。
     // 主动开火 / 加速 / 推进下一波视为「不返航了」，取消闩锁，避免误锁死。
     if (command.returnRequested) this.returnLatched = true;
@@ -532,7 +582,8 @@ export class CombatBootstrap extends Component {
     // 把当前阶段回灌给输入层：决策阶段里空格/Enter 才是"继续深入"，
     // 其他阶段保持纯射击语义，避免改动主武器手感。
     this.desktopInput?.setSnapshotPhase(this.snapshot.expedition.phase);
-    if (this.snapshot.mission.status === 'complete') {
+    // 已停靠时不要每帧重复入港：否则 serviceAtOutpost / 发券 / 事件会被反复触发。
+    if (this.snapshot.mission.status === 'complete' && !this.dockedAtOutpost) {
       this.enterOutpost();
       return;
     }
@@ -589,6 +640,10 @@ export class CombatBootstrap extends Component {
     window.removeEventListener('spacefight:gamepad-calibration', this.handleInputSettings);
     window.removeEventListener('spacefight:graphics-advice-action', this.handleGraphicsAdviceAction);
     window.removeEventListener('spacefight:coop-command', this.handleCoopCommand);
+    window.removeEventListener('spacefight:coop-invite', this.handleCoopInvite);
+    window.removeEventListener('spacefight:coop-answer', this.handleCoopAnswer);
+    window.removeEventListener('spacefight:coop-connected', this.handleCoopConnected);
+    window.removeEventListener('spacefight:coop-state', this.handleCoopState);
     this.coopSession?.close();
     this.coopSession = null;
     this.browserEventsAttached = false;
@@ -645,7 +700,9 @@ export class CombatBootstrap extends Component {
 
   private readonly applyNativeMission = (preset: MissionPreset): void => {
     this.currentMissionPreset = preset;
-    this.resetSimulation(undefined, preset);
+    // 不能传 undefined：原生端 readBrowserLoadout() 恒为 undefined，会把玩家
+    // 自定义装配静默重置成默认配置。
+    this.resetSimulation(this.snapshot.loadout, preset);
     this.shipPresenter?.sync(this.snapshot);
     this.nativeHud?.syncCombat(this.snapshot);
   };
@@ -707,6 +764,86 @@ export class CombatBootstrap extends Component {
     }
   };
 
+  /** HUD 联机按钮统一走已有的 DOM 事件通道，避免再写一套会话管理。 */
+  private sendCoopCommand(detail: {
+    action: 'host' | 'join' | 'accept' | 'close';
+    invite?: string;
+    room?: string;
+    name?: string;
+  }): void {
+    if (typeof window === 'undefined') return;
+    dispatchBrowserEvent('spacefight:coop-command', detail);
+  }
+
+  /** 扫码/粘贴由浏览器侧提供；native 无 WebRTC，按钮已禁用，不会走到这里。 */
+  private promptCoopCode(kind: 'join' | 'accept'): string | null {
+    if (typeof window === 'undefined' || typeof window.prompt !== 'function') return null;
+    const value = window.prompt(kind === 'join' ? '粘贴主机邀请码' : '粘贴客机应答码');
+    return value && value.trim() ? value.trim() : null;
+  }
+
+  private readonly handleCoopInvite = (event: Event): void => {
+    this.coopCode = String((event as CustomEvent<{ session?: string }>).detail?.session || '');
+    this.nativeHud?.setCoopState('hosting', undefined, this.coopCode);
+  };
+
+  private readonly handleCoopAnswer = (event: Event): void => {
+    this.coopCode = String((event as CustomEvent<{ session?: string }>).detail?.session || '');
+    this.nativeHud?.setCoopState('joining', undefined, this.coopCode);
+  };
+
+  private readonly handleCoopConnected = (): void => {
+    this.nativeHud?.setCoopState('connected', undefined, this.coopCode);
+  };
+
+  private readonly handleCoopState = (event: Event): void => {
+    const detail = (event as CustomEvent<{ state?: string; detail?: string }>).detail || {};
+    this.nativeHud?.setCoopState(
+      (detail.state as CoopHudState) || 'idle',
+      detail.detail,
+      this.coopCode,
+    );
+  };
+
+  /** 前哨站内服务：返航不再自动回满三量，玩家花星港券决定修哪一项。 */
+  private readonly applyStationService = (service: StationServiceId): void => {
+    if (!this.dockedAtOutpost) return;
+    this.snapshot = this.simulation.serviceStation(service as OutpostService);
+    this.gameAudio?.sync(this.snapshot);
+    this.nativeHud?.syncCombat(this.snapshot);
+    this.dispatchCombatState(0, true);
+  };
+
+  /** 站内「返回主页」：保持停靠态，主页点「进入战场」时再走 leaveOutpost 离港。 */
+  private readonly returnHome = (): void => {
+    this.nativeHud?.showPreflight();
+  };
+
+  /** 站内 3D 已经建好但相机从不切过去；这里按实际节点世界坐标切机位。 */
+  private focusOutpostInterior(): void {
+    if (!this.cameraNode) return;
+    const interior = this.worldRoot
+      ? this.findNodeByName(this.worldRoot, 'StationInterior', 7)
+      : null;
+    const target = interior
+      ? interior.worldPosition
+      : new Vec3(PRIMARY_OUTPOST_POSITION.x, PRIMARY_OUTPOST_POSITION.y, PRIMARY_OUTPOST_POSITION.z);
+    this.cameraNode.setWorldPosition(new Vec3(target.x, target.y + 1.6, target.z + 10.5));
+    this.cameraNode.lookAt(new Vec3(target.x, target.y - 0.2, target.z - 2.5));
+    const camera = this.cameraNode.getComponent(Camera);
+    if (camera) camera.fov = 64;
+  }
+
+  private findNodeByName(root: Node, name: string, depth: number): Node | null {
+    if (depth <= 0) return null;
+    for (const child of root.children) {
+      if (child.name === name) return child;
+      const nested = this.findNodeByName(child, name, depth - 1);
+      if (nested) return nested;
+    }
+    return null;
+  }
+
   private resetSimulation(loadout = readBrowserLoadout(), preset = readBrowserMissionPreset()): void {
     this.shipPresenter?.setPlayerShipKind(resolveLoadout(loadout).ship);
     this.simulation = this.createSimulation(loadout, preset);
@@ -721,6 +858,8 @@ export class CombatBootstrap extends Component {
   }
 
   private enterOutpost(): void {
+    // 幂等：status 在停靠期间仍是 complete，旧版每帧重跑结算/发券/事件。
+    if (this.dockedAtOutpost) return;
     this.returnLatched = false;
     this.inputRouter?.releaseAll();
     this.projectilePresenter?.recycleAll();
@@ -737,6 +876,8 @@ export class CombatBootstrap extends Component {
     this.lootPresenter?.sync(this.snapshot, 0);
     this.shipPresenter?.sync(this.snapshot);
     this.nativeHud?.syncCombat(this.snapshot);
+    // 站内 3D 场景早已建好，相机必须真正切过去，否则「返航进站」只是换了一张 2D 结算图。
+    this.focusOutpostInterior();
     if (sys.isNative) {
       this.nativeHud?.enterOutpost();
       this.cocosInput?.refreshInteractionState();
@@ -756,7 +897,13 @@ export class CombatBootstrap extends Component {
     // 让宽限从"这一局"起算，而非沿用上一局的累计值。
     this.combatVisualWaitMs = 0;
     this.returnLatched = false;
-    if (!this.dockedAtOutpost) return;
+    // 从暂停面板回主页再部署时，dockedAtOutpost 为 false 会在下面直接 return；
+    // 必须先把仿真暂停解掉，否则新一局开场就是静止战场。
+    if (this.snapshot.paused) this.simulation.setPaused(false);
+    if (!this.dockedAtOutpost) {
+      this.updateCamera(this.snapshot);
+      return;
+    }
     this.dockedAtOutpost = false;
     // 离港必须解除启动闸门，否则战斗主循环会一直停在暂停分支，
     // 玩家"离港"后游戏仍冻结 —— 表现为进哨站后无法离开太空。
@@ -775,7 +922,9 @@ export class CombatBootstrap extends Component {
   private readonly handleRestart = (): void => {
     this.dockedAtOutpost = false;
     this.returnLatched = false;
-    this.simulation = this.createSimulation();
+    // 重新出击必须沿用玩家当前所选任务与装配：旧版 createSimulation() 走默认参数，
+    // 原生端恒回落到 salvage + 默认装配，主页却仍显示旧任务名。
+    this.simulation = this.createSimulation(this.snapshot.loadout, this.currentMissionPreset);
     this.snapshot = this.simulation.step({}, 0);
     this.previousHealth = this.snapshot.player.health + this.snapshot.player.shield;
     this.inputRouter?.releaseAll();
@@ -858,6 +1007,11 @@ export class CombatBootstrap extends Component {
       cargoCapacityBonus: economy.cargoExpansion * 2,
       pickupRadiusBonus: economy.tractorCalibration * 2,
       shieldCapacityBonus: economy.shieldExpansion * 6,
+      // 站内维修/补给/改装与商城共用同一份星港券，不再走仿真内置假余额。
+      economy: {
+        getTickets: () => loadEconomy().starportTickets,
+        spendTickets: (amount, receipt) => spendStarportTickets(amount, receipt).ok,
+      },
     });
   }
 
@@ -879,7 +1033,10 @@ export class CombatBootstrap extends Component {
       this.speedParticles.capacity = this.graphicsProfile.particleCapacity;
       this.speedParticles.rateOverTime.constant = this.graphicsParticleRate();
     }
+    // 降档时复位高模 flag 与敌机预算；切档前显式释放 WorldStreamer 自建网格/材质。
+    if (tier === 'low') this.shipPresenter?.disableHighQuality();
     if (this.initialized && this.worldRoot) {
+      this.worldStreamer?.dispose();
       const staleWorldChunks = [...this.worldRoot.children];
       this.worldRoot.removeAllChildren();
       for (const chunk of staleWorldChunks) {
@@ -1049,6 +1206,7 @@ export class CombatBootstrap extends Component {
         this.applyNativeEconomy,
         () => this.gameAudio?.ui(),
         this.handleTogglePause,
+        this.hudActions,
       );
       this.cocosInput?.setFeedback(this.nativeHud);
       this.nativeHud.syncCombat(this.snapshot);
@@ -1064,7 +1222,7 @@ export class CombatBootstrap extends Component {
       throw new Error('Combat scene root is unavailable');
     }
     this.initializeNativeHud(scene);
-    this.nativeHud?.showBootState('正在建立战斗系统');
+    this.nativeHud?.showBootState('正在建立战斗系统', 0.42);
     if (sys.isNative && (!this.cocosInput || !this.inputRouter)) {
       this.initializeCocosInput();
       if (!this.cocosInput || !this.inputRouter) {
@@ -1139,7 +1297,7 @@ export class CombatBootstrap extends Component {
     this.gameAudio.sync(this.snapshot);
     this.initializeOptionalEffects(combatRoot, player);
 
-    this.nativeHud?.showBootState('正在装载战机与敌机');
+    this.nativeHud?.showBootState('正在装载战机与敌机', 0.78);
     const visualMode = await this.shipPresenter.ensurePlayerVisual();
     console.info(`[SpaceFight boot] combat visual mode: ${visualMode}`);
     this.shipPresenter.applyPlayerSkin(readBrowserLoadout()?.skin);
@@ -1419,6 +1577,12 @@ export class CombatBootstrap extends Component {
     if (!this.cameraNode) {
       return;
     }
+    // 停靠期间所有刷新路径都必须保持站内机位，否则服务/发券后的 dispatchCombatState
+    // 会把相机拉回追尾视角，玩家又看不到前哨内部了。
+    if (this.dockedAtOutpost) {
+      this.focusOutpostInterior();
+      return;
+    }
     const player = snapshot.player;
     const aimForward = computeAimRay({
       position: player.position,
@@ -1433,10 +1597,12 @@ export class CombatBootstrap extends Component {
     }).direction;
     const desired = cockpit && this.shipPresenter
       ? this.shipPresenter.cockpitWorldPosition
+      // 拉近追尾距离：旧版 10 单位 + FOV 62 让机体只占画面中央很小一点，
+      // 配合 ShipPresenter 的 COMBAT_VISUAL_SCALE 让玩家舰真正可辨、看得见涂装。
       : new Vec3(
-        player.position.x - aimForward.x * 10,
-        player.position.y - aimForward.y * 4 + 3.4,
-        player.position.z - aimForward.z * 10,
+        player.position.x - aimForward.x * 7.2,
+        player.position.y - aimForward.y * 3 + 2.6,
+        player.position.z - aimForward.z * 7.2,
       );
     // Reactive feel: recede the camera along aim on recoil and rattle it on impact.
     const recoil = this.recoilAmount();
@@ -1456,6 +1622,8 @@ export class CombatBootstrap extends Component {
     }
     this.cameraNode.setWorldPosition(desired);
     if (this.cockpitInterior) this.cockpitInterior.active = cockpit;
+    // 座舱视角把相机放进机体内部，必须隐藏外部模型，否则 near=0.08 直接穿模。
+    this.shipPresenter?.setCockpitMode(cockpit);
     const camera = this.cameraNode.getComponent(Camera);
     if (camera) {
       // FOV = 基础值 + 命中冲击 + 速度扩张。

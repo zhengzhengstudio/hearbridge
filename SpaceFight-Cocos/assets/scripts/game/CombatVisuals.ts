@@ -14,7 +14,11 @@ import {
   utils,
   Vec3,
 } from 'cc';
+import * as cc from 'cc';
 import type { CombatEvent, CombatSnapshot } from '../core/CombatSimulation';
+
+/** Cocos 3.8 的 Tween 类：经命名空间取用，兼容未列出该导出的精简 cc 声明。 */
+const Tween: { stopAllByTarget(target?: object): void } | undefined = (cc as any).Tween;
 
 /**
  * 战斗视觉层（2026-10-23 新增）。
@@ -31,6 +35,8 @@ import type { CombatEvent, CombatSnapshot } from '../core/CombatSimulation';
 interface Billboard {
   readonly node: Node;
   readonly sprite: Sprite;
+  /** acquire 代号：旧 tween 回调带旧代号，回收时据此判失效。 */
+  readonly generation: number;
 }
 
 interface Debris {
@@ -68,6 +74,9 @@ export class CombatVisuals {
   private lastEventId = 0;
   private lastTick = 0;
   private cameraNode: Node | null = null;
+  /** 每次 acquire 递增代号，节点 -> 当前代号：让复用前的旧回调失效。 */
+  private billboardGeneration = 0;
+  private readonly billboardTokens = new Map<Node, number>();
 
   public constructor(private readonly parent: Node) {}
 
@@ -145,7 +154,7 @@ export class CombatVisuals {
       tween(billboard.node)
         .to(0.16, { scale: new Vec3(2.6, 2.6, 2.6) })
         .to(0.26, { scale: new Vec3(3.6, 3.6, 3.6) })
-        .call(() => this.recycleBillboard(billboard.node))
+        .call(() => this.recycleBillboard(billboard.node, billboard.generation))
         .start();
       // 淡出靠 sprite.color
       const sprite = billboard.sprite;
@@ -214,7 +223,7 @@ export class CombatVisuals {
     billboard.sprite.color = new Color(255, 255, 255, 255);
     tween(billboard.node)
       .to(0.09, { scale: new Vec3(1.5, 1.5, 1.5) })
-      .call(() => this.recycleBillboard(billboard.node))
+      .call(() => this.recycleBillboard(billboard.node, billboard.generation))
       .start();
     tween(billboard.sprite)
       .to(0.09, { color: new Color(255, 255, 255, 0) })
@@ -232,7 +241,7 @@ export class CombatVisuals {
       : new Color(255, 240, 210, 255);
     tween(billboard.node)
       .to(0.16, { scale: new Vec3(0.85, 0.85, 0.85) })
-      .call(() => this.recycleBillboard(billboard.node))
+      .call(() => this.recycleBillboard(billboard.node, billboard.generation))
       .start();
     tween(billboard.sprite)
       .to(0.16, { color: new Color(255, 255, 255, 0) })
@@ -259,11 +268,21 @@ export class CombatVisuals {
     sprite.sizeMode = Sprite.SizeMode.CUSTOM;
     sprite.width = 128;
     sprite.height = 128;
-    return { node, sprite };
+    // 每次 acquire 递增代号，旧 tween 的 .call() 因代号不匹配而失效。
+    const generation = ++this.billboardGeneration;
+    this.billboardTokens.set(node, generation);
+    return { node, sprite, generation };
   }
 
-  private recycleBillboard(node: Node): void {
-    if (!this.activeBillboards.delete(node)) return;
+  private recycleBillboard(node: Node, generation?: number): void {
+    if (!this.activeBillboards.has(node)) return;
+    // 旧回调（代号已过期）不得提前回收重新取出的新特效。
+    if (generation !== undefined && this.billboardTokens.get(node) !== generation) return;
+    this.activeBillboards.delete(node);
+    // 先停掉节点 / sprite 上仍在跑的 tween 再入池，避免旧 .call() 二次回收。
+    if (Tween) Tween.stopAllByTarget(node);
+    const sprite = node.getComponent(Sprite);
+    if (Tween && sprite) Tween.stopAllByTarget(sprite);
     node.active = false;
     this.billboardPool.put(node);
   }

@@ -11,13 +11,19 @@ import {
   utils,
   Vec3,
 } from 'cc';
+import * as cc from 'cc';
 import type { CombatEvent, CombatSnapshot } from '../core/CombatSimulation';
+
+/** Cocos 3.8 的 Tween 类：经命名空间取用，兼容未列出该导出的精简 cc 声明。 */
+const Tween: { stopAllByTarget(target?: object): void } | undefined = (cc as any).Tween;
 
 interface FeedbackVisual {
   readonly node: Node;
   readonly core: MeshRenderer;
   readonly ring: MeshRenderer;
   readonly light: SphereLight | null;
+  /** acquire 代号：旧 tween 回调带旧代号，回收时据此判失效。 */
+  readonly generation: number;
 }
 
 function unlitMaterial(color: Color): Material {
@@ -42,6 +48,9 @@ export class CombatFeedbackPresenter {
   }));
   private lastEventId = 0;
   private lastTick = 0;
+  /** 每次 acquire 递增代号，节点 -> 当前代号：让复用前的旧回调失效。 */
+  private feedbackGeneration = 0;
+  private readonly feedbackTokens = new Map<Node, number>();
 
   public constructor(
     private readonly parent: Node,
@@ -96,7 +105,7 @@ export class CombatFeedbackPresenter {
     tween(visual.node)
       .to(duration, { scale: new Vec3(peak, peak, peak) })
       .to(destroyed ? 0.22 : 0.1, { scale: new Vec3(0.01, 0.01, 0.01) })
-      .call(() => this.recycle(visual.node))
+      .call(() => this.recycle(visual.node, visual.generation))
       .start();
     if (visual.light) tween(visual.light).to(duration + 0.12, { luminance: 0 }).start();
   }
@@ -110,11 +119,21 @@ export class CombatFeedbackPresenter {
     const ring = node.getChildByName('ImpactRing')?.getComponent(MeshRenderer);
     const light = node.getComponent(SphereLight);
     if (!core || !ring || (this.lights && !light)) throw new Error('Combat feedback visual is incomplete');
-    return { node, core, ring, light };
+    // 每次 acquire 递增代号，旧 tween 的 .call() 因代号不匹配而失效。
+    const generation = ++this.feedbackGeneration;
+    this.feedbackTokens.set(node, generation);
+    return { node, core, ring, light, generation };
   }
 
-  private recycle(node: Node): void {
-    if (!this.active.delete(node)) return;
+  private recycle(node: Node, generation?: number): void {
+    if (!this.active.has(node)) return;
+    // 旧回调（代号已过期）不得提前回收重新取出的新特效。
+    if (generation !== undefined && this.feedbackTokens.get(node) !== generation) return;
+    this.active.delete(node);
+    // 先停掉节点与 light 上仍在跑的 tween 再入池，避免旧 .call() 二次回收。
+    if (Tween) Tween.stopAllByTarget(node);
+    const light = node.getComponent(SphereLight);
+    if (Tween && light) Tween.stopAllByTarget(light);
     node.active = false;
     this.pool.put(node);
   }
@@ -142,6 +161,7 @@ export class CombatFeedbackPresenter {
       light.luminance = 0;
     }
     node.active = false;
-    return { node, core, ring, light };
+    // 池化初始节点未 acquire：代号 0，acquire 时会重新分配。
+    return { node, core, ring, light, generation: 0 };
   }
 }

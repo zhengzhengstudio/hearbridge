@@ -2,6 +2,8 @@ import {
   EventKeyboard,
   EventMouse,
   EventTouch,
+  game,
+  Game,
   input as cocosInput,
   Input,
   KeyCode,
@@ -125,11 +127,16 @@ export class CocosInputBridge {
     cocosInput.on(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
     cocosInput.on(Input.EventType.TOUCH_END, this.onTouchEnd, this);
     cocosInput.on(Input.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
+    // 修复：补 view 尺寸/旋转变化与切后台监听，变化时重新 syncViewport 并清理指针状态。
+    view.on('design-resolution-changed', this.onViewportChanged, this);
+    game.on(Game.EVENT_HIDE, this.onGameHide, this);
     this.attached = true;
   }
 
   detach(): void {
     if (!this.attached) return;
+    view.off('design-resolution-changed', this.onViewportChanged, this);
+    game.off(Game.EVENT_HIDE, this.onGameHide, this);
     cocosInput.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
     cocosInput.off(Input.EventType.KEY_UP, this.onKeyUp, this);
     cocosInput.off(Input.EventType.MOUSE_MOVE, this.onMouseMove, this);
@@ -149,6 +156,35 @@ export class CocosInputBridge {
     this.desktop.handlePointerLockChange(false);
     this.setNativeCursorCaptured(false);
     this.attached = false;
+  }
+
+  /** 修复：view 尺寸/旋转变化时重新同步视口并清理所有指针，避免坐标错位导致持续输入。 */
+  private readonly onViewportChanged = (): void => {
+    this.syncViewport();
+    this.clearAllPointers();
+  };
+
+  /** 修复：切后台时清理所有指针状态并重新同步视口。 */
+  private readonly onGameHide = (): void => {
+    this.clearAllPointers();
+    this.syncViewport();
+  };
+
+  /** 统一清理所有活动指针、按键与 HUD 动作高亮。 */
+  private clearAllPointers(): void {
+    for (const role of new Set(this.roles.values())) {
+      if (role !== 'movement' && role !== 'look') this.feedback?.setAction(role, false);
+    }
+    for (const pointerId of this.roles.keys()) {
+      this.touch.endPointer(pointerId);
+    }
+    this.roles.clear();
+    this.heldKeys.clear();
+    this.router.releaseAll();
+    if (this.mode === 'touch') {
+      const center = this.touch.movementCenter();
+      this.updateStickFeedback(center.x, center.y, false);
+    }
   }
 
   private readonly onKeyDown = (event: EventKeyboard): void => {
@@ -268,7 +304,10 @@ export class CocosInputBridge {
       const center = this.touch.movementCenter();
       this.updateStickFeedback(center.x, center.y, false);
     } else if (role && role !== 'look') {
-      this.feedback?.setAction(role, false);
+      // 修复：多指同按同一动作时，只有没有其它指针仍持有该 role 才熄灭高亮，
+      // 避免任一指抬起就把仍在开火的动作置为 false。
+      const stillHeld = [...this.roles.values()].some((held) => held === role);
+      if (!stillHeld) this.feedback?.setAction(role, false);
     }
   };
 

@@ -252,6 +252,8 @@ export class BrowserInputBridge {
         this.touch.setMovementGeometry({ x: 0, y: 0 }, 0);
         visibleMovementCircle = undefined;
       }
+      // 修复：补齐控件表以覆盖 TouchAction 全集（含 swapWeapons / advanceRequested 等），
+      // 避免默认布局里的相应区域在采用测量布局时被整体丢弃。
       const controls: ReadonlyArray<readonly [string, TouchAction]> = [
         ['PrimaryControl', 'primaryFire'],
         ['SecondaryControl', 'secondaryFire'],
@@ -259,6 +261,8 @@ export class BrowserInputBridge {
         ['CameraControl', 'cameraToggle'],
         ['PauseControl', 'pause'],
         ['ReturnControl', 'returnRequested'],
+        ['AdvanceControl', 'advanceRequested'],
+        ['SwapWeaponsControl', 'swapWeapons'],
       ];
       const measured = controls.flatMap(([id, role]) => {
         const element = documentRef.getElementById(id);
@@ -272,15 +276,24 @@ export class BrowserInputBridge {
           radius: Math.min(rect.width, rect.height) / 2,
         }];
       });
-      visibleActionLayout = measured.length >= controls.length - 1 ? measured : undefined;
+      // 修复：只有全部必需控件都测量成功才采用测量布局；否则回退完整默认布局，
+      // 不因某个控件不存在就丢掉默认布局里的其它动作（如 swapWeapons）。
+      visibleActionLayout = measured.length === controls.length ? measured : undefined;
     };
     const pointerDown = (event: PointerEvent): void => {
       resize();
+      // 修复：模式在 attach 时确定；仅当当前没有任何活动指针时才允许按指针类型切换，
+      // 有活动指针时忽略新指针的类型切换，避免多设备混用互相 releaseAll。
+      // 运行时读取 body.dataset.inputModeOverride 作为显式覆盖（若存在）。
+      const override = inputModeOverride(documentRef);
       const pointerMode = event.pointerType === 'touch' || event.pointerType === 'pen'
         ? 'touch'
         : 'desktop';
-      const mode = this.explicitMode || pointerMode;
-      this.setMode(mode, documentRef);
+      const desiredMode = override || pointerMode;
+      if (this.roles.size === 0) {
+        this.setMode(desiredMode, documentRef);
+      }
+      const mode = this.router.currentMode();
       if (mode === 'desktop') {
         return;
       }
@@ -295,11 +308,19 @@ export class BrowserInputBridge {
         visibleMovementCircle,
         this.settings.controlScale,
       );
+      // 修复：先登记角色，再检查 beginMovement / beginLook 是否被接受；被拒绝时
+      // （已有其它指针占用该输入）不写 roles，避免第一指抬起后摇杆/视角失效。
       this.roles.set(event.pointerId, role);
       if (role === 'movement') {
-        this.touch.beginMovement(event.pointerId, event.clientX, event.clientY);
+        if (!this.touch.beginMovement(event.pointerId, event.clientX, event.clientY)) {
+          this.roles.delete(event.pointerId);
+          return;
+        }
       } else if (role === 'look') {
-        this.touch.beginLook(event.pointerId, event.clientX, event.clientY);
+        if (!this.touch.beginLook(event.pointerId, event.clientX, event.clientY)) {
+          this.roles.delete(event.pointerId);
+          return;
+        }
       } else {
         this.touch.beginAction(event.pointerId, role);
       }
@@ -321,9 +342,24 @@ export class BrowserInputBridge {
       this.touch.endPointer(event.pointerId);
       event.preventDefault();
     };
-    const blur = (): void => {
+    // 修复：切后台/隐藏/离开页面时对所有活动 pointerId 逐一收尾，
+    // 再 releaseAll 并清空角色，避免隐藏时持续开火/加速卡住。
+    const clearActivePointers = (): void => {
+      for (const pointerId of this.roles.keys()) {
+        this.touch.endPointer(pointerId);
+      }
       this.roles.clear();
       this.router.releaseAll();
+    };
+    const blur = (): void => {
+      clearActivePointers();
+    };
+    const onVisibilityChange = (): void => {
+      // fake/test 环境下 visibilityState 可能缺失：非明确可见即按隐藏处理。
+      if (documentRef.visibilityState !== 'visible') clearActivePointers();
+    };
+    const onPageHide = (): void => {
+      clearActivePointers();
     };
 
     resize();
@@ -334,6 +370,8 @@ export class BrowserInputBridge {
     canvas.addEventListener('pointercancel', pointerEnd);
     windowRef.addEventListener('resize', resize);
     windowRef.addEventListener('blur', blur);
+    windowRef.addEventListener('pagehide', onPageHide);
+    documentRef.addEventListener('visibilitychange', onVisibilityChange);
 
     this.detachListeners = () => {
       canvas.removeEventListener('pointerdown', pointerDown);
@@ -342,6 +380,8 @@ export class BrowserInputBridge {
       canvas.removeEventListener('pointercancel', pointerEnd);
       windowRef.removeEventListener('resize', resize);
       windowRef.removeEventListener('blur', blur);
+      windowRef.removeEventListener('pagehide', onPageHide);
+      documentRef.removeEventListener('visibilitychange', onVisibilityChange);
       this.desktop.detach();
       this.roles.clear();
       this.router.releaseAll();

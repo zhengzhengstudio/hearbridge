@@ -90,9 +90,11 @@ export class TouchFlightInput {
     return true;
   }
 
-  beginLook(pointerId: number, x: number, y: number): void {
-    if (this.lookPointer && this.lookPointer.id !== pointerId) return;
+  // 修复：返回是否接受该指针，供上层在被第二指占用而拒绝时不写入 roles。
+  beginLook(pointerId: number, x: number, y: number): boolean {
+    if (this.lookPointer && this.lookPointer.id !== pointerId) return false;
     this.lookPointer = { id: pointerId, x, y };
+    return true;
   }
 
   beginAction(pointerId: number, action: TouchAction): void {
