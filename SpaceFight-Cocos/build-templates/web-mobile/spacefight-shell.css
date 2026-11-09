@@ -1548,3 +1548,91 @@ body[data-settings-open="true"] #SettingsPanel { display: grid; }
 /* 主页阶段不残留教学/结算提示 */
 body:not([data-playing="true"]) #TutorialHint,
 body:not([data-playing="true"]) #TicketToast { display: none !important; }
+
+
+/* 前哨站机库舱内：场景图只作氛围层，内容区完全不透明，文字不叠透。 */
+#OutpostPanel {
+  position: fixed;
+  inset: 0;
+  z-index: 48;
+  display: none;
+  place-items: center;
+  padding: 24px;
+  background: var(--ink);
+}
+#OutpostPanel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("outpost-interior.jpg") center / cover no-repeat;
+  opacity: 0.3;
+}
+body[data-outpost-open="true"] #OutpostPanel { display: grid; }
+.outpost-shell {
+  position: relative;
+  width: min(1080px, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+  display: grid;
+  gap: 22px;
+  padding: 26px 30px;
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.outpost-shell > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 16px;
+}
+.outpost-shell > header small { color: var(--accent); letter-spacing: .16em; font-size: 11px; }
+.outpost-shell h2 { margin: 8px 0 0; font-size: clamp(22px, 3vw, 34px); }
+.outpost-shell > header p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+.outpost-shell > header button {
+  border: 1px solid var(--line-strong); background: transparent; color: var(--text);
+  width: 40px; height: 40px; font-size: 22px; line-height: 1;
+}
+.outpost-body { display: grid; grid-template-columns: minmax(240px, .8fr) 1.6fr; gap: 26px; }
+.outpost-shell h3 { margin: 0 0 14px; font-size: 14px; letter-spacing: .08em; color: var(--accent); }
+.outpost-manifest { border-right: 1px solid var(--line); padding-right: 22px; }
+.outpost-empty { color: var(--muted); font-size: 13px; }
+.outpost-cargo-row {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13px;
+}
+.outpost-cargo-row b { font-weight: 500; }
+.outpost-cargo-row small { color: var(--muted); }
+.outpost-settlement {
+  margin: 16px 0 0; padding: 10px 12px;
+  border-left: 2px solid var(--accent); background: rgba(98, 206, 215, .08);
+  font-size: 13px; color: var(--text);
+}
+.supply-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.supply-grid figure {
+  margin: 0; display: grid; grid-template-columns: 58px 1fr; align-items: center; gap: 10px;
+  padding: 8px; border: 1px solid var(--line); background: rgba(255, 255, 255, .02);
+}
+.supply-grid .supply-wide { grid-column: span 2; }
+.supply-grid img { width: 58px; height: 58px; object-fit: cover; }
+.supply-grid figcaption { font-size: 13px; line-height: 1.4; }
+.supply-grid figcaption small { display: block; color: var(--muted); font-size: 11px; }
+.outpost-ai { margin: 14px 0 0; color: var(--muted); font-size: 11px; }
+.outpost-shell > footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  border-top: 1px solid var(--line); padding-top: 16px;
+}
+.outpost-shell > footer span { color: var(--muted); font-size: 12px; }
+.outpost-shell > footer button {
+  background: var(--accent); border: 1px solid var(--accent); color: var(--accent-ink);
+  font-weight: 600; font-size: 14px; min-height: 44px; padding: 0 26px;
+}
+@media (max-width: 820px) {
+  .outpost-body { grid-template-columns: 1fr; gap: 16px; }
+  .outpost-manifest { border-right: 0; border-bottom: 1px solid var(--line); padding: 0 0 14px; }
+  .supply-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .supply-grid .supply-wide { grid-column: span 2; }
+  .outpost-shell { padding: 18px; gap: 14px; }
+}

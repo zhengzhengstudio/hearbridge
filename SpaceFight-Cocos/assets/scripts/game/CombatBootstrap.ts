@@ -183,6 +183,9 @@ const MISSION_PRESETS: Readonly<Record<MissionPreset, MissionDefinition>> = {
       // 维修包与护盾包：让「贪战」与「保命」成为可选项
       { id: 'salvage-repair', kind: 'repair', position: { x: 30, y: 1, z: -120 }, value: 28 },
       { id: 'salvage-shield', kind: 'shield', position: { x: -32, y: -2, z: -66 }, value: 34 },
+      // 新补给：让货舱五类与四档稀有度在一趟打捞里就能见到。
+      { id: 'salvage-credit', kind: 'credit', position: { x: 14, y: -4, z: -76 }, value: 26 },
+      { id: 'salvage-relic', kind: 'relic', position: { x: -24, y: 3, z: -116 }, value: 58 },
     ],
     objective: { type: 'collect', requiredKills: 3, cargoRatio: 0.55 },
   },
@@ -199,6 +202,7 @@ const MISSION_PRESETS: Readonly<Record<MissionPreset, MissionDefinition>> = {
     pickups: [
       { id: 'relay-scrap', kind: 'scrap', position: { x: -12, y: 0, z: -48 }, value: 38 },
       { id: 'relay-energy', kind: 'energy', position: { x: 22, y: 2, z: -70 }, value: 28 },
+      { id: 'relay-alloy', kind: 'alloy', position: { x: -26, y: 3, z: -92 }, value: 44 },
     ],
     objective: { type: 'eliminate', requiredKills: 4 },
   },
@@ -213,6 +217,7 @@ const MISSION_PRESETS: Readonly<Record<MissionPreset, MissionDefinition>> = {
     ],
     pickups: [
       { id: 'ace-data-core', kind: 'data', position: { x: 0, y: 4, z: -132 }, value: 64 },
+      { id: 'ace-epic-core', kind: 'core', position: { x: 12, y: 8, z: -158 }, value: 92 },
     ],
     // 猎杀目标：progress 只认精英击落，escort 打的再多也不涨
     objective: { type: 'hunt', requiredKills: 4, eliteKind: 'gunship' },
@@ -461,6 +466,8 @@ export class CombatBootstrap extends Component {
   private coopStreamElapsed = 0;
   private coopRemote: CoopPresence | null = null;
   private coopSignalHandler: ((message: CoopMessage) => void) | null = null;
+  /** 记录上一次绑定过 onMessage 的 transport：换连接必须重新绑定，否则第二局收不到 presence。 */
+  private lastCoopTransport: ReturnType<typeof activeCoopTransport> = null;
   private coopSession: WsCoopSession | null = null;
   /** 联机邀请码 / 应答码，供 HUD 显示与「复制邀请码」使用。 */
   private coopCode = '';
@@ -641,6 +648,9 @@ export class CombatBootstrap extends Component {
     this.nativeHud = null;
     this.gameAudio?.destroy();
     this.gameAudio = null;
+    // WorldStreamer 自建了材质与运行时网格，Cocos 不会随节点销毁自动释放。
+    this.worldStreamer?.dispose();
+    this.worldStreamer = null;
     if (typeof window === 'undefined') {
       this.inputRouter = null;
       return;
@@ -691,22 +701,31 @@ export class CombatBootstrap extends Component {
   private readonly handleLoadoutChange = (event: Event): void => {
     if (browserDataset()?.playing === 'true') return;
     const loadout = (event as CustomEvent<CombatLoadout>).detail || readBrowserLoadout();
-    this.shipPresenter?.setPlayerShipKind(resolveLoadout(loadout).ship);
-    this.simulation = this.createSimulation(loadout);
-    this.snapshot = this.simulation.step({}, 0);
-    this.previousHealth = this.snapshot.player.health + this.snapshot.player.shield;
+    // 走 resetSimulation 而不是裸 createSimulation：后者会沿用旧任务预设、
+    // 也不会同步各 presenter 的回收/重绘，导致换装配后画面残留上一局的对象。
+    this.resetSimulation(loadout, this.currentMissionPreset);
+    this.shipPresenter?.sync(this.snapshot);
+    this.nativeHud?.syncCombat(this.snapshot);
     this.dispatchCombatState(0, true);
   };
 
   private readonly handleMissionChange = (): void => {
     if (browserDataset()?.playing === 'true') return;
-    if (readBrowserMissionPreset() === 'tutorial') {
+    const preset = readBrowserMissionPreset();
+    if (preset === 'tutorial') {
       this.startTutorial();
       this.dispatchCombatState(0, true);
       return;
     }
     this.stopTutorial();
-    this.resetSimulation(readBrowserLoadout(), readBrowserMissionPreset());
+    // 必须把当前选择写回字段：handleRestart / applyNativeLoadout / applyNativeEconomy
+    // 都读它，漏同步会让「重新出击」回落到 salvage 或永远停在教学关。
+    this.currentMissionPreset = preset;
+    const dataset = browserDataset();
+    if (dataset && dataset.missionPreset === 'tutorial') dataset.missionPreset = preset;
+    this.resetSimulation(readBrowserLoadout(), preset);
+    this.shipPresenter?.sync(this.snapshot);
+    this.nativeHud?.syncCombat(this.snapshot);
     this.dispatchCombatState(0, true);
   };
 
@@ -963,6 +982,8 @@ export class CombatBootstrap extends Component {
     // 让宽限从"这一局"起算，而非沿用上一局的累计值。
     this.combatVisualWaitMs = 0;
     this.returnLatched = false;
+    // 本趟结算只在停靠期间有效；离港后清掉，否则下趟进站前打开面板仍显示旧「+N」。
+    this.nativeHud?.clearTicketSettlement();
     // 从暂停面板回主页再部署时，dockedAtOutpost 为 false 会在下面直接 return；
     // 必须先把仿真暂停解掉，否则新一局开场就是静止战场。
     if (this.snapshot.paused) this.simulation.setPaused(false);
@@ -988,9 +1009,16 @@ export class CombatBootstrap extends Component {
   private readonly handleRestart = (): void => {
     this.dockedAtOutpost = false;
     this.returnLatched = false;
+    this.nativeHud?.clearTicketSettlement();
     // 重新出击必须沿用玩家当前所选任务与装配：旧版 createSimulation() 走默认参数，
     // 原生端恒回落到 salvage + 默认装配，主页却仍显示旧任务名。
-    this.simulation = this.createSimulation(this.snapshot.loadout, this.currentMissionPreset);
+    // 教学关是引导用的临时预设，网页壳完成后只改 dataset 不派发 mission-change，
+    // 这里兜底：教学结束后按重新出击回到常规打捞任务，避免每次重开都进教学。
+    const preset: MissionPreset = this.currentMissionPreset === 'tutorial'
+      ? 'salvage'
+      : this.currentMissionPreset;
+    this.currentMissionPreset = preset;
+    this.simulation = this.createSimulation(this.snapshot.loadout, preset);
     this.snapshot = this.simulation.step({}, 0);
     this.previousHealth = this.snapshot.player.health + this.snapshot.player.shield;
     this.inputRouter?.releaseAll();
@@ -1745,8 +1773,11 @@ export class CombatBootstrap extends Component {
   private syncCoopNetwork(deltaTime: number): void {
     const transport = activeCoopTransport();
     if (transport) {
-      const incoming: ((message: CoopMessage) => void) | null = this.coopSignalHandler;
-      if (!incoming) {
+      // 旧实现只在 handler 为 null 时绑定。第二局联机是同一个同步调用栈里
+      // close()->setActive(null)->connect()->setActive(new)，中间没有一帧会让
+      // transport 为 null，handler 因此一直绑在已被丢弃的旧连接上，presence 全丢。
+      // 改成按 transport 实例比较，换连接就重新绑定。
+      if (transport !== this.lastCoopTransport || !this.coopSignalHandler) {
         const handler = (message: CoopMessage): void => {
           // CoopMessage 是联合类型，TS 4.9 无法靠 `t` 判别式自动收窄，
           // 这里显式守卫出 presence 分支再交给 buffer。
@@ -1757,6 +1788,9 @@ export class CombatBootstrap extends Component {
         };
         this.coopSignalHandler = handler;
         transport.onMessage(handler);
+        this.lastCoopTransport = transport;
+        this.coopPresenceBuffer.clear();
+        this.coopRemote = null;
       }
       this.coopStreamElapsed += deltaTime;
       if (this.coopStreamElapsed >= 0.16) {
@@ -1786,6 +1820,7 @@ export class CombatBootstrap extends Component {
       }
     } else {
       this.coopSignalHandler = null;
+      this.lastCoopTransport = null;
       this.coopPresenceBuffer.clear();
       this.coopRemote = null;
     }

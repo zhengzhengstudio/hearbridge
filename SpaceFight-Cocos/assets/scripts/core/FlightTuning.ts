@@ -189,6 +189,11 @@ export const PICKUP_KINDS: Readonly<Record<string, PickupKindDefinition>> = {
   loot: { id: 'loot', cargoCategory: 'equipment', cargoRarity: 'uncommon' },
   scrap: { id: 'scrap', cargoCategory: 'material', cargoRarity: 'common' },
   data: { id: 'data', cargoCategory: 'intel', cargoRarity: 'rare' },
+  // 新增四类：把货舱的 currency / cosmetic 两类补齐，并让 4 档稀有度都能在任务里出现。
+  credit: { id: 'credit', cargoCategory: 'currency', cargoRarity: 'common' },
+  alloy: { id: 'alloy', cargoCategory: 'material', cargoRarity: 'uncommon' },
+  core: { id: 'core', cargoCategory: 'equipment', cargoRarity: 'epic' },
+  relic: { id: 'relic', cargoCategory: 'cosmetic', cargoRarity: 'rare' },
 };
 
 /**

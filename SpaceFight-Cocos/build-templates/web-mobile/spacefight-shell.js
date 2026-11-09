@@ -150,9 +150,25 @@
       updateLoadoutUi();
     });
   });
-  loadoutOpen.addEventListener('click', () => { document.body.dataset.loadoutOpen = 'true'; });
-  loadoutClose.addEventListener('click', () => { document.body.dataset.loadoutOpen = 'false'; });
-  loadoutApply.addEventListener('click', () => { publishLoadout(); document.body.dataset.loadoutOpen = 'false'; });
+  // 面板开合统一走这两个函数：dataset 控制显示，aria-hidden 同步给辅助技术；
+  // 打开一个必须关掉另一个，进战斗/退出全屏一律 closePanels()，否则两个
+  // position:fixed inset:0 的不透明层会盖在战斗 HUD 上（z 46/50 > HUD 8）。
+  function setLoadoutOpen(open) {
+    document.body.dataset.loadoutOpen = String(open);
+    document.getElementById('LoadoutPanel')?.setAttribute('aria-hidden', String(!open));
+  }
+  function setSettingsOpen(open) {
+    document.body.dataset.settingsOpen = String(open);
+    document.getElementById('SettingsPanel')?.setAttribute('aria-hidden', String(!open));
+  }
+  function closePanels() {
+    setLoadoutOpen(false);
+    setSettingsOpen(false);
+    setOutpostOpen(false);
+  }
+  loadoutOpen.addEventListener('click', () => { setSettingsOpen(false); setLoadoutOpen(true); });
+  loadoutClose.addEventListener('click', () => { setLoadoutOpen(false); });
+  loadoutApply.addEventListener('click', () => { publishLoadout(); setLoadoutOpen(false); });
 
   function updateStick(event) {
     if (!moveStick) return;
@@ -204,6 +220,8 @@
     loadTimedOut = false;
     document.body.dataset.engineReady = 'true';
     launch.disabled = false;
+    const tutorialStart = document.getElementById('TutorialStart');
+    if (tutorialStart) tutorialStart.disabled = false;
     launchStatus.textContent = `${shipCatalog[loadout.ship]?.code || 'SF-09'} 已就绪`;
     launchLabel.textContent = '进入战斗';
   }
@@ -213,6 +231,8 @@
     loadTimedOut = true;
     document.body.dataset.engineReady = 'error';
     launch.disabled = false;
+    const tutorialStart = document.getElementById('TutorialStart');
+    if (tutorialStart) tutorialStart.disabled = false;
     launchStatus.textContent = '战斗核心未完成加载';
     launchLabel.textContent = '重新加载';
   }
@@ -264,6 +284,7 @@
       if (loadTimedOut) window.location.reload();
       return;
     }
+    closePanels();
     publishLoadout();
     await requestFlightSurface();
     document.body.dataset.playing = 'true';
@@ -272,6 +293,7 @@
   }
 
   async function resumeCombat() {
+    closePanels();
     window.dispatchEvent(new CustomEvent('spacefight:toggle-pause'));
     await requestFlightSurface();
   }
@@ -279,6 +301,7 @@
   launch.addEventListener('click', enterCombat);
   resume.addEventListener('click', resumeCombat);
   restart.addEventListener('click', async () => {
+    closePanels();
     window.dispatchEvent(new CustomEvent('spacefight:restart'));
     document.body.dataset.mission = 'active';
     await requestFlightSurface();
@@ -288,6 +311,7 @@
     if (!document.fullscreenElement && document.body.dataset.playing === 'true') {
       document.body.dataset.playing = 'false';
       document.body.dataset.paused = 'false';
+      closePanels();
       window.dispatchEvent(new CustomEvent('spacefight:fullscreen-exit'));
     }
   });
@@ -441,14 +465,11 @@
   }
 
   settingsOpenButton?.addEventListener('click', () => {
-    document.body.dataset.settingsOpen = 'true';
-    document.getElementById('SettingsPanel')?.setAttribute('aria-hidden', 'false');
+    setLoadoutOpen(false);
+    setSettingsOpen(true);
     syncSettingsUi();
   });
-  settingsCloseButton?.addEventListener('click', () => {
-    document.body.dataset.settingsOpen = 'false';
-    document.getElementById('SettingsPanel')?.setAttribute('aria-hidden', 'true');
-  });
+  settingsCloseButton?.addEventListener('click', () => { setSettingsOpen(false); });
   document.querySelectorAll('[data-settings-graphics]').forEach((button) => {
     button.addEventListener('click', () => { setGraphicsTier(button.dataset.settingsGraphics); syncSettingsUi(); });
   });
@@ -469,8 +490,13 @@
     });
   }
   tutorialStartButton?.addEventListener('click', () => {
-    document.body.dataset.settingsOpen = 'false';
-    document.getElementById('SettingsPanel')?.setAttribute('aria-hidden', 'true');
+    // 引擎未就绪时 enterCombat() 会直接 return；此时绝不能先切任务或关面板，
+    // 否则玩家看到「点了没反应」，引擎侧却已重建仿真并进入教学关。
+    if (!engineReady) {
+      if (loadTimedOut) window.location.reload();
+      return;
+    }
+    closePanels();
     document.body.dataset.missionPreset = 'tutorial';
     // 从设置面板进入不经过 LaunchButton 的 capture 监听，必须显式同步预设，
     // 否则只会切成 tutorial 关卡而不会开启四步引导。
@@ -500,6 +526,64 @@
     ticketToast.textContent = `本趟结算  +${state.amount} 星港券（货值 ${state.cargoValue || 0} · 击落 ${state.kills || 0}）`;
     ticketToast.hidden = false;
     window.setTimeout(() => { ticketToast.hidden = true; }, 4200);
+  });
+
+  /* 前哨站机库舱内：把返航带回的货舱按类别/稀有度落进台账，不再只弹一个结算 toast。 */
+  const outpostPanel = document.getElementById('OutpostPanel');
+  const outpostCargoList = document.getElementById('OutpostCargoList');
+  const outpostSettlement = document.getElementById('OutpostSettlement');
+  const outpostVitals = document.getElementById('OutpostVitals');
+  const CARGO_LABELS = { equipment: '装备', material: '材料', currency: '通货', intel: '情报', cosmetic: '外观' };
+  const RARITY_LABELS = { common: '普通', uncommon: '优良', rare: '稀有', epic: '史诗' };
+
+  function setOutpostOpen(open) {
+    document.body.dataset.outpostOpen = String(open);
+    // 直接查 DOM：closePanels 可能在脚本初始化早期被调到，别依赖末尾的 const。
+    document.getElementById('OutpostPanel')?.setAttribute('aria-hidden', String(!open));
+  }
+
+  function fillOutpost(state) {
+    const items = (state.cargo && state.cargo.items) || [];
+    const groups = new Map();
+    for (const item of items) {
+      const key = item.category || 'material';
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(item);
+    }
+    if (!outpostCargoList) return;
+    if (groups.size === 0) {
+      outpostCargoList.innerHTML = '<p class="outpost-empty">本趟没有回收物资</p>';
+    } else {
+      outpostCargoList.innerHTML = [...groups.entries()].map(([category, list]) => {
+        const best = list.reduce((acc, item) => {
+          const order = ['common', 'uncommon', 'rare', 'epic'];
+          return order.indexOf(item.rarity) > order.indexOf(acc) ? item.rarity : acc;
+        }, 'common');
+        return `<div class="outpost-cargo-row"><b>${CARGO_LABELS[category] || category}</b>` +
+          `<small>${list.length} 件 · ${RARITY_LABELS[best] || best}</small></div>`;
+      }).join('');
+    }
+    const player = state.player || {};
+    if (outpostVitals) {
+      outpostVitals.textContent = `装甲 ${Math.round(player.health || 0)} / ${Math.round(player.maxHealth || 0)}　` +
+        `护盾 ${Math.round(player.shield || 0)}　能量 ${Math.round(player.energy || 0)}`;
+    }
+  }
+
+  window.addEventListener('spacefight:outpost-entered', (event) => {
+    fillOutpost(event.detail || {});
+    setOutpostOpen(true);
+  });
+  window.addEventListener('spacefight:tickets-awarded', (event) => {
+    const state = event.detail || {};
+    if (!outpostSettlement) return;
+    outpostSettlement.hidden = false;
+    outpostSettlement.textContent = `本趟结算  +${state.amount || 0} 星港券　·　货值 ${state.cargoValue || 0}　·　击落 ${state.kills || 0}`;
+  });
+  document.getElementById('OutpostClose')?.addEventListener('click', () => { setOutpostOpen(false); });
+  document.getElementById('OutpostUndock')?.addEventListener('click', () => {
+    setOutpostOpen(false);
+    window.dispatchEvent(new CustomEvent('spacefight:outpost-exit'));
   });
   syncSettingsUi();
 

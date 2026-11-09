@@ -134,30 +134,36 @@ export const MODEL_NORMALIZATION: Readonly<Record<ShipKind, ModelNormalization>>
     colliderRadius: 0.78,
     colliderHeight: 3.5,
   },
+  /**
+   * 后三艘为 Hunyuan3D 重做件：源模型是「竖着的平板」（长轴 +Y、厚度 -Z），
+   * 必须先绕 X 转 -90 度放平，机头才会落到 -Z；旧的 0.32~0.72 缩放是给
+   * 包围盒 10~20 单位的旧基础体用的，新模型包围盒约 1 单位，故统一改到 4~6。
+   * 若实机发现机头反向，把对应 orientationY 从 0 改成 180 即可，不要改 X。
+   */
   bomber: {
     lowPath: 'models-low/ships/bomber',
     highPath: 'models/ships/bomber',
-    scale: 0.45,
-    orientationX: 0,
-    orientationY: 180,
+    scale: 4.2,
+    orientationX: -90,
+    orientationY: 0,
     colliderRadius: 0.9,
     colliderHeight: 4.1,
   },
   gunship: {
     lowPath: 'models-low/ships/gunship',
     highPath: 'models/ships/gunship',
-    scale: 0.32,
-    orientationX: 0,
-    orientationY: 180,
+    scale: 4.8,
+    orientationX: -90,
+    orientationY: 0,
     colliderRadius: 1.05,
     colliderHeight: 4.8,
   },
   boss: {
     lowPath: 'models-low/ships/boss',
     highPath: 'models/ships/boss',
-    scale: 0.72,
-    orientationX: 0,
-    orientationY: 180,
+    scale: 5.6,
+    orientationX: -90,
+    orientationY: 0,
     colliderRadius: 1.5,
     colliderHeight: 6.2,
   },

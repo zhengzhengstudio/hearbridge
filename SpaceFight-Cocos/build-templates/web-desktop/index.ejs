@@ -135,7 +135,7 @@
       <section class="settings-group">
         <h3>新手教学</h3>
         <p>一架训练靶机，走完移动、开火、回收与返航结算，看看星港券是怎么赚回来的。</p>
-        <button id="TutorialStart" class="settings-primary" type="button">开始新手教学</button>
+        <button id="TutorialStart" class="settings-primary" type="button" disabled>开始新手教学</button>
       </section>
     </div>
   </section>
@@ -167,6 +167,42 @@
       </div></section>
     </div>
     <footer><p><small>当前方案</small><b id="LoadoutDetail">脉冲炮 / 猎手阵列 / 均衡核心</b></p><button id="LoadoutApply" type="button">确认装配</button></footer>
+  </section>
+
+
+  <!-- 前哨站机库舱内：返航进站后由 spacefight:outpost-entered 打开。
+       背景与物资图标来自 ImageGen（AI 生成），内容区保持不透明以保证可读性。 -->
+  <section id="OutpostPanel" aria-labelledby="OutpostTitle" aria-hidden="true">
+    <div class="outpost-shell">
+      <header>
+        <div>
+          <small>DOCK 07 / 机库舱内</small>
+          <h2 id="OutpostTitle">前哨站 · 物资台账</h2>
+          <p>本趟回收已入舱，可以查验物资后离港</p>
+        </div>
+        <button id="OutpostClose" type="button" aria-label="关闭舱内面板">×</button>
+      </header>
+      <div class="outpost-body">
+        <section class="outpost-manifest">
+          <h3>本趟货舱</h3>
+          <div id="OutpostCargoList"><p class="outpost-empty">本趟没有回收物资</p></div>
+          <p id="OutpostSettlement" class="outpost-settlement" hidden></p>
+        </section>
+        <section class="outpost-supplies">
+          <h3>补给物资</h3>
+          <div class="supply-grid">
+            <figure class="supply-wide"><img src="supply-energy.jpg" alt="能量电池"><figcaption>能量电池<small>补充武器能量</small></figcaption></figure>
+            <figure><img src="supply-repair.jpg" alt="维修包"><figcaption>维修包<small>修复船体装甲</small></figcaption></figure>
+            <figure><img src="supply-shield.jpg" alt="护盾包"><figcaption>护盾包<small>重建护盾层</small></figcaption></figure>
+            <figure><img src="supply-loot.jpg" alt="战利品箱"><figcaption>战利品箱<small>装备类货物</small></figcaption></figure>
+            <figure><img src="supply-scrap.jpg" alt="合金废料"><figcaption>合金废料<small>材料类货物</small></figcaption></figure>
+            <figure class="supply-wide"><img src="supply-data.jpg" alt="数据核心"><figcaption>数据核心<small>情报类货物</small></figcaption></figure>
+          </div>
+          <p class="outpost-ai">舱内场景与物资图标由 AI 生成</p>
+        </section>
+      </div>
+      <footer><span id="OutpostVitals"></span><button id="OutpostUndock" type="button">离港出击</button></footer>
+    </div>
   </section>
 
   <section id="LandscapeGuard" aria-live="polite"><img src="spacefight-icon.png" alt=""><small>MOBILE FLIGHT MODE</small><h2>请横置设备</h2><p>战斗已自动冻结，横屏后会恢复完整摇杆与战斗按键。</p></section>

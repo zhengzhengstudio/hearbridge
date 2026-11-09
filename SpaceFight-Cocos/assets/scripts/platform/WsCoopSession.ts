@@ -88,12 +88,21 @@ export class WsCoopSession {
 
   public close(): void {
     this.teardown();
+    // 断开连接后 HUD 必须回落到 idle，否则仍显示「房间已创建 / 联机已建立」。
+    this.callbacks.onState('idle');
   }
 
   private connect(room: string, name: string): void {
     const transport = new WsCoopTransport({ endpoint: this.options.endpoint });
     transport.onMessage((message) => this.messageHandler?.(message));
     transport.onControl((message) => this.handleControl(message));
+    transport.onClose(() => {
+      // 断线期间不能继续显示「已连接」和静止的僚机；重连成功后服务端会
+      // 重发 coop:joined，由 markConnected 再推回 connected。
+      this.connected = false;
+      this.peers = [];
+      this.callbacks.onState('error', '联机中断，正在重连…');
+    });
     transport.join({
       room,
       role: this.role,
@@ -109,8 +118,10 @@ export class WsCoopSession {
     const msg = message as { type?: string; detail?: string; event?: string; peers?: CoopPeerInfo[]; client?: string; name?: string; platform?: string; role?: string };
     if (msg.type === 'coop:joined') {
       this.peers = (msg.peers || []).filter((p) => p.client !== undefined) as CoopPeerInfo[];
-      // A guest that joins an already-hosted room is immediately paired.
-      if (this.role === 'guest' && this.peers.some((p) => p.role === 'host')) {
+      // 初次加入和断线重连都会收到 joined：对方角色与己方相反即视为配对成功，
+      // 旧版只处理 guest，host 重连后永远回不到 connected。
+      const opposite = this.role === 'host' ? 'guest' : 'host';
+      if (this.peers.some((p) => p.role === opposite)) {
         this.markConnected();
       }
     } else if (msg.type === 'coop:peer') {
@@ -124,6 +135,8 @@ export class WsCoopSession {
         if (this.peers.length === 0) {
           this.connected = false;
           this.callbacks.onState('peer-left');
+          // 房间已空，别让 transport 在后台无限自动重连。
+          this.teardown();
         }
       }
     } else if (msg.type === 'coop:error') {

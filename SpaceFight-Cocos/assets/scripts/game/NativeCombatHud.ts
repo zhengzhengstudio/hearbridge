@@ -109,8 +109,10 @@ const LOADOUT_OPTIONS = {
 
 type NativeLoadoutSlot = keyof typeof LOADOUT_OPTIONS;
 // 2026-11-04：新增 survive（存活）/ defense（守点）/ escort（护送）三种任务。
-// 与 CombatBootstrap.MissionPreset 保持一致 —— 少一个就会出现「点了没反应」。
-type MissionPreset = 'salvage' | 'assault' | 'hunt' | 'survive' | 'defense' | 'escort';
+// 2026-11-09：追加 tutorial（设置面板里的新手教学关）。
+// 与 CombatBootstrap.MissionPreset 保持一致 —— 少一个就会出现「点了没反应」，
+// 且 missions 数组里已有 'tutorial'，严格类型检查会直接报 not assignable。
+type MissionPreset = 'salvage' | 'assault' | 'hunt' | 'survive' | 'defense' | 'escort' | 'tutorial';
 
 const LOADOUT_NAME_KEYS: Readonly<Record<string, CombatMessageKey>> = {
   interceptor: 'ship.interceptor', scout: 'ship.scout', fighter: 'ship.fighter',
@@ -220,6 +222,8 @@ export class NativeCombatHud implements NativeInputFeedback {
   private outpostPanel: Node | null = null;
   /** 最近一次远征结算发券数；0 表示尚未结算，不显示「本趟 +N」。 */
   private lastTicketGain = 0;
+  /** 前哨站「舱内物资」视图：true 时货物读数行改为按五类分组的台账。 */
+  private interiorOpen = false;
   /** 新手关实时引导：显示在目标读数行，不弹遮罩、不冻结飞行输入。 */
   private tutorialHint: { current: number; total: number; key: CombatMessageKey } | null = null;
   private outpostKeyArt: Sprite | null = null;
@@ -228,6 +232,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   private outpostCargoLabel: Label | null = null;
   private outpostUndockButton: Node | null = null;
   private outpostLoadoutButton: Node | null = null;
+  private outpostInteriorButton: Node | null = null;
   private deployButton: Node | null = null;
   private hangarButton: Node | null = null;
   private readonly homeNavButtons = new Map<NativeHomeView, Node>();
@@ -505,9 +510,9 @@ export class NativeCombatHud implements NativeInputFeedback {
       });
     }
     if (this.outpostCargoLabel) {
-      this.outpostCargoLabel.string = this.text('outpost.cargo', {
-        value: snapshot.navigation.securedCargoValue,
-      });
+      this.outpostCargoLabel.string = this.interiorOpen
+        ? this.cargoManifestText(snapshot)
+        : this.text('outpost.cargo', { value: snapshot.navigation.securedCargoValue });
     }
     // 前哨面板打开时用最新 snapshot 刷新真实三量与星港券（不写死 100/80/100）。
     if (this.outpostOpen) this.updateOutpostReadouts();
@@ -716,6 +721,46 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.updateOutpostReadouts();
   }
 
+  /** 离港 / 重新出击时清空本趟收益，避免下一趟站内面板沿用上一趟的「+N」。 */
+  public clearTicketSettlement(): void {
+    this.lastTicketGain = 0;
+    this.updateOutpostReadouts();
+  }
+
+  /** 舱内物资台账：按货舱五类分组统计，比单个「保全货值」更能看出这趟捡了什么。 */
+  private cargoManifestText(snapshot: CombatSnapshot): string {
+    const items = snapshot.cargo?.items ?? [];
+    if (items.length === 0) return this.text('outpost.interiorEmpty');
+    const categories: readonly (readonly [string, CombatMessageKey])[] = [
+      ['equipment', 'cargo.category.equipment'],
+      ['material', 'cargo.category.material'],
+      ['currency', 'cargo.category.currency'],
+      ['intel', 'cargo.category.intel'],
+      ['cosmetic', 'cargo.category.cosmetic'],
+    ];
+    const parts: string[] = [];
+    for (const [key, label] of categories) {
+      const count = items.filter((item) => item.category === key).length;
+      if (count > 0) parts.push(`${this.text(label)} ${count}`);
+    }
+    return parts.length > 0 ? parts.join('   ') : this.text('outpost.interiorEmpty');
+  }
+
+  private toggleInterior(): void {
+    this.interiorOpen = !this.interiorOpen;
+    this.setButtonText(
+      this.outpostInteriorButton,
+      this.text(this.interiorOpen ? 'outpost.interiorBack' : 'outpost.interior'),
+    );
+    if (this.outpostCargoLabel && this.latestSnapshot) {
+      this.outpostCargoLabel.string = this.interiorOpen
+        ? this.cargoManifestText(this.latestSnapshot)
+        : this.text('outpost.cargo', {
+          value: this.latestSnapshot.navigation.securedCargoValue,
+        });
+    }
+  }
+
   /** 新手关四步引导：只改目标读数行，玩家仍可自由飞行与开火。 */
   public setTutorialStep(current: number, total: number, key: CombatMessageKey): void {
     this.tutorialHint = { current, total, key };
@@ -728,6 +773,8 @@ export class NativeCombatHud implements NativeInputFeedback {
   public enterOutpost(): void {
     this.preflight = false;
     this.loadoutFromOutpost = false;
+    this.interiorOpen = false;
+    this.setButtonText(this.outpostInteriorButton, this.text('outpost.interior'));
     if (this.returnOverlay) this.returnOverlay.active = false;
     this.setLoadoutOpen(false);
     this.setHomeOpen(false);
@@ -1448,6 +1495,9 @@ export class NativeCombatHud implements NativeInputFeedback {
       () => this.actions?.onStationService?.('refit'), this.outpostPanel);
     this.outpostHomeButton = this.createPanelButton('NativeOutpostHome', this.text('outpost.home'),
       () => this.actions?.onReturnHome?.(), this.outpostPanel);
+    // 「舱内物资」：不新建面板，切换货物读数行显示五类物资台账，避免挤压 2×2 服务网格。
+    this.outpostInteriorButton = this.createPanelButton('NativeOutpostInterior', this.text('outpost.interior'),
+      () => this.toggleInterior(), this.outpostPanel);
     this.outpostPanel.active = false;
   }
 
@@ -2094,9 +2144,14 @@ export class NativeCombatHud implements NativeInputFeedback {
       button?.setPosition(x, y, 4);
       this.resizePanelButton(button, serviceWidth, serviceHeight, ultraCompact ? 10 : 12);
     });
-    this.outpostLoadoutButton?.setPosition(centerX, bottom + actionHeight * 1.5 + gap + 10, 4);
+    // 「舱内物资」与「进入装配台」并排占同一行，离港按钮仍独占整行。
+    const lowerY = bottom + actionHeight * 1.5 + gap + 10;
+    const halfWidth = (contentWidth - 8) / 2;
+    this.outpostInteriorButton?.setPosition(centerX - halfWidth / 2 - 4, lowerY, 4);
+    this.outpostLoadoutButton?.setPosition(centerX + halfWidth / 2 + 4, lowerY, 4);
+    this.resizePanelButton(this.outpostInteriorButton, halfWidth, actionHeight, ultraCompact ? 10 : 13);
+    this.resizePanelButton(this.outpostLoadoutButton, halfWidth, actionHeight, ultraCompact ? 11 : 14);
     this.outpostUndockButton?.setPosition(centerX, bottom + actionHeight / 2 + 8, 4);
-    this.resizePanelButton(this.outpostLoadoutButton, contentWidth, actionHeight, ultraCompact ? 11 : 14);
     this.resizePanelButton(this.outpostUndockButton, contentWidth, actionHeight, ultraCompact ? 12 : 15, HUD_ACTIVE);
   }
 

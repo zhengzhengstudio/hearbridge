@@ -25,6 +25,11 @@ const CATEGORY_COLORS: Readonly<Record<string, Color>> = {
   scrap: new Color(168, 182, 196, 255),
   data: new Color(156, 138, 236, 255),
   loot: new Color(238, 196, 92, 255),
+  // 四类新补给沿用所属 category 的主色，形状刻意错开，远远就能分辨。
+  credit: new Color(72, 200, 238, 255),
+  alloy: new Color(190, 206, 220, 255),
+  core: new Color(255, 176, 96, 255),
+  relic: new Color(238, 196, 92, 255),
 };
 
 const RARITY_COLORS: Readonly<Record<string, Color>> = {
@@ -53,6 +58,10 @@ const CATEGORY_SHAPES: Readonly<Record<string, HullShape>> = {
   scrap: { sphere: false, scale: [1.0, 0.72, 0.9] },
   data: { sphere: true, scale: [0.74, 1.08, 0.74] },
   loot: { sphere: true, scale: [0.7, 0.7, 0.7] },
+  credit: { sphere: false, scale: [0.72, 1.1, 0.72] },
+  alloy: { sphere: false, scale: [1.18, 0.6, 0.62] },
+  core: { sphere: true, scale: [0.86, 0.86, 0.86] },
+  relic: { sphere: false, scale: [0.62, 1.24, 0.62] },
 };
 
 const DEFAULT_SHAPE: HullShape = { sphere: false, scale: [1.0, 0.72, 0.9] };

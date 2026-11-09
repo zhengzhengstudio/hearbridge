@@ -62,7 +62,9 @@ export class WsCoopTransport implements CoopTransport {
   private joinInfo: WsCoopJoinInfo | null = null;
   private closedByUser = false;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private openHandlers: Array<() => void> = [];
+  /** 单 handler：旧版用数组 push，自动重连 N 次后 onopen 会重复执行 N+1 次。 */
+  private openHandler: (() => void) | null = null;
+  private closeHandler: ((unexpected: boolean) => void) | null = null;
 
   public constructor(options: WsCoopOptions = {}) {
     this.endpoint = options.endpoint || defaultCoopWsUrl();
@@ -83,7 +85,12 @@ export class WsCoopTransport implements CoopTransport {
   }
 
   public onOpen(handler: () => void): void {
-    this.openHandlers.push(handler);
+    this.openHandler = handler;
+  }
+
+  /** 意外断线通知（主动 close 不会触发），让上层复位「已连接」状态。 */
+  public onClose(handler: (unexpected: boolean) => void): void {
+    this.closeHandler = handler;
   }
 
   public join(info: WsCoopJoinInfo): void {
@@ -144,7 +151,7 @@ export class WsCoopTransport implements CoopTransport {
           client: info.client,
         }));
       }
-      for (const handler of this.openHandlers) handler();
+      this.openHandler?.();
     };
     socket.onmessage = (event: { data: unknown }) => {
       let parsed: unknown;
@@ -162,7 +169,10 @@ export class WsCoopTransport implements CoopTransport {
     };
     socket.onclose = () => {
       this.ws = null;
-      if (!this.closedByUser) this.scheduleReconnect();
+      if (!this.closedByUser) {
+        this.closeHandler?.(true);
+        this.scheduleReconnect();
+      }
     };
     socket.onerror = () => {
       try {

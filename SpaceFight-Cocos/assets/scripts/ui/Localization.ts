@@ -140,6 +140,8 @@ const zhCN = {
   'home.tutorial': '新手教学', 'home.tutorialDetail': '完整走一遍回收流程', 'home.tutorialStart': '开始新手教学',
   'tutorial.target': '击落训练靶机', 'tutorial.pickup': '飞近发光物资并回收',
   'outpost.ticketsGain': '星港券  {value}   ·   本趟 +{gain}',
+  // 前哨站舱内物资台账（本轮新增）
+  'outpost.interior': '舱内物资', 'outpost.interiorBack': '返回结算', 'outpost.interiorEmpty': '本趟没有回收物资',
 } as const;
 
 export type CombatMessageKey = keyof typeof zhCN;
@@ -237,6 +239,8 @@ const zhTW: CombatMessages = {
   'coop.codeTitle': '房間碼',
   // 新手教学关与远征结算发券（本轮新增）
   'home.tutorial': '新手教學', 'home.tutorialDetail': '完整走一遍回收流程', 'home.tutorialStart': '開始新手教學', 'tutorial.target': '擊落訓練靶機', 'tutorial.pickup': '飛近發光物資並回收', 'outpost.ticketsGain': '星港券  {value}   ·   本趟 +{gain}',
+  // 前哨站舱内物资台账（本轮新增）
+  'outpost.interior': '艙內物資', 'outpost.interiorBack': '返回結算', 'outpost.interiorEmpty': '本次沒有回收物資',
 };
 
 const en: CombatMessages = {
@@ -359,7 +363,7 @@ const en: CombatMessages = {
   'outpost.vitals': 'HULL {hull}/{hullMax}  ·  SHIELD {shield}/{shieldMax}  ·  ENERGY {energy}/{energyMax}',
   'outpost.tickets': 'STARPORT TICKETS  {value}',
   'pause.home': 'RETURN TO BASE', 'return.banner': 'EXTRACTING {percent}%',
-  'combo.readout': 'COMBO ×{count}  {multiplier}×',
+  'combo.readout': 'RACHA ×{count}  {multiplier}×',
   'weapon.readout': 'PRIMARY {primary}  ·  SECONDARY {secondary}', 'weapon.readoutSwapped': 'PRIMARY {primary} ⇄ SECONDARY {secondary}',
   'home.opsExpeditions': 'EXPEDITION SETTLEMENTS  {count}', 'home.opsLastHaul': 'LAST HAUL  +{value}',
   'home.opsTickets': 'STARPORT TICKETS  {value}', 'home.opsMission': 'CURRENT MISSION  {mission}', 'home.opsLoadout': 'SELECTED LOADOUT  {ship} / {weapon}',
@@ -373,6 +377,8 @@ const en: CombatMessages = {
   'coop.codeTitle': 'ROOM CODE',
   // 新手教学关与远征结算发券（本轮新增）
   'home.tutorial': 'FIRST FLIGHT', 'home.tutorialDetail': 'Fly one full salvage run', 'home.tutorialStart': 'START TUTORIAL', 'tutorial.target': 'Destroy the training drone', 'tutorial.pickup': 'Fly into glowing cargo to recover it', 'outpost.ticketsGain': 'TICKETS  {value}   ·   +{gain} THIS RUN',
+  // 前哨站舱内物资台账（本轮新增）
+  'outpost.interior': 'CARGO BAY', 'outpost.interiorBack': 'BACK TO SETTLEMENT', 'outpost.interiorEmpty': 'NO CARGO RECOVERED THIS RUN',
 };
 
 const ja: CombatMessages = localize(en, {
@@ -506,6 +512,8 @@ const ja: CombatMessages = localize(en, {
   'coop.codeTitle': 'ルームコード',
   // 新手教学关与远征结算发券（本轮新增）
   'home.tutorial': '初回訓練', 'home.tutorialDetail': '回収の一巡を体験', 'home.tutorialStart': '訓練を開始', 'tutorial.target': '訓練機を撃墜', 'tutorial.pickup': '光る物資に接近して回収', 'outpost.ticketsGain': '星港券  {value}   ·   本次 +{gain}',
+  // 前哨站舱内物资台账（本轮新增）
+  'outpost.interior': '船内物資', 'outpost.interiorBack': '精算に戻る', 'outpost.interiorEmpty': '今回の回収物資はありません',
 });
 const ko: CombatMessages = localize(en, {
   'slot.ship': '기체',
@@ -638,6 +646,8 @@ const ko: CombatMessages = localize(en, {
   'coop.codeTitle': '방 코드',
   // 新手教学关与远征结算发券（本轮新增）
   'home.tutorial': '초회 훈련', 'home.tutorialDetail': '회수 한 순환 체험', 'home.tutorialStart': '훈련 시작', 'tutorial.target': '훈련 표적 격추', 'tutorial.pickup': '빛나는 화물에 접근해 회수', 'outpost.ticketsGain': '항만권  {value}   ·   이번 +{gain}',
+  // 前哨站舱内物资台账（本轮新增）
+  'outpost.interior': '함내 화물', 'outpost.interiorBack': '정산으로 돌아가기', 'outpost.interiorEmpty': '이번 회차 회수 화물 없음',
 });
 const de: CombatMessages = localize(en, {
   'home.profile': 'OFFLINE-PROFIL · LOKALE EXPEDITION', 'home.operations': 'EINSÄTZE', 'home.hangarNav': 'HANGAR', 'home.cargo': 'FRACHT', 'home.settings': 'EINSTELLUNGEN',
@@ -768,7 +778,7 @@ const es: CombatMessages = localize(en, {
   'outpost.vitals': 'CASCO {hull}/{hullMax}  ·  ESCUDO {shield}/{shieldMax}  ·  ENERGÍA {energy}/{energyMax}',
   'outpost.tickets': 'TICKETS DEL PUERTO  {value}',
   'pause.home': 'VOLVER A LA BASE', 'return.banner': 'EXTRACCIÓN {percent}%',
-  'combo.readout': 'COMBO ×{count}  {multiplier}×',
+  'combo.readout': 'SEQUÊNCIA ×{count}  {multiplier}×',
   'weapon.readout': 'PRINCIPAL {primary}  ·  SECUNDARIA {secondary}', 'weapon.readoutSwapped': 'PRINCIPAL {primary} ⇄ SECUNDARIA {secondary}',
   'home.opsExpeditions': 'LIQUIDACIONES DE EXPEDICIÓN  {count}', 'home.opsLastHaul': 'ÚLTIMA RECOGIDA  +{value}',
   'home.opsTickets': 'TICKETS DEL PUERTO  {value}', 'home.opsMission': 'MISIÓN ACTUAL  {mission}', 'home.opsLoadout': 'EQUIPO SELECCIONADO  {ship} / {weapon}',
@@ -782,6 +792,8 @@ const es: CombatMessages = localize(en, {
   'coop.codeTitle': 'CÓDIGO DE SALA',
   // 新手教学关与远征结算发券（本轮新增）
   'home.tutorial': 'PRIMER VUELO', 'home.tutorialDetail': 'Completa una ruta de rescate', 'home.tutorialStart': 'INICIAR TUTORIAL', 'tutorial.target': 'Derriba el blanco de entrenamiento', 'tutorial.pickup': 'Acércate a la carga brillante', 'outpost.ticketsGain': 'BONOS  {value}   ·   +{gain} ESTA SALIDA',
+  // 前哨站舱内物资台账（本轮新增）
+  'outpost.interior': 'BODEGA', 'outpost.interiorBack': 'VOLVER A LIQUIDACIÓN', 'outpost.interiorEmpty': 'SIN CARGA RECUPERADA',
 });
 const ptBR: CombatMessages = localize(en, {
   'slot.ship': 'AERONAVE',
@@ -900,7 +912,7 @@ const ptBR: CombatMessages = localize(en, {
   'outpost.vitals': 'CASCO {hull}/{hullMax}  ·  ESCUDO {shield}/{shieldMax}  ·  ENERGIA {energy}/{energyMax}',
   'outpost.tickets': 'TÍQUETS DO PORTO  {value}',
   'pause.home': 'VOLTAR À BASE', 'return.banner': 'EXTRAINDO {percent}%',
-  'combo.readout': 'COMBO ×{count}  {multiplier}×',
+  'combo.readout': 'ENCHAÎNEMENT ×{count}  {multiplier}×',
   'weapon.readout': 'PRINCIPAL {primary}  ·  SECUNDÁRIA {secondary}', 'weapon.readoutSwapped': 'PRINCIPAL {primary} ⇄ SECUNDÁRIA {secondary}',
   'home.opsExpeditions': 'LIQUIDAÇÕES DE EXPEDIÇÃO  {count}', 'home.opsLastHaul': 'ÚLTIMA COLETA  +{value}',
   'home.opsTickets': 'TÍQUETS DO PORTO  {value}', 'home.opsMission': 'MISSÃO ATUAL  {mission}', 'home.opsLoadout': 'EQUIPAMENTO SELECIONADO  {ship} / {weapon}',
@@ -914,6 +926,8 @@ const ptBR: CombatMessages = localize(en, {
   'coop.codeTitle': 'CÓDIGO DA SALA',
   // 新手教学关与远征结算发券（本轮新增）
   'home.tutorial': 'PRIMEIRO VOO', 'home.tutorialDetail': 'Complete um resgate completo', 'home.tutorialStart': 'INICIAR TUTORIAL', 'tutorial.target': 'Abata o alvo de treino', 'tutorial.pickup': 'Aproxime-se da carga brilhante', 'outpost.ticketsGain': 'TÍQUETES  {value}   ·   +{gain} NESTA MISSÃO',
+  // 前哨站舱内物资台账（本轮新增）
+  'outpost.interior': 'PORÃO DE CARGA', 'outpost.interiorBack': 'VOLTAR AO ACERTO', 'outpost.interiorEmpty': 'SEM CARGA NESTA MISSÃO',
 });
 const fr: CombatMessages = localize(en, {
   'slot.ship': 'APPAREIL',
@@ -1047,6 +1061,8 @@ const fr: CombatMessages = localize(en, {
   'coop.codeTitle': 'CODE DE SALLE',
   // 新手教学关与远征结算发券（本轮新增）
   'home.tutorial': 'PREMIER VOL', 'home.tutorialDetail': 'Effectuez une récupération complète', 'home.tutorialStart': 'DÉMARRER LE TUTORIEL', 'tutorial.target': 'Détruisez la cible d’entraînement', 'tutorial.pickup': 'Approchez-vous du chargement lumineux', 'outpost.ticketsGain': 'TICKETS  {value}   ·   +{gain} CETTE SORTIE',
+  // 前哨站舱内物资台账（本轮新增）
+  'outpost.interior': 'SOUTE', 'outpost.interiorBack': 'RETOUR AU DÉCOMPTE', 'outpost.interiorEmpty': 'AUCUN FRET RÉCUPÉRÉ',
 });
 
 function localize(base: CombatMessages, overrides: Partial<CombatMessages>): CombatMessages {
