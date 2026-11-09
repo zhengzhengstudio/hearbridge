@@ -1480,3 +1480,71 @@ body[data-form-factor="tri-fold-triple"] .craft-card { max-width: calc(340px * v
   .craft-card__ships { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-right: 0; }
   .craft-card__ships button { padding: 5px 2px; }
 }
+
+/* 设置面板、新手教学提示与结算反馈（本轮新增） */
+body[data-settings-open="true"] #SettingsPanel { display: grid; }
+#SettingsPanel {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 46;
+  grid-template-rows: auto 1fr;
+  gap: 18px;
+  padding: clamp(14px, 3vw, 34px);
+  overflow-y: auto;
+  background-color: var(--ink);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 46px 46px;
+  color: var(--text);
+}
+#SettingsPanel > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+#SettingsPanel h2 { margin: 0; font-size: clamp(23px, 3vw, 36px); line-height: 1.1; }
+#SettingsPanel header p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+#SettingsClose { min-width: 44px; min-height: 44px; border: 1px solid var(--line-strong); background: transparent; color: var(--text); font-size: 22px; cursor: pointer; }
+.settings-body { display: grid; grid-template-columns: minmax(240px, 0.9fr) minmax(280px, 1.25fr); gap: 18px; align-content: start; }
+.settings-group:last-child { grid-column: 1 / -1; }
+.settings-group { border: 1px solid var(--line); padding: 18px; display: grid; gap: 12px; align-content: start; }
+.settings-group h3 { margin: 0; font-size: 15px; font-weight: 500; color: var(--accent); }
+.settings-group p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--muted); }
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; font-size: 13px; }
+.settings-field { display: grid; gap: 6px; }
+.settings-field label { font-size: 13px; color: var(--text); }
+.settings-row input[type="range"] { flex: 1; min-width: 90px; accent-color: var(--accent); }
+.settings-row output { min-width: 52px; text-align: right; color: var(--accent); font: 500 13px/1 ui-monospace, monospace; }
+.settings-choice { display: flex; gap: 8px; }
+#SettingsPanel button { border: 1px solid var(--line-strong); background: transparent; color: var(--text); min-height: 40px; padding: 8px 14px; font-size: 13px; cursor: pointer; }
+#SettingsPanel button[data-selected="true"] { border-color: var(--accent); color: var(--accent); }
+#SettingsPanel button:active { transform: translateY(1px); }
+#SettingsPanel .settings-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 500; min-height: 46px; justify-self: start; min-width: 220px; }
+#SettingsOpen { width: 100%; margin-top: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid var(--line-strong); background: transparent; color: var(--text); padding: 10px 14px; font-size: 13px; cursor: pointer; }
+#SettingsOpen b { color: var(--muted); font-weight: 400; }
+#TutorialHint, #TicketToast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(560px, 90vw);
+  padding: 10px 18px;
+  border: 1px solid var(--line-strong);
+  background: var(--panel-strong);
+  color: var(--text);
+  font-size: 13px;
+  text-align: center;
+}
+#TutorialHint { bottom: clamp(74px, 12vh, 130px); }
+#TutorialHint span { color: var(--accent); font: 500 12px/1 ui-monospace, monospace; white-space: nowrap; }
+#TicketToast { bottom: clamp(20px, 5vh, 48px); color: var(--accent); }
+#TutorialHint[hidden], #TicketToast[hidden] { display: none; }
+@media (max-width: 720px) {
+  #SettingsPanel { gap: 12px; padding: 12px; }
+  .settings-body { grid-template-columns: 1fr; gap: 12px; }
+  .settings-group { padding: 12px; }
+  #TutorialHint, #TicketToast { width: 92vw; justify-content: center; }
+}
+
+/* 主页阶段不残留教学/结算提示 */
+body:not([data-playing="true"]) #TutorialHint,
+body:not([data-playing="true"]) #TicketToast { display: none !important; }

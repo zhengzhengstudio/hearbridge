@@ -381,4 +381,126 @@
     });
   }
 
+
+  /* 设置面板 / 新手教学关 / 星港券结算提示（本轮新增） */
+  const INPUT_KEY = 'spacefight.input.v1';
+  const settingsOpenButton = document.getElementById('SettingsOpen');
+  const settingsCloseButton = document.getElementById('SettingsClose');
+  const tutorialStartButton = document.getElementById('TutorialStart');
+  const tutorialHint = document.getElementById('TutorialHint');
+  const tutorialStep = document.getElementById('TutorialStep');
+  const tutorialText = document.getElementById('TutorialText');
+  const ticketToast = document.getElementById('TicketToast');
+  const TUTORIAL_HINTS = {
+    'tutorial.move': '拖动移动杆推进与横移',
+    'tutorial.target': '击落训练靶机',
+    'tutorial.pickup': '飞近发光物资并回收',
+    'tutorial.return': '轻点返航，回前哨站看星港券结算',
+  };
+
+  function readSettings() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(INPUT_KEY) || '{}');
+      return {
+        sensitivity: Number(raw.sensitivity) || 1,
+        invertY: raw.invertY === true,
+        leftHanded: raw.leftHanded === true,
+        controlScale: Number(raw.controlScale) || 1,
+      };
+    } catch (_) {
+      return { sensitivity: 1, invertY: false, leftHanded: false, controlScale: 1 };
+    }
+  }
+
+  function writeSettings(next) {
+    try { localStorage.setItem(INPUT_KEY, JSON.stringify(next)); } catch (_) {}
+    window.dispatchEvent(new CustomEvent('spacefight:input-settings', { detail: next }));
+  }
+
+  function syncSettingsUi() {
+    const settings = readSettings();
+    const sensitivity = document.getElementById('SettingsSensitivity');
+    const scale = document.getElementById('SettingsControlScale');
+    if (sensitivity) sensitivity.value = String(settings.sensitivity);
+    if (scale) scale.value = String(settings.controlScale);
+    const sensitivityValue = document.getElementById('SettingsSensitivityValue');
+    const scaleValue = document.getElementById('SettingsControlScaleValue');
+    if (sensitivityValue) sensitivityValue.textContent = settings.sensitivity.toFixed(2);
+    if (scaleValue) scaleValue.textContent = `${Math.round(settings.controlScale * 100)}%`;
+    document.querySelectorAll('[data-settings-toggle]').forEach((button) => {
+      const on = settings[button.dataset.settingsToggle] === true;
+      button.textContent = on ? '开启' : '关闭';
+      button.setAttribute('aria-pressed', String(on));
+      button.dataset.selected = String(on);
+    });
+    document.querySelectorAll('[data-settings-graphics]').forEach((button) => {
+      const selected = button.dataset.settingsGraphics === graphicsTier;
+      button.dataset.selected = String(selected);
+      button.setAttribute('aria-pressed', String(selected));
+    });
+  }
+
+  settingsOpenButton?.addEventListener('click', () => {
+    document.body.dataset.settingsOpen = 'true';
+    document.getElementById('SettingsPanel')?.setAttribute('aria-hidden', 'false');
+    syncSettingsUi();
+  });
+  settingsCloseButton?.addEventListener('click', () => {
+    document.body.dataset.settingsOpen = 'false';
+    document.getElementById('SettingsPanel')?.setAttribute('aria-hidden', 'true');
+  });
+  document.querySelectorAll('[data-settings-graphics]').forEach((button) => {
+    button.addEventListener('click', () => { setGraphicsTier(button.dataset.settingsGraphics); syncSettingsUi(); });
+  });
+  document.querySelectorAll('[data-settings-toggle]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const settings = readSettings();
+      settings[button.dataset.settingsToggle] = !settings[button.dataset.settingsToggle];
+      writeSettings(settings);
+      syncSettingsUi();
+    });
+  });
+  for (const [id, key] of [['SettingsSensitivity', 'sensitivity'], ['SettingsControlScale', 'controlScale']]) {
+    document.getElementById(id)?.addEventListener('input', (event) => {
+      const settings = readSettings();
+      settings[key] = Number(event.target.value);
+      writeSettings(settings);
+      syncSettingsUi();
+    });
+  }
+  tutorialStartButton?.addEventListener('click', () => {
+    document.body.dataset.settingsOpen = 'false';
+    document.getElementById('SettingsPanel')?.setAttribute('aria-hidden', 'true');
+    document.body.dataset.missionPreset = 'tutorial';
+    // 从设置面板进入不经过 LaunchButton 的 capture 监听，必须显式同步预设，
+    // 否则只会切成 tutorial 关卡而不会开启四步引导。
+    window.dispatchEvent(new CustomEvent('spacefight:mission-change'));
+    enterCombat();
+  });
+  /* capture 阶段先于原 enterCombat 冒泡监听：每次出击前把浏览器里的任务预设同步进仿真。 */
+  launch.addEventListener('click', () => {
+    window.dispatchEvent(new CustomEvent('spacefight:mission-change'));
+  }, true);
+  window.addEventListener('spacefight:tutorial-step', (event) => {
+    const state = event.detail || {};
+    if (state.clear || state.complete) {
+      if (tutorialHint) tutorialHint.hidden = true;
+      /* 教学关走完后，下次出击自动回到常规任务。 */
+      if (state.complete) document.body.dataset.missionPreset = 'salvage';
+      return;
+    }
+    if (!tutorialHint) return;
+    tutorialHint.hidden = false;
+    if (tutorialStep) tutorialStep.textContent = `第 ${state.current}/${state.total} 步`;
+    if (tutorialText) tutorialText.textContent = TUTORIAL_HINTS[state.key] || '';
+  });
+  window.addEventListener('spacefight:tickets-awarded', (event) => {
+    const state = event.detail || {};
+    if (!ticketToast || !(state.amount > 0)) return;
+    ticketToast.textContent = `本趟结算  +${state.amount} 星港券（货值 ${state.cargoValue || 0} · 击落 ${state.kills || 0}）`;
+    ticketToast.hidden = false;
+    window.setTimeout(() => { ticketToast.hidden = true; }, 4200);
+  });
+  syncSettingsUi();
+
 })();

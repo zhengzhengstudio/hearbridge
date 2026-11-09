@@ -2,6 +2,7 @@ import {
   Camera,
   Canvas,
   Color,
+  EditBox,
   Graphics,
   HorizontalTextAlignment,
   Label,
@@ -67,18 +68,19 @@ const HUD_GREEN = new Color(91, 211, 170, 230);
 
 // 联机/前哨服务接口：外层 CombatBootstrap 与 web shell 负责接线；native 无 WebRTC 时 available 传 false。
 export type StationServiceId = 'repair' | 'resupply' | 'refit';
-export type CoopHudState = 'idle' | 'hosting' | 'joining' | 'connected' | 'error';
+export type CoopHudState = 'idle' | 'hosting' | 'joining' | 'connected' | 'peer-left' | 'error';
 export interface CoopHudBridge {
   readonly available: boolean;
   host(): void;
-  join(): void;
-  accept(): void;
+  join(code?: string): void;
   close(): void;
   copyCode?(): void;
 }
 export interface NativeHudActions {
   onReturnHome?: () => void;
   onStationService?: (service: StationServiceId) => void;
+  /** 设置里的「开始新手教学」：由 CombatBootstrap 切到 tutorial 预设并重置战局。 */
+  onStartTutorial?: () => void;
   coop?: CoopHudBridge;
 }
 
@@ -216,6 +218,10 @@ export class NativeCombatHud implements NativeInputFeedback {
   private homeMissionLabel: Label | null = null;
   private homeControllerLabel: Label | null = null;
   private outpostPanel: Node | null = null;
+  /** 最近一次远征结算发券数；0 表示尚未结算，不显示「本趟 +N」。 */
+  private lastTicketGain = 0;
+  /** 新手关实时引导：显示在目标读数行，不弹遮罩、不冻结飞行输入。 */
+  private tutorialHint: { current: number; total: number; key: CombatMessageKey } | null = null;
   private outpostKeyArt: Sprite | null = null;
   private outpostBackdrop: Graphics | null = null;
   private outpostStatusLabel: Label | null = null;
@@ -291,7 +297,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   /** 联机面板按钮 / 标签，以及外层回灌的状态缓存。 */
   private coopHostButton: Node | null = null;
   private coopJoinButton: Node | null = null;
-  private coopAcceptButton: Node | null = null;
+  private coopJoinInput: EditBox | null = null;
   private coopCloseButton: Node | null = null;
   private coopCopyButton: Node | null = null;
   private coopStatusLabel: Label | null = null;
@@ -521,13 +527,20 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.drawResourceBar(this.shieldStatusBar, snapshot.player.shield, snapshot.player.maxShield, HUD_CYAN);
     this.drawResourceBar(this.energyStatusBar, snapshot.player.energy, snapshot.player.maxEnergy, HUD_ACTIVE);
     if (this.objectiveLabel) {
-      const paused = snapshot.paused ? `  |  ${this.text('objective.paused')}` : '';
-      const phaseKey: CombatMessageKey = snapshot.expedition.phase === 'decision'
-        ? 'expedition.decision'
-        : snapshot.expedition.phase === 'deep-zone' ? 'expedition.deepZone'
-          : snapshot.expedition.phase === 'returning' || snapshot.expedition.phase === 'complete'
-            ? 'expedition.return' : 'expedition.primary';
-      this.objectiveLabel.string = `${this.text(phaseKey)}  ${this.objectiveProgressText(snapshot)}${paused}`;
+      if (this.tutorialHint) {
+        // 教学关：目标读数行让位给当前待办步骤，不遮挡战场、不冻结输入。
+        this.objectiveLabel.string = `${this.text('tutorial.step', {
+          current: this.tutorialHint.current, total: this.tutorialHint.total,
+        })}  ${this.text(this.tutorialHint.key)}`;
+      } else {
+        const paused = snapshot.paused ? `  |  ${this.text('objective.paused')}` : '';
+        const phaseKey: CombatMessageKey = snapshot.expedition.phase === 'decision'
+          ? 'expedition.decision'
+          : snapshot.expedition.phase === 'deep-zone' ? 'expedition.deepZone'
+            : snapshot.expedition.phase === 'returning' || snapshot.expedition.phase === 'complete'
+              ? 'expedition.return' : 'expedition.primary';
+        this.objectiveLabel.string = `${this.text(phaseKey)}  ${this.objectiveProgressText(snapshot)}${paused}`;
+      }
     }
     if (this.sectorLabel) {
       // 航区与波次：让玩家始终知道自己在哪、打到第几波（此前完全未显示）
@@ -695,6 +708,21 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.preflight = true;
     if (this.bootPanel) this.bootPanel.active = false;
     this.setHomeOpen(true);
+  }
+
+  /** 由 CombatBootstrap 在结算后调用：把「本趟 +N 星港券」显示进前哨面板。 */
+  public showTicketSettlement(amount: number): void {
+    this.lastTicketGain = Math.max(0, Math.round(amount));
+    this.updateOutpostReadouts();
+  }
+
+  /** 新手关四步引导：只改目标读数行，玩家仍可自由飞行与开火。 */
+  public setTutorialStep(current: number, total: number, key: CombatMessageKey): void {
+    this.tutorialHint = { current, total, key };
+  }
+
+  public clearTutorialStep(): void {
+    this.tutorialHint = null;
   }
 
   public enterOutpost(): void {
@@ -1263,6 +1291,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.homeViewDetail.horizontalAlign = HorizontalTextAlignment.LEFT;
 
     const missions: readonly [MissionPreset, CombatMessageKey, CombatMessageKey][] = [
+      ['tutorial', 'home.tutorial', 'home.tutorialDetail'],
       ['salvage', 'home.salvage', 'home.salvageDetail'],
       ['assault', 'home.assault', 'home.assaultDetail'],
       ['hunt', 'home.hunt', 'home.huntDetail'],
@@ -1299,10 +1328,13 @@ export class NativeCombatHud implements NativeInputFeedback {
       return bridge && bridge.available !== false ? bridge : null;
     };
     this.coopHostButton = this.createPanelButton('NativeCoopHost', this.text('coop.host'), () => coopBridge()?.host(), this.homePanel);
-    this.coopJoinButton = this.createPanelButton('NativeCoopJoin', this.text('coop.join'), () => coopBridge()?.join(), this.homePanel);
-    this.coopAcceptButton = this.createPanelButton('NativeCoopAccept', this.text('coop.accept'), () => coopBridge()?.accept(), this.homePanel);
+    this.coopJoinButton = this.createPanelButton('NativeCoopJoin', this.text('coop.join'), () => {
+      const code = this.coopJoinInput?.string?.trim().toUpperCase();
+      coopBridge()?.join(code || undefined);
+    }, this.homePanel);
     this.coopCloseButton = this.createPanelButton('NativeCoopClose', this.text('coop.close'), () => coopBridge()?.close(), this.homePanel);
     this.coopCopyButton = this.createPanelButton('NativeCoopCopy', this.text('coop.copyCode'), () => coopBridge()?.copyCode?.(), this.homePanel);
+    this.coopJoinInput = this.createCoopJoinInput(this.homePanel);
     this.coopStatusLabel = this.createLabel('NativeCoopStatus', 13, HUD_CYAN, this.homePanel);
     this.coopStatusLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
     this.coopStatusLabel.verticalAlign = VerticalTextAlignment.TOP;
@@ -1350,6 +1382,12 @@ export class NativeCombatHud implements NativeInputFeedback {
         this.updateSettingsLabels();
       }, this.homePanel, 'slot'),
       this.createPanelButton('NativeSettingsCheckUpdate', '', () => this.checkForUpdates(), this.homePanel, 'slot'),
+      // 设置里的第 8 项：可重复进入的新手教学关（不写死「只弹一次」）。
+      this.createPanelButton('NativeSettingsTutorial', '', () => {
+        this.setHomeOpen(false);
+        this.actions?.onStartTutorial?.();
+        this.onDeploy?.();
+      }, this.homePanel, 'primary'),
     );
     this.updateHomeSelection();
     this.setHomeView('operations');
@@ -1671,7 +1709,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   }
 
   private updateSettingsLabels(): void {
-    const [sensitivity, invert, handed, scale, sfx, engine, update] = this.settingsButtons;
+    const [sensitivity, invert, handed, scale, sfx, engine, update, tutorial] = this.settingsButtons;
     this.setButtonText(sensitivity || null, this.text('settings.sensitivity', { value: this.inputSettings.sensitivity.toFixed(2) }));
     this.setButtonText(invert || null, this.text('settings.invertY', { value: this.inputSettings.invertY ? this.text('settings.on') : this.text('settings.off') }));
     this.setButtonText(handed || null, this.text('settings.handed', { value: this.inputSettings.leftHanded ? this.text('settings.left') : this.text('settings.right') }));
@@ -1679,6 +1717,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.setButtonText(sfx || null, this.text('settings.sfx', { value: audioSettingEnabled(AUDIO_SFX_KEY) ? this.text('settings.on') : this.text('settings.off') }));
     this.setButtonText(engine || null, this.text('settings.engine', { value: audioSettingEnabled(AUDIO_ENGINE_KEY) ? this.text('settings.on') : this.text('settings.off') }));
     this.setButtonText(update || null, this.text('settings.checkUpdate'));
+    this.setButtonText(tutorial || null, this.text('home.tutorialStart'));
   }
 
   private selectMission(preset: MissionPreset): void {
@@ -1955,12 +1994,27 @@ export class NativeCombatHud implements NativeInputFeedback {
     const coopWidth = rightWidth - 28;
     const coopActionHeight = Math.max(30, Math.min(ultraCompact ? 38 : compact ? 44 : 50,
       (missionTop - missionBottom - 110) / 5));
-    const coopButtons = [this.coopHostButton, this.coopJoinButton, this.coopAcceptButton, this.coopCloseButton, this.coopCopyButton];
+    const coopButtons = [this.coopHostButton, this.coopJoinButton, this.coopCloseButton, this.coopCopyButton];
     coopButtons.forEach((button, index) => {
       button?.setPosition(boardCenterX, missionTop - (coopActionHeight / 2) - index * (coopActionHeight + 6), 4);
       this.resizePanelButton(button, coopWidth, coopActionHeight, ultraCompact ? 9 : compact ? 10 : 12);
     });
-    this.coopStatusLabel?.node.setPosition(boardCenterX, missionBottom + 58, 4);
+    if (this.coopJoinInput) {
+      this.coopJoinInput.node.setPosition(boardCenterX, missionBottom + 108, 4);
+      this.coopJoinInput.node.getComponent(UITransform)?.setContentSize(coopWidth, 36);
+      const background = this.coopJoinInput.node.getComponent(Graphics);
+      if (background) {
+        background.clear();
+        background.fillColor = HUD_DARK;
+        background.roundRect(-(coopWidth / 2), -18, coopWidth, 36, 6);
+        background.fill();
+        background.strokeColor = HUD_CYAN;
+        background.lineWidth = 2;
+        background.roundRect(-(coopWidth / 2), -18, coopWidth, 36, 6);
+        background.stroke();
+      }
+    }
+    this.coopStatusLabel?.node.setPosition(boardCenterX, missionBottom + 60, 4);
     this.coopStatusLabel?.getComponent(UITransform)?.setContentSize(coopWidth, 44);
     this.coopCodeLabel?.node.setPosition(boardCenterX, missionBottom + 8, 4);
     this.coopCodeLabel?.getComponent(UITransform)?.setContentSize(coopWidth, 52);
@@ -2769,11 +2823,22 @@ export class NativeCombatHud implements NativeInputFeedback {
       const node = this.createNode(this.actionNodeName(control.role));
       const graphics = node.addComponent(Graphics);
       this.drawActionControl(graphics, control.role, control.radius, false);
-      const label = this.createLabel(`${this.actionNodeName(control.role)}Label`, 13, HUD_WHITE, node);
+      const label = this.createLabel(`${this.actionNodeName(control.role)}Label`, 16, HUD_WHITE, node);
       label.string = this.text(labels[control.role]);
-      label.getComponent(UITransform)?.setContentSize(control.radius * 2, 28);
+      label.getComponent(UITransform)?.setContentSize(control.radius * 2, 32);
+      this.styleTouchActionLabel(label);
       this.actionVisuals.set(control.role, { node, graphics, radius: control.radius });
     }
+  }
+
+  /**
+   * 触屏动作钮标签：放大字号（16）+ 深色描边，解决小圆钮内白字在复杂太空背景上
+   * 对比度低、易被 OCR / 肉眼误读的问题（截图反馈"切换"被误读为"块换"即此因）。
+   */
+  private styleTouchActionLabel(label: Label): void {
+    label.outlineColor = new Color(0, 0, 0, 230);
+    label.outlineWidth = 3;
+    label.enableOutline = true;
   }
 
   private ensureReturnAction(): void {
@@ -2782,9 +2847,10 @@ export class NativeCombatHud implements NativeInputFeedback {
       const control = returnControlCircle(this.width, this.height, this.safeInsets, this.controlScale);
       const node = this.createNode('ReturnAction');
       const graphics = node.addComponent(Graphics);
-      const label = this.createLabel('ReturnActionLabel', 13, HUD_WHITE, node);
+      const label = this.createLabel('ReturnActionLabel', 16, HUD_WHITE, node);
       label.string = this.text(this.canDock ? 'touch.dock' : 'touch.return');
-      label.getComponent(UITransform)?.setContentSize(control.radius * 2, 28);
+      label.getComponent(UITransform)?.setContentSize(control.radius * 2, 32);
+      this.styleTouchActionLabel(label);
       visual = { node, graphics, radius: control.radius };
       this.actionVisuals.set('returnRequested', visual);
     }
@@ -2908,6 +2974,26 @@ export class NativeCombatHud implements NativeInputFeedback {
     label.horizontalAlign = HorizontalTextAlignment.CENTER;
     label.verticalAlign = VerticalTextAlignment.CENTER;
     return label;
+  }
+
+  /**
+   * 联机房间码输入框。Cocos 的 EditBox 必须持有 textLabel / placeholderLabel 子节点才会在
+   * 原生端（Android / HarmonyOS）正常捕获并显示输入——裸 addComponent(EditBox) 等于没输入框，
+   * 玩家点不开键盘、联机永远卡在输房间码这步。这里搭好层级 + Graphics 背景，背景尺寸在
+   * layoutHomePanel 里按实际宽度补画。
+   */
+  private createCoopJoinInput(parent: Node): EditBox | null {
+    const node = this.createNode('NativeCoopJoinInput', parent);
+    node.addComponent(Graphics); // 背景在 layout 阶段按 coopWidth 绘制
+    const textLabel = this.createLabel('TextLabel', 16, HUD_WHITE, node);
+    const placeholderLabel = this.createLabel('PlaceholderLabel', 16, new Color(150, 150, 150, 255), node);
+    const editBox = node.addComponent(EditBox);
+    editBox.textLabel = textLabel;
+    editBox.placeholderLabel = placeholderLabel;
+    editBox.placeholder = this.text('coop.placeholder');
+    editBox.maxLength = 8;
+    editBox.fontSize = 16;
+    return editBox;
   }
 
   private drawDisc(graphics: Graphics, radius: number, accent: Color): void {
@@ -3106,7 +3192,10 @@ export class NativeCombatHud implements NativeInputFeedback {
       });
     }
     if (this.outpostTicketsLabel) {
-      this.outpostTicketsLabel.string = this.text('outpost.tickets', { value: loadEconomy().starportTickets });
+      const balance = loadEconomy().starportTickets;
+      this.outpostTicketsLabel.string = this.lastTicketGain > 0
+        ? this.text('outpost.ticketsGain', { value: balance, gain: this.lastTicketGain })
+        : this.text('outpost.tickets', { value: balance });
     }
   }
 
@@ -3116,7 +3205,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     const unavailable = !coop || coop.available === false;
     const viewVisible = this.homeView === 'coop';
     const enabled = viewVisible && !unavailable;
-    for (const button of [this.coopHostButton, this.coopJoinButton, this.coopAcceptButton, this.coopCloseButton]) {
+    for (const button of [this.coopHostButton, this.coopJoinButton, this.coopCloseButton]) {
       if (button) button.active = enabled;
     }
     if (this.coopCopyButton) {

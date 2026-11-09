@@ -131,11 +131,15 @@ const zhCN = {
   // 联机（WebRTC）面板：tab、按钮、状态文案、邀请码标题，8 语言均需显式定义。
   'home.coopNav': '联机', 'home.coopTitle': '联机作战', 'home.coopDetail': '创建或加入房间，与好友协同远征',
   'coop.host': '创建房间', 'coop.join': '加入房间', 'coop.accept': '提交应答码',
-  'coop.close': '断开连接', 'coop.copyCode': '复制邀请码',
-  'coop.unavailable': '本机不支持 WebRTC 联机，请使用 Web 版',
+  'coop.close': '断开连接', 'coop.copyCode': '复制房间码', 'coop.placeholder': '输入房间码',
+  'coop.unavailable': '联机暂不可用',
   'coop.state.idle': '未连接', 'coop.state.hosting': '房间已创建，等待加入',
-  'coop.state.joining': '正在加入房间', 'coop.state.connected': '联机已建立', 'coop.state.error': '联机出错',
-  'coop.codeTitle': '邀请码 / 应答码',
+  'coop.state.joining': '正在加入房间', 'coop.state.connected': '联机已建立', 'coop.state.error': '联机出错', 'coop.state.peer-left': '对方已离开',
+  'coop.codeTitle': '房间码',
+  // 新手教学关与远征结算发券（本轮新增）：keyof typeof zhCN 是全项目文案键的唯一真源。
+  'home.tutorial': '新手教学', 'home.tutorialDetail': '完整走一遍回收流程', 'home.tutorialStart': '开始新手教学',
+  'tutorial.target': '击落训练靶机', 'tutorial.pickup': '飞近发光物资并回收',
+  'outpost.ticketsGain': '星港券  {value}   ·   本趟 +{gain}',
 } as const;
 
 export type CombatMessageKey = keyof typeof zhCN;
@@ -226,11 +230,13 @@ const zhTW: CombatMessages = {
   // 聯機（WebRTC）面板。
   'home.coopNav': '連線', 'home.coopTitle': '連線作戰', 'home.coopDetail': '建立或加入房間，與好友協同遠征',
   'coop.host': '建立房間', 'coop.join': '加入房間', 'coop.accept': '提交應答碼',
-  'coop.close': '中斷連線', 'coop.copyCode': '複製邀請碼',
-  'coop.unavailable': '本機不支援 WebRTC 連線，請使用 Web 版',
+  'coop.close': '中斷連線', 'coop.copyCode': '複製房間碼', 'coop.placeholder': '輸入房間碼',
+  'coop.unavailable': '聯機暫不可用',
   'coop.state.idle': '未連線', 'coop.state.hosting': '房間已建立，等待加入',
-  'coop.state.joining': '正在加入房間', 'coop.state.connected': '連線已建立', 'coop.state.error': '連線錯誤',
-  'coop.codeTitle': '邀請碼 / 應答碼',
+  'coop.state.joining': '正在加入房間', 'coop.state.connected': '連線已建立', 'coop.state.error': '連線錯誤', 'coop.state.peer-left': '對方已離開',
+  'coop.codeTitle': '房間碼',
+  // 新手教学关与远征结算发券（本轮新增）
+  'home.tutorial': '新手教學', 'home.tutorialDetail': '完整走一遍回收流程', 'home.tutorialStart': '開始新手教學', 'tutorial.target': '擊落訓練靶機', 'tutorial.pickup': '飛近發光物資並回收', 'outpost.ticketsGain': '星港券  {value}   ·   本趟 +{gain}',
 };
 
 const en: CombatMessages = {
@@ -360,11 +366,13 @@ const en: CombatMessages = {
   // WebRTC co-op panel.
   'home.coopNav': 'CO-OP', 'home.coopTitle': 'CO-OP OPERATIONS', 'home.coopDetail': 'HOST OR JOIN A ROOM FOR SHARED EXPEDITIONS',
   'coop.host': 'CREATE ROOM', 'coop.join': 'JOIN ROOM', 'coop.accept': 'SUBMIT ANSWER CODE',
-  'coop.close': 'DISCONNECT', 'coop.copyCode': 'COPY INVITE CODE',
-  'coop.unavailable': 'WEBRTC CO-OP IS NOT SUPPORTED ON THIS DEVICE — USE THE WEB VERSION',
+  'coop.close': 'DISCONNECT', 'coop.copyCode': 'COPY ROOM CODE', 'coop.placeholder': 'ENTER ROOM CODE',
+  'coop.unavailable': 'CO-OP UNAVAILABLE',
   'coop.state.idle': 'NOT CONNECTED', 'coop.state.hosting': 'ROOM CREATED · WAITING FOR PEER',
-  'coop.state.joining': 'JOINING ROOM', 'coop.state.connected': 'CO-OP CONNECTED', 'coop.state.error': 'CO-OP ERROR',
-  'coop.codeTitle': 'INVITE / ANSWER CODE',
+  'coop.state.joining': 'JOINING ROOM', 'coop.state.connected': 'CO-OP CONNECTED', 'coop.state.error': 'CO-OP ERROR', 'coop.state.peer-left': 'PEER LEFT',
+  'coop.codeTitle': 'ROOM CODE',
+  // 新手教学关与远征结算发券（本轮新增）
+  'home.tutorial': 'FIRST FLIGHT', 'home.tutorialDetail': 'Fly one full salvage run', 'home.tutorialStart': 'START TUTORIAL', 'tutorial.target': 'Destroy the training drone', 'tutorial.pickup': 'Fly into glowing cargo to recover it', 'outpost.ticketsGain': 'TICKETS  {value}   ·   +{gain} THIS RUN',
 };
 
 const ja: CombatMessages = localize(en, {
@@ -434,7 +442,7 @@ const ja: CombatMessages = localize(en, {
   'metric.charge': '充填 +{value}%', 'metric.range': '範囲 {value}m', 'metric.recovery': '回収 {value}m', 'metric.shieldBoost': 'シールド回復 +{value}%',
   'summary.primary': '主砲 {damage} / {rate} · 副武装 {secondary}',
   'summary.defense': '機体 {health} · シールド {shield} · 速度 ×{speed} · エネルギー ×{energy} · 回復 {regen}/秒',
-  'touch.fire': '射撃', 'touch.alt': '副武器', 'touch.boost': 'ブースト', 'touch.view': '視点', 'touch.swap': '交代', 'touch.pause': '停止',
+  'touch.fire': '射撃', 'touch.alt': '副武器', 'touch.boost': 'ブースト', 'touch.view': '視点', 'touch.swap': '切替', 'touch.pause': '停止',
   'touch.return': '帰還', 'touch.dock': '入港', 'navigation.dockReady': '破光前哨基地 · 入港可能  R',
   'navigation.outpostRange': '前哨基地まで {range}m', 'expedition.primary': '主要目標', 'expedition.decision': '続行または帰還', 'objective.advanceHint': 'スペース / Enter で続行 · 帰還をタップで離脱', 'navigation.returning': '帰還をタップ · 射撃またはブーストで中断',
   'expedition.deepZone': '深部作戦', 'expedition.return': '帰還中', 'objective.sectorWave': '{sector} · 第 {wave} ウェーブ', 'cargo.capacity': '貨物 {used}/{capacity}',
@@ -491,11 +499,13 @@ const ja: CombatMessages = localize(en, {
   // WebRTC 協力プレイパネル。
   'home.coopNav': '協力', 'home.coopTitle': '協力作戦', 'home.coopDetail': 'ルームを作成・参加して仲間と遠征',
   'coop.host': 'ルーム作成', 'coop.join': 'ルーム参加', 'coop.accept': '応答コード送信',
-  'coop.close': '切断', 'coop.copyCode': '招待コードをコピー',
-  'coop.unavailable': 'この端末は WebRTC 協力プレイに対応していません。Web 版をご利用ください',
+  'coop.close': '切断', 'coop.copyCode': 'ルームコードをコピー', 'coop.placeholder': 'ルームコードを入力',
+  'coop.unavailable': '協力プレイは現在利用できません',
   'coop.state.idle': '未接続', 'coop.state.hosting': 'ルーム作成済み · 参加待ち',
-  'coop.state.joining': 'ルームに参加中', 'coop.state.connected': '協力接続完了', 'coop.state.error': '協力エラー',
-  'coop.codeTitle': '招待 / 応答コード',
+  'coop.state.joining': 'ルームに参加中', 'coop.state.connected': '協力接続完了', 'coop.state.error': '協力エラー', 'coop.state.peer-left': '相手が退出しました',
+  'coop.codeTitle': 'ルームコード',
+  // 新手教学关与远征结算发券（本轮新增）
+  'home.tutorial': '初回訓練', 'home.tutorialDetail': '回収の一巡を体験', 'home.tutorialStart': '訓練を開始', 'tutorial.target': '訓練機を撃墜', 'tutorial.pickup': '光る物資に接近して回収', 'outpost.ticketsGain': '星港券  {value}   ·   本次 +{gain}',
 });
 const ko: CombatMessages = localize(en, {
   'slot.ship': '기체',
@@ -621,11 +631,13 @@ const ko: CombatMessages = localize(en, {
   // WebRTC 협동 플레이 패널.
   'home.coopNav': '협동', 'home.coopTitle': '협동 작전', 'home.coopDetail': '방을 만들거나 참여해 친구와 원정',
   'coop.host': '방 만들기', 'coop.join': '방 참가', 'coop.accept': '응답 코드 제출',
-  'coop.close': '연결 끊기', 'coop.copyCode': '초대 코드 복사',
-  'coop.unavailable': '이 기기는 WebRTC 협동을 지원하지 않습니다. Web 버전을 이용하세요',
+  'coop.close': '연결 끊기', 'coop.copyCode': '방 코드 복사', 'coop.placeholder': '방 코드 입력',
+  'coop.unavailable': '협동 플레이를 사용할 수 없습니다',
   'coop.state.idle': '연결 안 됨', 'coop.state.hosting': '방 생성됨 · 참가 대기',
-  'coop.state.joining': '방 참가 중', 'coop.state.connected': '협동 연결됨', 'coop.state.error': '협동 오류',
-  'coop.codeTitle': '초대 / 응답 코드',
+  'coop.state.joining': '방 참가 중', 'coop.state.connected': '협동 연결됨', 'coop.state.error': '협동 오류', 'coop.state.peer-left': '상대가 나갔습니다',
+  'coop.codeTitle': '방 코드',
+  // 新手教学关与远征结算发券（本轮新增）
+  'home.tutorial': '초회 훈련', 'home.tutorialDetail': '회수 한 순환 체험', 'home.tutorialStart': '훈련 시작', 'tutorial.target': '훈련 표적 격추', 'tutorial.pickup': '빛나는 화물에 접근해 회수', 'outpost.ticketsGain': '항만권  {value}   ·   이번 +{gain}',
 });
 const de: CombatMessages = localize(en, {
   'home.profile': 'OFFLINE-PROFIL · LOKALE EXPEDITION', 'home.operations': 'EINSÄTZE', 'home.hangarNav': 'HANGAR', 'home.cargo': 'FRACHT', 'home.settings': 'EINSTELLUNGEN',
@@ -635,6 +647,8 @@ const de: CombatMessages = localize(en, {
   'settings.sensitivity': 'ZIELEMPFINDLICHKEIT  {value}', 'settings.invertY': 'Y-ACHSE UMKEHREN  {value}',
   'settings.handed': 'TOUCH-LAYOUT  {value}', 'settings.controlScale': 'STEUERGRÖSSE  {value}%',
   'settings.on': 'EIN', 'settings.off': 'AUS', 'settings.left': 'LINKS', 'settings.right': 'RECHTS',
+  // 新手教学关与远征结算发券（本轮新增）
+  'home.tutorial': 'ERSTER FLUG', 'home.tutorialDetail': 'Eine komplette Bergung fliegen', 'home.tutorialStart': 'TUTORIAL STARTEN', 'tutorial.target': 'Trainingsdrohne zerstören', 'tutorial.pickup': 'Leuchtende Fracht anfliegen', 'outpost.ticketsGain': 'TICKETS  {value}   ·   +{gain} DIESER FLUG',
 });
 void de;
 const es: CombatMessages = localize(en, {
@@ -761,11 +775,13 @@ const es: CombatMessages = localize(en, {
   // Panel cooperativo WebRTC.
   'home.coopNav': 'COOP', 'home.coopTitle': 'OPERACIONES COOP', 'home.coopDetail': 'CREA O ÚNETE A UNA SALA PARA EXPEDICIONES COMPARTIDAS',
   'coop.host': 'CREAR SALA', 'coop.join': 'UNIRSE A SALA', 'coop.accept': 'ENVIAR CÓDIGO',
-  'coop.close': 'DESCONECTAR', 'coop.copyCode': 'COPIAR CÓDIGO',
-  'coop.unavailable': 'COOP WEBRTC NO DISPONIBLE EN ESTE DISPOSITIVO — USA LA VERSIÓN WEB',
+  'coop.close': 'DESCONECTAR', 'coop.copyCode': 'COPIAR CÓDIGO', 'coop.placeholder': 'INGRESAR CÓDIGO DE SALA',
+  'coop.unavailable': 'COOP NO DISPONIBLE',
   'coop.state.idle': 'SIN CONEXIÓN', 'coop.state.hosting': 'SALA CREADA · ESPERANDO',
-  'coop.state.joining': 'UNIÉNDOSE A LA SALA', 'coop.state.connected': 'COOP CONECTADO', 'coop.state.error': 'ERROR DE COOP',
-  'coop.codeTitle': 'CÓDIGO DE INVITACIÓN / RESPUESTA',
+  'coop.state.joining': 'UNIÉNDOSE A LA SALA', 'coop.state.connected': 'COOP CONECTADO', 'coop.state.error': 'ERROR DE COOP', 'coop.state.peer-left': 'EL COMPANERO SALIÓ',
+  'coop.codeTitle': 'CÓDIGO DE SALA',
+  // 新手教学关与远征结算发券（本轮新增）
+  'home.tutorial': 'PRIMER VUELO', 'home.tutorialDetail': 'Completa una ruta de rescate', 'home.tutorialStart': 'INICIAR TUTORIAL', 'tutorial.target': 'Derriba el blanco de entrenamiento', 'tutorial.pickup': 'Acércate a la carga brillante', 'outpost.ticketsGain': 'BONOS  {value}   ·   +{gain} ESTA SALIDA',
 });
 const ptBR: CombatMessages = localize(en, {
   'slot.ship': 'AERONAVE',
@@ -891,11 +907,13 @@ const ptBR: CombatMessages = localize(en, {
   // Painel cooperativo WebRTC.
   'home.coopNav': 'COOP', 'home.coopTitle': 'OPERAÇÕES COOP', 'home.coopDetail': 'CRIE OU ENTRE EM UMA SALA PARA EXPEDIÇÕES COMPARTILHADAS',
   'coop.host': 'CRIAR SALA', 'coop.join': 'ENTRAR NA SALA', 'coop.accept': 'ENVIAR CÓDIGO',
-  'coop.close': 'DESCONECTAR', 'coop.copyCode': 'COPIAR CÓDIGO',
-  'coop.unavailable': 'COOP WEBRTC INDISPONÍVEL NESTE DISPOSITIVO — USE A VERSÃO WEB',
+  'coop.close': 'DESCONECTAR', 'coop.copyCode': 'COPIAR CÓDIGO', 'coop.placeholder': 'DIGITE O CÓDIGO DA SALA',
+  'coop.unavailable': 'COOP INDISPONÍVEL',
   'coop.state.idle': 'SEM CONEXÃO', 'coop.state.hosting': 'SALA CRIADA · AGUARDANDO',
-  'coop.state.joining': 'ENTRANDO NA SALA', 'coop.state.connected': 'COOP CONECTADO', 'coop.state.error': 'ERRO DE COOP',
-  'coop.codeTitle': 'CÓDIGO DE CONVITE / RESPOSTA',
+  'coop.state.joining': 'ENTRANDO NA SALA', 'coop.state.connected': 'COOP CONECTADO', 'coop.state.error': 'ERRO DE COOP', 'coop.state.peer-left': 'O PARCEIRO SAIU',
+  'coop.codeTitle': 'CÓDIGO DA SALA',
+  // 新手教学关与远征结算发券（本轮新增）
+  'home.tutorial': 'PRIMEIRO VOO', 'home.tutorialDetail': 'Complete um resgate completo', 'home.tutorialStart': 'INICIAR TUTORIAL', 'tutorial.target': 'Abata o alvo de treino', 'tutorial.pickup': 'Aproxime-se da carga brilhante', 'outpost.ticketsGain': 'TÍQUETES  {value}   ·   +{gain} NESTA MISSÃO',
 });
 const fr: CombatMessages = localize(en, {
   'slot.ship': 'APPAREIL',
@@ -1022,11 +1040,13 @@ const fr: CombatMessages = localize(en, {
   // Panneau coopératif WebRTC.
   'home.coopNav': 'COOP', 'home.coopTitle': 'OPÉRATIONS COOP', 'home.coopDetail': 'CRÉEZ OU REJOIGNEZ UNE SALLE POUR DES EXPÉDITIONS PARTAGÉES',
   'coop.host': 'CRÉER UNE SALLE', 'coop.join': 'REJOINDRE UNE SALLE', 'coop.accept': 'ENVOYER LE CODE',
-  'coop.close': 'DÉCONNECTER', 'coop.copyCode': 'COPIER LE CODE',
-  'coop.unavailable': 'LA COOP WEBRTC N’EST PAS PRISE EN CHARGE SUR CET APPAREIL — UTILISEZ LA VERSION WEB',
+  'coop.close': 'DÉCONNECTER', 'coop.copyCode': 'COPIER LE CODE', 'coop.placeholder': 'SAISIR LE CODE DE SALLE',
+  'coop.unavailable': 'COOP INDISPONIBLE',
   'coop.state.idle': 'NON CONNECTÉ', 'coop.state.hosting': 'SALLE CRÉÉE · EN ATTENTE',
-  'coop.state.joining': 'CONNEXION À LA SALLE', 'coop.state.connected': 'COOP CONNECTÉE', 'coop.state.error': 'ERREUR COOP',
-  'coop.codeTitle': 'CODE D’INVITATION / RÉPONSE',
+  'coop.state.joining': 'CONNEXION À LA SALLE', 'coop.state.connected': 'COOP CONNECTÉE', 'coop.state.error': 'ERREUR COOP', 'coop.state.peer-left': 'LE PAIR A QUITTÉ',
+  'coop.codeTitle': 'CODE DE SALLE',
+  // 新手教学关与远征结算发券（本轮新增）
+  'home.tutorial': 'PREMIER VOL', 'home.tutorialDetail': 'Effectuez une récupération complète', 'home.tutorialStart': 'DÉMARRER LE TUTORIEL', 'tutorial.target': 'Détruisez la cible d’entraînement', 'tutorial.pickup': 'Approchez-vous du chargement lumineux', 'outpost.ticketsGain': 'TICKETS  {value}   ·   +{gain} CETTE SORTIE',
 });
 
 function localize(base: CombatMessages, overrides: Partial<CombatMessages>): CombatMessages {

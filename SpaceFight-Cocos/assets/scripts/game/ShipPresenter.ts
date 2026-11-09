@@ -36,6 +36,7 @@ interface ModelNormalization {
   readonly lowPath: string;
   readonly highPath: string;
   readonly scale: number;
+  readonly orientationX: number;
   readonly orientationY: number;
   readonly colliderRadius: number;
   readonly colliderHeight: number;
@@ -84,28 +85,52 @@ export const SKIN_TINTS: Readonly<Record<string, Color>> = {
   desert: new Color(196, 148, 88, 255),
 };
 
+/**
+ * 敌方机体统一暖橙乘色：玩家舰是银白/冷青蓝，敌方偏暖，敌我一眼可分。
+ * 用接近白色的暖色做乘色叠加，不会把 GLB 彩色贴图压暗成灰。
+ */
+const ENEMY_HULL_TINT = new Color(255, 208, 182, 255);
+/** 程序化兜底机体颜色：玩家冷蓝青、敌方暖橙红。 */
+const FALLBACK_PLAYER_COLOR = new Color(42, 148, 178, 255);
+const FALLBACK_ENEMY_COLOR = new Color(226, 92, 52, 255);
+
+/**
+ * 战斗侧的敌方 kind → 视觉机型映射。
+ * 此前 suppressor / elite / support 三种都不在 MODEL_NORMALIZATION 里，
+ * 被 asShipKind 一律回退成 scout —— 结果换了名字但外形完全相同，
+ * 敌方阵容读起来像只有一种船。这里显式分流到不同机型。
+ */
+const ENEMY_KIND_MODEL: Readonly<Record<string, ShipKind>> = {
+  suppressor: 'gunship',
+  elite: 'fighter',
+  support: 'bomber',
+};
+
 export const MODEL_NORMALIZATION: Readonly<Record<ShipKind, ModelNormalization>> = {
   interceptor: {
     lowPath: LOW_PLAYER_MODEL_PATH,
     highPath: PLAYER_MODEL_PATH,
-    scale: 0.5,
-    orientationY: 180,
+    scale: 3.23,
+    orientationX: 0,
+    orientationY: 90,
     colliderRadius: 0.72,
     colliderHeight: 3.2,
   },
   scout: {
     lowPath: 'models-low/ships/scout',
     highPath: 'models/ships/scout',
-    scale: 0.42,
-    orientationY: 180,
+    scale: 2.35,
+    orientationX: -90,
+    orientationY: 0,
     colliderRadius: 0.7,
     colliderHeight: 2.8,
   },
   fighter: {
     lowPath: 'models-low/ships/fighter',
     highPath: 'models/ships/fighter',
-    scale: 0.35,
-    orientationY: 180,
+    scale: 3.30,
+    orientationX: 0,
+    orientationY: -90,
     colliderRadius: 0.78,
     colliderHeight: 3.5,
   },
@@ -113,6 +138,7 @@ export const MODEL_NORMALIZATION: Readonly<Record<ShipKind, ModelNormalization>>
     lowPath: 'models-low/ships/bomber',
     highPath: 'models/ships/bomber',
     scale: 0.45,
+    orientationX: 0,
     orientationY: 180,
     colliderRadius: 0.9,
     colliderHeight: 4.1,
@@ -121,6 +147,7 @@ export const MODEL_NORMALIZATION: Readonly<Record<ShipKind, ModelNormalization>>
     lowPath: 'models-low/ships/gunship',
     highPath: 'models/ships/gunship',
     scale: 0.32,
+    orientationX: 0,
     orientationY: 180,
     colliderRadius: 1.05,
     colliderHeight: 4.8,
@@ -129,6 +156,7 @@ export const MODEL_NORMALIZATION: Readonly<Record<ShipKind, ModelNormalization>>
     lowPath: 'models-low/ships/boss',
     highPath: 'models/ships/boss',
     scale: 0.72,
+    orientationX: 0,
     orientationY: 180,
     colliderRadius: 1.5,
     colliderHeight: 6.2,
@@ -136,9 +164,10 @@ export const MODEL_NORMALIZATION: Readonly<Record<ShipKind, ModelNormalization>>
 };
 
 function asShipKind(kind: string): ShipKind {
-  return Object.prototype.hasOwnProperty.call(MODEL_NORMALIZATION, kind)
-    ? kind as ShipKind
-    : 'scout';
+  if (Object.prototype.hasOwnProperty.call(MODEL_NORMALIZATION, kind)) {
+    return kind as ShipKind;
+  }
+  return ENEMY_KIND_MODEL[kind] ?? 'scout';
 }
 
 let highBundleLoad: Promise<RuntimeAssetBundle> | null = null;
@@ -633,19 +662,28 @@ export class ShipPresenter {
     }
   }
 
-  private createShipNode(name: string, kind: ShipKind, isPlayer: boolean): Node {
-    // 高画质 flag 翻转前 highPrefabs 可能尚未填好：缺失时回退到 prefabs 低模，
-    // 避免窗口期内 spawnEnemy 抛错导致敌机不显。
-    const prefab = this.highQualityEnabled
-      ? (this.highPrefabs.get(kind) ?? this.prefabs.get(kind))
-      : this.prefabs.get(kind);
-    if (!prefab) {
-      throw new Error(`Required ship model is unavailable: ${kind}`);
-    }
+  private createShipNode(
+    name: string,
+    kind: ShipKind,
+    isPlayer: boolean,
+    resolvedPrefab?: Prefab | null,
+  ): Node {
+    // 高画质 flag 翻转前 highPrefabs 可能尚未填好：缺失时回退到 prefabs 低模。
+    const prefab = resolvedPrefab !== undefined
+      ? resolvedPrefab
+      : (this.highQualityEnabled
+        ? (this.highPrefabs.get(kind) ?? this.prefabs.get(kind))
+        : this.prefabs.get(kind));
 
     const root = this.createShipShell(name, kind, isPlayer);
-    const visual = this.replaceVisual(root, kind, prefab);
-    if (isPlayer) this.playerVisual = visual;
+    // 模型缺失绝不能让机体「静默消失」：挂一个程序化低模轮廓继续渲染。
+    // 此前这里直接 throw，敌机 prefab 一失败就整艘不存在 —— 正是「敌方战舰不可见」的根因。
+    if (prefab) {
+      const visual = this.replaceVisual(root, kind, prefab);
+      if (isPlayer) this.playerVisual = visual;
+    } else {
+      this.createFallbackVisual(root, isPlayer);
+    }
 
     return root;
   }
@@ -712,23 +750,51 @@ export class ShipPresenter {
     });
   }
 
-  private createFallbackVisual(root: Node): void {
+  private createFallbackVisual(
+    root: Node,
+    isPlayer = true,
+    kind: ShipKind = this.playerShipKind,
+  ): void {
     try {
       const visual = new Node(`${root.name}.FallbackHull`);
       visual.setParent(root);
-      visual.setScale(0.9, 0.9, 1.25);
-      const renderer = visual.addComponent(MeshRenderer);
-      renderer.mesh = utils.createMesh(primitives.box({ width: 0.9, height: 0.3, length: 2.2 }));
+      const normalization = MODEL_NORMALIZATION[kind];
+      const color = isPlayer ? FALLBACK_PLAYER_COLOR : FALLBACK_ENEMY_COLOR;
       const material = new Material();
       material.initialize({ effectName: 'builtin-standard' });
-      material.setProperty('mainColor', new Color(42, 148, 178, 255));
-      renderer.setMaterial(material, 0);
+      material.setProperty('mainColor', color);
+
+      const length = normalization.colliderHeight;
+      const width = normalization.colliderRadius * 1.8;
+      // 机身 + 两侧后掠翼：远处也能读出「这是一艘舰」而不是方块。
+      // 机头朝局部 -Z（与 GLB 约定一致），尾焰挂点仍在 +Z。
+      const parts: ReadonlyArray<{
+        name: string;
+        size: readonly [number, number, number];
+        pos: readonly [number, number, number];
+      }> = [
+        { name: 'Hull', size: [width * 0.34, width * 0.20, length], pos: [0, 0, 0] },
+        { name: 'WingL', size: [width * 0.90, width * 0.08, length * 0.42], pos: [-width * 0.55, 0, length * 0.16] },
+        { name: 'WingR', size: [width * 0.90, width * 0.08, length * 0.42], pos: [width * 0.55, 0, length * 0.16] },
+      ];
+      for (const part of parts) {
+        const partNode = new Node(`${root.name}.${part.name}`);
+        partNode.setParent(visual);
+        partNode.setPosition(part.pos[0], part.pos[1], part.pos[2]);
+        const renderer = partNode.addComponent(MeshRenderer);
+        renderer.mesh = utils.createMesh(primitives.box({
+          width: part.size[0],
+          height: part.size[1],
+          length: part.size[2],
+        }));
+        renderer.setMaterial(material, 0);
+      }
       this.shipVisuals.set(root, visual);
       if (root === this.playerNode) this.playerVisual = visual;
     } catch (error: unknown) {
       // Some native renderers cannot create runtime meshes before the first frame.
       console.warn('[SpaceFight ships] fallback hull unavailable; continuing without visual', error);
-      this.playerVisual = null;
+      if (root === this.playerNode) this.playerVisual = null;
     }
   }
 
@@ -839,10 +905,13 @@ export class ShipPresenter {
       : normalization.scale;
     visual.setScale(visualScale, visualScale, visualScale);
     const modelRotation = new Quat();
-    Quat.fromEuler(modelRotation, 0, normalization.orientationY, 0);
+    Quat.fromEuler(modelRotation, normalization.orientationX, normalization.orientationY, 0);
     visual.setRotation(modelRotation);
     this.shipVisuals.set(root, visual);
     if (root === this.playerNode) this.playerVisual = visual;
+    // 敌方机体统一暖橙乘色：银白/暗色 GLB 也能一眼和玩家冷色舰队分开。
+    // 只对非玩家节点生效，玩家的皮肤仍由 replayPlayerSkin() 独占。
+    if (root !== this.playerNode) this.applyTint(visual, ENEMY_HULL_TINT);
     // 从模型节点树里读出作者提供的枪口挂点（socket_weapon_primary_l / _r 等）。
     // 没有 socket 的旧低模会返回 null，syncMuzzle 随后回退到硬编码枪口位置。
     this.modelMuzzleSockets.set(root, this.readModelMuzzleSockets(visual));
@@ -948,9 +1017,20 @@ export class ShipPresenter {
     // 才据此裁掉超出的敌机。原先「集合为空也直接 return」会让 loadInitialEnemyVisuals
     // 形同虚设，敌机节点全靠首帧 sync 补建——一旦首帧被拖慢/打断即永久不显。
     if (this.visibleEnemyIds.size > 0 && !this.visibleEnemyIds.has(enemyId)) return;
-    await this.ensurePrefab(kind);
+    // 模型加载失败不再等于「敌机不存在」：拿不到 prefab 时仍创建节点，
+    // 由 createShipNode 挂上程序化低模轮廓，保证战斗里敌方始终可见、可打、可被瞄准。
+    let prefab: Prefab | null = null;
+    try {
+      prefab = (await this.ensurePrefab(kind)).prefab;
+    } catch (error: unknown) {
+      console.warn(
+        `[SpaceFight ships] model "${kind}" unavailable for ${enemyId}; rendering fallback hull`,
+        error,
+      );
+    }
     if (this.visibleEnemyIds.size > 0 && !this.visibleEnemyIds.has(enemyId)) return;
-    const enemyNode = this.createShipNode(`Enemy.${enemyId}`, kind, false);
+    if (this.enemyNodes.get(enemyId)?.isValid) return;
+    const enemyNode = this.createShipNode(`Enemy.${enemyId}`, kind, false, prefab);
     enemyNode.setPosition(position.x, position.y, position.z);
     this.enemyNodes.set(enemyId, enemyNode);
   }

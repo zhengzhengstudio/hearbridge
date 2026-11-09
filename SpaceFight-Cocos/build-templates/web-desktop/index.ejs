@@ -31,7 +31,7 @@
         <img src="spacefight-icon.png" alt="SpaceFight">
         <span><b>SPACEFIGHT</b><small>INTERCEPTOR COMMAND</small></span>
       </div>
-      <div class="build-readout"><i></i> 本机战斗核心 <b>0.13.12</b></div>
+      <div class="build-readout"><i></i> 本机战斗核心 <b>0.13.13</b></div>
     </header>
 
     <section class="launch-briefing">
@@ -59,6 +59,7 @@
         </button>
       </div>
       <button id="LoadoutOpen" type="button"><span>战备装配台</span><b id="LoadoutSummary">脉冲炮 / 猎手阵列 / 均衡核心</b></button>
+      <button id="SettingsOpen" type="button"><span>设置与教学</span><b>画质、操控与新手关</b></button>
       <p id="RotateMessage">请横置设备后进入战斗</p>
     </section>
 
@@ -98,9 +99,46 @@
     <footer class="launch-footer">
       <span>LOCAL SIMULATION</span>
       <span>WEBGL 2 / LANDSCAPE</span>
-      <span>BUILD 76</span>
+      <span>BUILD 77</span>
     </footer>
   </main>
+
+  <section id="SettingsPanel" aria-labelledby="SettingsTitle" aria-hidden="true">
+    <header>
+      <div><h2 id="SettingsTitle">设置</h2><p>画质、操控与新手教学</p></div>
+      <button id="SettingsClose" type="button" aria-label="关闭设置">×</button>
+    </header>
+    <div class="settings-body">
+      <section class="settings-group">
+        <h3>画面</h3>
+        <div class="settings-row">
+          <span>画面质量</span>
+          <div class="settings-choice" role="group" aria-label="画面质量">
+            <button type="button" data-settings-graphics="low">低配模式</button>
+            <button type="button" data-settings-graphics="high">高画质</button>
+          </div>
+        </div>
+      </section>
+      <section class="settings-group">
+        <h3>操控</h3>
+        <div class="settings-field">
+          <label for="SettingsSensitivity">摇杆灵敏度</label>
+          <div class="settings-row"><input id="SettingsSensitivity" type="range" min="0.25" max="3" step="0.05" value="1"><output id="SettingsSensitivityValue">1.00</output></div>
+        </div>
+        <div class="settings-row"><span>反转纵向</span><button type="button" data-settings-toggle="invertY" aria-pressed="false">关闭</button></div>
+        <div class="settings-row"><span>左手布局</span><button type="button" data-settings-toggle="leftHanded" aria-pressed="false">关闭</button></div>
+        <div class="settings-field">
+          <label for="SettingsControlScale">控件大小</label>
+          <div class="settings-row"><input id="SettingsControlScale" type="range" min="0.75" max="1.35" step="0.05" value="1"><output id="SettingsControlScaleValue">100%</output></div>
+        </div>
+      </section>
+      <section class="settings-group">
+        <h3>新手教学</h3>
+        <p>一架训练靶机，走完移动、开火、回收与返航结算，看看星港券是怎么赚回来的。</p>
+        <button id="TutorialStart" class="settings-primary" type="button">开始新手教学</button>
+      </section>
+    </div>
+  </section>
 
   <section id="LoadoutPanel" aria-labelledby="LoadoutTitle" aria-hidden="true">
     <header><div><small>SF-09 / COMBAT FITTING</small><h2 id="LoadoutTitle">战备装配台</h2></div><button id="LoadoutClose" type="button" aria-label="关闭装配台">×</button></header>
@@ -150,6 +188,9 @@
     <div class="weapon-readout"><span>01</span><img id="WeaponArt" src="spacefight-weapon-pulse.png" alt=""><div><small>主武器</small><b id="WeaponName">脉冲炮</b></div><i>READY</i></div>
     <div class="desktop-flight-hint">WASD 飞行　鼠标瞄准　左键开火　Shift 加速</div>
   </section>
+
+  <div id="TutorialHint" aria-live="polite" hidden><span id="TutorialStep"></span><b id="TutorialText"></b></div>
+  <div id="TicketToast" aria-live="polite" hidden></div>
 
   <div id="CombatReticle" aria-hidden="true"><i></i></div>
 

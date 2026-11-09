@@ -38,12 +38,29 @@ export function loadEconomy(): PlayerEconomySnapshot {
   }
 }
 
-export function awardStarportTickets(value: number, receipt: string): PlayerEconomySnapshot {
+/**
+ * 一趟远征的星港券结算。
+ *
+ * 旧实现把货值除以 5、且货值为 0 时一券不发：站内维修/补给/改装与商城却一直在扣券，
+ * 余额只会单调递减，玩到后期买不起维修就再也打不动（测试反馈的「只出不入」）。
+ * 现在改成两条入账：货值按 ÷2 折算，外加每趟保底，保证「有打就有得赚」。
+ * receipt 仍做幂等，重复返航不会重复发券。
+ */
+export const CARGO_VALUE_DIVISOR = 2;
+export const MIN_EXPEDITION_PAYOUT = 30;
+
+export function expeditionPayout(cargoValue: number, kills = 0): number {
+  const cargo = Math.max(0, Math.round(cargoValue / CARGO_VALUE_DIVISOR));
+  const combat = Math.max(0, Math.round(kills * 6));
+  return Math.max(MIN_EXPEDITION_PAYOUT, cargo + combat);
+}
+
+export function awardStarportTickets(value: number, receipt: string, kills = 0): PlayerEconomySnapshot {
   const profile = loadEconomy();
-  if (!receipt || profile.receipts.includes(receipt) || value <= 0) return profile;
+  if (!receipt || profile.receipts.includes(receipt)) return profile;
   return save({
     ...profile,
-    starportTickets: profile.starportTickets + Math.max(1, Math.round(value / 5)),
+    starportTickets: profile.starportTickets + expeditionPayout(value, kills),
     receipts: [...profile.receipts, receipt].slice(-24),
   });
 }

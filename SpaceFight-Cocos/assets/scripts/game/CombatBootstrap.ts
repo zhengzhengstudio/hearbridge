@@ -92,7 +92,7 @@ import {
 } from './NativeCombatHud';
 import { GameAudio } from './GameAudio';
 import { LootPresenter } from './LootPresenter';
-import { parseCoopInvite, WebCoopSession } from '../platform/WebCoopSession';
+import { WsCoopSession } from '../platform/WsCoopSession';
 
 const { ccclass } = _decorator;
 
@@ -111,7 +111,12 @@ const UNKNOWN_DEVICE: DeviceSnapshot = {
   pixelRatio: 1,
 };
 
-export type MissionPreset = 'salvage' | 'assault' | 'hunt' | 'survive' | 'defense' | 'escort';
+export type MissionPreset = 'salvage' | 'assault' | 'hunt' | 'survive' | 'defense' | 'escort' | 'tutorial';
+
+/** 新手关四步：顺序不限，按「已完成条件数」推进，避免玩家先捡货后打靶被卡住。 */
+const TUTORIAL_STEP_KEYS = [
+  'tutorial.move', 'tutorial.target', 'tutorial.pickup', 'tutorial.return',
+] as const;
 
 /**
  * 六个任务预设的**玩法循环各不相同**（此前只有三个，且三者都是「打够 N 个敌人」，
@@ -124,6 +129,22 @@ export type MissionPreset = 'salvage' | 'assault' | 'hunt' | 'survive' | 'defens
  * - escort  护送：带一具运输船，挨打或被甩开都掉进度，逼玩家在清场与护送之间取舍
  */
 const MISSION_PRESETS: Readonly<Record<MissionPreset, MissionDefinition>> = {
+  // 新手教学：单架低血靶机 + 三箱不同类别物资，走完「移动 / 开火 / 回收 / 返航结算」
+  // 正好演示一次完整的星港券闭环。可从设置里反复进入，不影响正式任务。
+  tutorial: {
+    id: 'first-flight-drill',
+    seed: 1101,
+    primaryEvent: 'intercept',
+    enemies: [
+      { id: 'drill-target-alpha', kind: 'scout', position: { x: 8, y: 2, z: -52 }, health: 24 },
+    ],
+    pickups: [
+      { id: 'drill-currency', kind: 'energy', position: { x: 6, y: 0, z: -12 }, value: 20 },
+      { id: 'drill-material', kind: 'scrap', position: { x: -10, y: 1, z: -28 }, value: 25 },
+      { id: 'drill-loot', kind: 'loot', position: { x: 4, y: -1, z: -38 }, value: 30 },
+    ],
+    objective: { type: 'eliminate', requiredKills: 1 },
+  },
   salvage: {
     id: 'shattered-lane-expedition',
     seed: 1337,
@@ -257,7 +278,7 @@ const MISSION_PRESETS: Readonly<Record<MissionPreset, MissionDefinition>> = {
 };
 
 const MISSION_PRESET_IDS: readonly MissionPreset[] = [
-  'salvage', 'assault', 'hunt', 'survive', 'defense', 'escort',
+  'salvage', 'assault', 'hunt', 'survive', 'defense', 'escort', 'tutorial',
 ];
 
 function readBrowserMissionPreset(): MissionPreset {
@@ -410,6 +431,9 @@ export class CombatBootstrap extends Component {
    */
   private returnLatched = false;
   private currentMissionPreset: MissionPreset = readBrowserMissionPreset();
+  private tutorialActive = false;
+  private tutorialStep = 0;
+  private tutorialStartPosition: { x: number; y: number; z: number } | null = null;
   private previousHealth = this.snapshot.player.health + this.snapshot.player.shield;
   private readonly touchOptimized = prefersTouchControls();
 
@@ -437,28 +461,27 @@ export class CombatBootstrap extends Component {
   private coopStreamElapsed = 0;
   private coopRemote: CoopPresence | null = null;
   private coopSignalHandler: ((message: CoopMessage) => void) | null = null;
-  private coopSession: WebCoopSession | null = null;
+  private coopSession: WsCoopSession | null = null;
   /** 联机邀请码 / 应答码，供 HUD 显示与「复制邀请码」使用。 */
   private coopCode = '';
+  /** 当前联机对手的显示名（HUD 展示用）。 */
+  private coopPeerName = '';
   /**
-   * 联机入口桥：native 无 WebRTC，available 传 false，HUD 明确提示改用 Web 版；
-   * web 端按钮直接复用已有的 spacefight:coop-command 事件通道。
+   * 联机入口桥：统一 WebSocket 中继，全端（Android / HarmonyOS / web / 桌面）可用，
+   * 不再依赖 WebRTC / 网页壳 / DOM 事件。host 生成房间码，join 接收房间码
+   * （HUD 输入框传入，web 端缺输入框时回退到 prompt）。
    */
   private readonly coopBridge: CoopHudBridge = {
-    available: !sys.isNative && typeof RTCPeerConnection !== 'undefined',
-    host: () => this.sendCoopCommand({ action: 'host', room: 'tower-1', name: 'Host' }),
-    join: () => {
-      const invite = this.promptCoopCode('join');
-      if (invite) this.sendCoopCommand({ action: 'join', invite });
+    available: true,
+    host: () => this.startCoopHost(),
+    join: (code?: string) => {
+      if (code && code.trim()) this.startCoopJoinWithCode(code.trim().toUpperCase());
+      else this.startCoopJoin();
     },
-    accept: () => {
-      const invite = this.promptCoopCode('accept');
-      if (invite) this.sendCoopCommand({ action: 'accept', invite });
-    },
-    close: () => this.sendCoopCommand({ action: 'close' }),
+    close: () => this.coopSession?.close(),
     copyCode: () => {
-      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-        void navigator.clipboard.writeText(this.coopCode);
+      if (typeof navigator !== 'undefined' && (navigator as Navigator).clipboard?.writeText) {
+        void (navigator as Navigator).clipboard.writeText(this.coopCode);
       }
     },
   };
@@ -466,6 +489,7 @@ export class CombatBootstrap extends Component {
   private readonly hudActions: NativeHudActions = {
     onReturnHome: () => this.returnHome(),
     onStationService: (service) => this.applyStationService(service),
+    onStartTutorial: () => this.startTutorial(),
     coop: this.coopBridge,
   };
 
@@ -518,12 +542,6 @@ export class CombatBootstrap extends Component {
       window.addEventListener('spacefight:input-settings', this.handleInputSettings);
       window.addEventListener('spacefight:gamepad-calibration', this.handleInputSettings);
       window.addEventListener('spacefight:graphics-advice-action', this.handleGraphicsAdviceAction);
-      window.addEventListener('spacefight:coop-command', this.handleCoopCommand);
-      // 会话状态/邀请码回灌到 HUD 联机面板（此前只有 command 监听，UI 入口完全缺失）。
-      window.addEventListener('spacefight:coop-invite', this.handleCoopInvite);
-      window.addEventListener('spacefight:coop-answer', this.handleCoopAnswer);
-      window.addEventListener('spacefight:coop-connected', this.handleCoopConnected);
-      window.addEventListener('spacefight:coop-state', this.handleCoopState);
       this.browserEventsAttached = true;
     }
     this.initializeBrowserInput();
@@ -639,11 +657,6 @@ export class CombatBootstrap extends Component {
     window.removeEventListener('spacefight:input-settings', this.handleInputSettings);
     window.removeEventListener('spacefight:gamepad-calibration', this.handleInputSettings);
     window.removeEventListener('spacefight:graphics-advice-action', this.handleGraphicsAdviceAction);
-    window.removeEventListener('spacefight:coop-command', this.handleCoopCommand);
-    window.removeEventListener('spacefight:coop-invite', this.handleCoopInvite);
-    window.removeEventListener('spacefight:coop-answer', this.handleCoopAnswer);
-    window.removeEventListener('spacefight:coop-connected', this.handleCoopConnected);
-    window.removeEventListener('spacefight:coop-state', this.handleCoopState);
     this.coopSession?.close();
     this.coopSession = null;
     this.browserEventsAttached = false;
@@ -687,6 +700,12 @@ export class CombatBootstrap extends Component {
 
   private readonly handleMissionChange = (): void => {
     if (browserDataset()?.playing === 'true') return;
+    if (readBrowserMissionPreset() === 'tutorial') {
+      this.startTutorial();
+      this.dispatchCombatState(0, true);
+      return;
+    }
+    this.stopTutorial();
     this.resetSimulation(readBrowserLoadout(), readBrowserMissionPreset());
     this.dispatchCombatState(0, true);
   };
@@ -699,6 +718,11 @@ export class CombatBootstrap extends Component {
   };
 
   private readonly applyNativeMission = (preset: MissionPreset): void => {
+    if (preset === 'tutorial') {
+      this.startTutorial();
+      return;
+    }
+    this.stopTutorial();
     this.currentMissionPreset = preset;
     // 不能传 undefined：原生端 readBrowserLoadout() 恒为 undefined，会把玩家
     // 自定义装配静默重置成默认配置。
@@ -713,97 +737,128 @@ export class CombatBootstrap extends Component {
     this.nativeHud?.syncCombat(this.snapshot);
   };
 
+  /** 从设置进入新手教学：切到 tutorial 预设、重置战局并开启四步实时引导。 */
+  private readonly startTutorial = (): void => {
+    this.currentMissionPreset = 'tutorial';
+    const dataset = browserDataset();
+    if (dataset) dataset.missionPreset = 'tutorial';
+    this.tutorialActive = true;
+    this.tutorialStep = 0;
+    this.tutorialStartPosition = null;
+    this.resetSimulation(this.snapshot.loadout, 'tutorial');
+    this.shipPresenter?.sync(this.snapshot);
+    this.nativeHud?.syncCombat(this.snapshot);
+    this.publishTutorialStep();
+  };
+
+  private readonly stopTutorial = (): void => {
+    if (!this.tutorialActive) return;
+    this.tutorialActive = false;
+    this.nativeHud?.clearTutorialStep();
+    dispatchBrowserEvent('spacefight:tutorial-step', { clear: true });
+  };
+
   /**
-   * Cooperative matchmaking entry point driven by the web shell.
-   *
-   * The shell scans/renders QR codes; this scene only orchestrates the WebRTC
-   * transport. Commands:
-   *   void { action: 'host' }                      -> create a room, emit invite event
-   *   void { action: 'join', invite }              -> consume scanned host invite, emit answer
-   *   void { action: 'accept', invite }            -> host consumes guest answer
-   *   void { action: 'close' }                     -> tear down the session
-   * Events emitted:
-   *   spacefight:coop-invite  { room, name, invite }
-   *   spacefight:coop-answer  { invite }
-   *   spacefight:coop-state   { state, detail? }
+   * 教学进度按「已完成条件数」推进，不强制顺序：玩家先捡货再打靶也不会卡在某一步。
+   * 四步分别对应移动、击落靶机、回收物资、返航结算（最后一步正好看到星港券入账）。
    */
-  private readonly handleCoopCommand = async (event: Event): Promise<void> => {
-    if (typeof window === 'undefined') return;
-    const { action, invite, room, name } = (event as CustomEvent<{
-      action: 'host' | 'join' | 'accept' | 'close';
-      invite?: string;
-      room?: string;
-      name?: string;
-    }>).detail || {};
-    if (action === 'close') {
-      this.coopSession?.close();
-      this.coopSession = null;
-      dispatchBrowserEvent('spacefight:coop-state', { state: 'idle' });
+  private updateTutorialStep(): void {
+    if (!this.tutorialActive) return;
+    const state = this.snapshot;
+    if (!this.tutorialStartPosition) {
+      this.tutorialStartPosition = { ...state.player.position };
+    }
+    const start = this.tutorialStartPosition;
+    const position = state.player.position;
+    const moved = Math.hypot(
+      position.x - start.x, position.y - start.y, position.z - start.z,
+    ) > 6;
+    const done = [
+      moved,
+      state.mission.kills >= 1,
+      state.player.pickupsCollected >= 1,
+      state.navigation.docked,
+    ].filter(Boolean).length;
+    if (done === this.tutorialStep) return;
+    this.tutorialStep = done;
+    this.publishTutorialStep();
+  }
+
+  private publishTutorialStep(): void {
+    const total = TUTORIAL_STEP_KEYS.length;
+    const done = Math.min(this.tutorialStep, total);
+    const key = TUTORIAL_STEP_KEYS[Math.min(done, total - 1)];
+    this.nativeHud?.setTutorialStep(Math.min(done + 1, total), total, key);
+    dispatchBrowserEvent('spacefight:tutorial-step', {
+      current: Math.min(done + 1, total),
+      total,
+      key,
+      complete: done >= total,
+    });
+  }
+
+  /**
+   * 统一 WebSocket 联机入口：所有端（Android / HarmonyOS / web / 桌面）共用一套中继，
+   * 不再依赖 WebRTC / 网页壳 / DOM 事件。host 生成房间码，guest 输入房间码加入，
+   * 服务器按房间码配对并转发 CoopMessage（详见 WsCoopSession / server.js /coop）。
+   */
+  private genCoopRoomCode(): string {
+    const pool = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 去除易混字符
+    const target = (globalThis as { crypto?: { getRandomValues?: (a: Uint8Array) => Uint8Array } }).crypto;
+    const source = target?.getRandomValues
+      ? target.getRandomValues(new Uint8Array(6))
+      : Array.from({ length: 6 }, () => (Math.random() * 256) | 0);
+    let code = '';
+    for (const byte of Array.from(source as Iterable<number>)) code += pool[byte % pool.length];
+    return code;
+  }
+
+  private localCoopName(): string {
+    return 'Pilot';
+  }
+
+  private ensureCoopSession(): WsCoopSession {
+    if (this.coopSession) return this.coopSession;
+    const session = new WsCoopSession({
+      onRoomCode: (code) => {
+        this.coopCode = code;
+        this.nativeHud?.setCoopState('hosting', undefined, code);
+      },
+      onPeerJoin: (peer) => {
+        this.coopPeerName = peer.name;
+        this.nativeHud?.setCoopState('connected', `与 ${peer.name}（${peer.platform}）联机中`, this.coopCode);
+      },
+      onConnected: () => this.nativeHud?.setCoopState('connected', undefined, this.coopCode),
+      onState: (state, detail) => this.nativeHud?.setCoopState(state, detail, this.coopCode),
+    });
+    // presence 帧由 syncCoopNetwork 通过 activeCoopTransport 直接接收，这里仅保底。
+    session.onMessage(() => {});
+    this.coopSession = session;
+    return session;
+  }
+
+  private startCoopHost(): void {
+    this.coopSession?.close();
+    const room = this.genCoopRoomCode();
+    const session = this.ensureCoopSession();
+    session.host(room, this.localCoopName());
+  }
+
+  private startCoopJoinWithCode(code: string): void {
+    this.coopSession?.close();
+    const session = this.ensureCoopSession();
+    session.join(code, this.localCoopName());
+  }
+
+  /** 原生端无 window.prompt，HUD 会传入房间码；web 端缺输入框时回退到 prompt。 */
+  private startCoopJoin(): void {
+    if (typeof window !== 'undefined' && typeof window.prompt === 'function') {
+      const value = window.prompt('输入房间码加入联机');
+      if (value && value.trim()) this.startCoopJoinWithCode(value.trim().toUpperCase());
       return;
     }
-    let session = this.coopSession;
-    if (!session) {
-      session = new WebCoopSession({
-        onInvite: (payload) => dispatchBrowserEvent('spacefight:coop-invite', { session: payload }),
-        onAnswer: (payload) => dispatchBrowserEvent('spacefight:coop-answer', { session: payload }),
-        onConnected: () => dispatchBrowserEvent('spacefight:coop-connected', {}),
-        onState: (state, detail) => dispatchBrowserEvent('spacefight:coop-state', { state, detail }),
-      }, { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-      this.coopSession = session;
-    }
-    try {
-      if (action === 'host') {
-        await session.host(room || 'tower-1', name || 'Host');
-      } else if (action === 'join' && typeof invite === 'string') {
-        await session.join(invite);
-      } else if (action === 'accept' && typeof invite === 'string') {
-        await session.acceptAnswer(invite);
-      }
-    } catch (error: unknown) {
-      dispatchBrowserEvent('spacefight:coop-state', { state: 'error', detail: String(error) });
-    }
-  };
-
-  /** HUD 联机按钮统一走已有的 DOM 事件通道，避免再写一套会话管理。 */
-  private sendCoopCommand(detail: {
-    action: 'host' | 'join' | 'accept' | 'close';
-    invite?: string;
-    room?: string;
-    name?: string;
-  }): void {
-    if (typeof window === 'undefined') return;
-    dispatchBrowserEvent('spacefight:coop-command', detail);
+    this.nativeHud?.setCoopState('error', '请先输入房间码');
   }
-
-  /** 扫码/粘贴由浏览器侧提供；native 无 WebRTC，按钮已禁用，不会走到这里。 */
-  private promptCoopCode(kind: 'join' | 'accept'): string | null {
-    if (typeof window === 'undefined' || typeof window.prompt !== 'function') return null;
-    const value = window.prompt(kind === 'join' ? '粘贴主机邀请码' : '粘贴客机应答码');
-    return value && value.trim() ? value.trim() : null;
-  }
-
-  private readonly handleCoopInvite = (event: Event): void => {
-    this.coopCode = String((event as CustomEvent<{ session?: string }>).detail?.session || '');
-    this.nativeHud?.setCoopState('hosting', undefined, this.coopCode);
-  };
-
-  private readonly handleCoopAnswer = (event: Event): void => {
-    this.coopCode = String((event as CustomEvent<{ session?: string }>).detail?.session || '');
-    this.nativeHud?.setCoopState('joining', undefined, this.coopCode);
-  };
-
-  private readonly handleCoopConnected = (): void => {
-    this.nativeHud?.setCoopState('connected', undefined, this.coopCode);
-  };
-
-  private readonly handleCoopState = (event: Event): void => {
-    const detail = (event as CustomEvent<{ state?: string; detail?: string }>).detail || {};
-    this.nativeHud?.setCoopState(
-      (detail.state as CoopHudState) || 'idle',
-      detail.detail,
-      this.coopCode,
-    );
-  };
 
   /** 前哨站内服务：返航不再自动回满三量，玩家花星港券决定修哪一项。 */
   private readonly applyStationService = (service: StationServiceId): void => {
@@ -868,10 +923,21 @@ export class CombatBootstrap extends Component {
     this.pendingBrowserCombatEvents = [];
     this.dockedAtOutpost = true;
     this.snapshot = this.simulation.serviceAtOutpost();
-    awardStarportTickets(
-      this.snapshot.navigation.securedCargoValue,
+    // 结算必须让玩家「看得见入账」：旧版静默发券且货值 ÷5，玩家只看到买东西在扣钱，
+    // 体感就是星港券只出不入。现在按货值 + 击杀发券（含保底），并把 +N 推给 HUD。
+    const cargoValue = this.snapshot.navigation.securedCargoValue;
+    const kills = this.snapshot.mission.kills;
+    const balanceBefore = loadEconomy().starportTickets;
+    const balanceAfter = awardStarportTickets(
+      cargoValue,
       `${this.snapshot.mission.id}:${this.snapshot.tick}:${this.snapshot.player.score}`,
+      kills,
     );
+    const gain = balanceAfter.starportTickets - balanceBefore;
+    this.nativeHud?.showTicketSettlement(gain);
+    dispatchBrowserEvent('spacefight:tickets-awarded', {
+      amount: gain, cargoValue, kills, balance: balanceAfter.starportTickets,
+    });
     this.gameAudio?.sync(this.snapshot);
     this.lootPresenter?.sync(this.snapshot, 0);
     this.shipPresenter?.sync(this.snapshot);
@@ -1390,6 +1456,8 @@ export class CombatBootstrap extends Component {
   }
 
   private dispatchCombatState(deltaTime: number, force = false): void {
+    // 教学提示按帧判定条件（位移/击落/拾取/停靠），放在节流 return 之前。
+    this.updateTutorialStep();
     // 原生端 HUD 必须按帧刷新：此前 native 在这里直接 return，HUD 只在少数事件点
     // （换装/换任务/进出前哨）同步，导致返航进度环、前哨距离、血条等完全不实时 →
     // 表现为「返航没有动画」「不知道离前哨多远、进不去」。这里给原生端补上按帧同步。
@@ -1600,9 +1668,9 @@ export class CombatBootstrap extends Component {
       // 拉近追尾距离：旧版 10 单位 + FOV 62 让机体只占画面中央很小一点，
       // 配合 ShipPresenter 的 COMBAT_VISUAL_SCALE 让玩家舰真正可辨、看得见涂装。
       : new Vec3(
-        player.position.x - aimForward.x * 7.2,
-        player.position.y - aimForward.y * 3 + 2.6,
-        player.position.z - aimForward.z * 7.2,
+        player.position.x - aimForward.x * 11.0,
+        player.position.y - aimForward.y * 3 + 3.2,
+        player.position.z - aimForward.z * 11.0,
       );
     // Reactive feel: recede the camera along aim on recoil and rattle it on impact.
     const recoil = this.recoilAmount();
