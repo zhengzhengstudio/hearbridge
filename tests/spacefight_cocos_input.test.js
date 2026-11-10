@@ -645,6 +645,14 @@ test('touch screen roles match the visible landscape combat controls', () => {
     const gap = Math.hypot(left.x - right.x, left.y - right.y);
     assert.ok(gap >= left.radius + right.radius, `${left.role} overlaps ${right.role}`);
   }
+
+  const ability = controls.find((control) => control.role === 'deviceAbility');
+  assert.ok(ability, '触屏必须有战术设备主动技能键');
+  for (const other of controls) {
+    if (other === ability) continue;
+    const gap = Math.hypot(ability.x - other.x, ability.y - other.y);
+    assert.ok(gap >= ability.radius + other.radius, `deviceAbility overlaps ${other.role}`);
+  }
 });
 
 test('touch action routing can use measured visual control circles', () => {

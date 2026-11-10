@@ -323,3 +323,82 @@ export function behaviorForWeaponId(id: string): WeaponBehavior {
     ? BEHAVIOR_BY_PROJECTILE_ID[id]
     : STANDARD_BEHAVIOR;
 }
+
+/**
+ * 战术设备主动技能表（玩法差异化第二阶段）。
+ *
+ * 此前 8 个战术设备全是被动倍率：装上就常驻，玩家在战斗中没有任何可按的东西，
+ * 「带哪个设备」只影响数值，不影响打法。现在每个设备保留原有被动加成，
+ * 另外获得一个独立冷却、边沿触发、效果彼此完全不同的主动技能。
+ *
+ * ⚠️ 基线约束：不按技能键时模拟行为逐值不变；技能只在 `deviceAbility` 的
+ * 上升沿触发一次，长按不会连发；冷却与能量任一不足都静默失败（不改变任何状态）。
+ */
+export type DeviceAbilityKind =
+  | 'fire-control'    // 火控锁定：短时伤害放大
+  | 'field-repair'    // 应急抢修：立即回血 + 持续再生
+  | 'energy-injection'// 能量灌注：立即回满 + 短时能耗减半
+  | 'tractor-pulse'   // 牵引脉冲：把半径内货物一次性拉进舱
+  | 'shield-surge'    // 护盾过载：立即补盾 + 短时减伤
+  | 'ecm-burst'       // 全域干扰：敌人减速、开火变慢
+  | 'overclock'       // 极限超频：射速 / 移速暴涨，代价是护盾停充
+  | 'phantom-decoy';  // 幻影诱饵：敌人丢失目标，停追停火
+
+export interface DeviceAbilityDefinition {
+  readonly id: TacticalDeviceId;
+  readonly kind: DeviceAbilityKind;
+  /** 装配台 / HUD 技能名的本地化键 */
+  readonly labelKey: string;
+  /** 冷却秒数（从按下瞬间开始计） */
+  readonly cooldown: number;
+  /** 触发所需能量 */
+  readonly energyCost: number;
+  /** 持续效果秒数；0 表示一次性脉冲 */
+  readonly duration: number;
+  /** 主效果参数，含义由 kind 决定 */
+  readonly magnitude: number;
+  /** 立即结算量（回血 / 回盾 / 回能）；0 表示没有立即结算 */
+  readonly immediate: number;
+}
+
+export const DEVICE_ABILITIES: Readonly<Record<TacticalDeviceId, DeviceAbilityDefinition>> = {
+  targeter: {
+    id: 'targeter', kind: 'fire-control', labelKey: 'ability.targeter',
+    cooldown: 11, energyCost: 14, duration: 6, magnitude: 1.55, immediate: 0,
+  },
+  repair: {
+    id: 'repair', kind: 'field-repair', labelKey: 'ability.repair',
+    cooldown: 14, energyCost: 16, duration: 5, magnitude: 3.2, immediate: 26,
+  },
+  fabricator: {
+    id: 'fabricator', kind: 'energy-injection', labelKey: 'ability.fabricator',
+    cooldown: 12, energyCost: 0, duration: 5, magnitude: 0.5, immediate: 999,
+  },
+  collector: {
+    id: 'collector', kind: 'tractor-pulse', labelKey: 'ability.collector',
+    cooldown: 10, energyCost: 12, duration: 0, magnitude: 28, immediate: 0,
+  },
+  aegis: {
+    id: 'aegis', kind: 'shield-surge', labelKey: 'ability.aegis',
+    cooldown: 15, energyCost: 18, duration: 5, magnitude: 0.45, immediate: 42,
+  },
+  jammer: {
+    id: 'jammer', kind: 'ecm-burst', labelKey: 'ability.jammer',
+    cooldown: 13, energyCost: 16, duration: 6, magnitude: 0.45, immediate: 0,
+  },
+  overclock: {
+    id: 'overclock', kind: 'overclock', labelKey: 'ability.overclock',
+    cooldown: 12, energyCost: 10, duration: 6, magnitude: 1.7, immediate: 0,
+  },
+  decoy: {
+    id: 'decoy', kind: 'phantom-decoy', labelKey: 'ability.decoy',
+    cooldown: 14, energyCost: 15, duration: 5, magnitude: 0, immediate: 0,
+  },
+};
+
+/** 未知 / 损坏的存档 id 一律回落到默认设备，避免 undefined 传播到模拟层。 */
+export function deviceAbilityFor(id: TacticalDeviceId): DeviceAbilityDefinition {
+  return owns(DEVICE_ABILITIES, id)
+    ? DEVICE_ABILITIES[id]
+    : DEVICE_ABILITIES[DEFAULT_LOADOUT.device];
+}

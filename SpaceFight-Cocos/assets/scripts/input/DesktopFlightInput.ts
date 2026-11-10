@@ -26,7 +26,7 @@ type PointerCaptureGuard = () => boolean;
 const GAMEPLAY_KEYS = new Set([
   'KeyW', 'KeyA', 'KeyS', 'KeyD',
   'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
-  'ShiftLeft', 'ShiftRight', 'Space', 'KeyQ', 'KeyE', 'KeyR',
+  'ShiftLeft', 'ShiftRight', 'Space', 'KeyQ', 'KeyE', 'KeyF', 'KeyR',
   'Enter', 'NumpadEnter',
   'F2', 'Escape',
 ]);
@@ -110,6 +110,8 @@ export class DesktopFlightInput {
       secondaryFire: this.secondaryFire || this.keys.has('KeyQ'),
       // 主副武器互换：E 键，战斗中一键切换主炮 / 副武器火力配置。
       swapWeapons: this.keys.has('KeyE'),
+      // 战术设备主动技能：F 键（边沿触发由 CombatSimulation 负责，这里只报按住状态）。
+      deviceAbility: this.keys.has('KeyF'),
       cameraToggle: this.cameraTogglePending,
       pause: this.pausePending,
       returnRequested: this.keys.has('KeyR'),

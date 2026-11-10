@@ -109,6 +109,9 @@ export function touchActionLayout(
     // 主副武器互换按钮：放在副武器左侧，避免与右侧主炮 / 加速键重叠
     { role: 'swapWeapons', x: secondaryEdge - (92 * sizedScale), y: height - safe.bottom - (82 * sizedScale), radius: 34 * sizedScale },
     { role: 'boost', x: actionEdge, y: height - safe.bottom - (170 * sizedScale), radius: 40 * sizedScale },
+    // 战术设备主动技能：放在副武器左上方，与推进 / 互换 / 副武器键均不重叠，
+    // 同时对齐 Web 触屏 HUD 的 #AbilityControl 视觉位置。
+    { role: 'deviceAbility', x: secondaryEdge - (92 * sizedScale), y: height - safe.bottom - (250 * sizedScale), radius: 32 * sizedScale },
     { role: 'cameraToggle', x: utilityEdge, y: safe.top + (40 * sizedScale), radius: 29 * sizedScale },
     { role: 'pause', x: pauseEdge, y: safe.top + (40 * sizedScale), radius: 29 * sizedScale },
   ];

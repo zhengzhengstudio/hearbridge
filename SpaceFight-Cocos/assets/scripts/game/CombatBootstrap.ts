@@ -1515,6 +1515,7 @@ export class CombatBootstrap extends Component {
       maxShield: this.snapshot.player.maxShield,
       maxEnergy: this.snapshot.player.maxEnergy,
       weapon: this.snapshot.loadout.weapon,
+      deviceAbility: { ...this.snapshot.deviceAbility },
       kills: this.snapshot.mission.kills,
       requiredKills: this.snapshot.mission.requiredKills,
       paused: this.snapshot.paused,

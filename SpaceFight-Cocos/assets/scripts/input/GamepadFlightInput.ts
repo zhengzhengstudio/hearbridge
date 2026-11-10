@@ -134,6 +134,8 @@ export class GamepadFlightInput {
       returnRequested: pressed(1),
       // X 键（按钮 2）战斗中主副武器互换，与桌面 E 键一致。
       swapWeapons: pressed(2),
+      // RB（按钮 5）释放战术设备技能，与桌面 F 键一致。
+      deviceAbility: pressed(5),
       // A 键确认"继续深入"，与桌面 Enter / 触屏按钮保持一致。
       advanceRequested: justPressed(0),
     });

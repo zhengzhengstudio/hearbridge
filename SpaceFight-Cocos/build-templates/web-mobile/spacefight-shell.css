@@ -461,6 +461,27 @@ body[data-playing="true"] #CombatHud { display: block; }
 .weapon-readout b { font-size: 13px; font-weight: 650; }
 .weapon-readout > i { color: var(--accent); font: 700 9px/1 ui-monospace, monospace; }
 
+/* 战术设备主动技能：就绪 / 冷却 / 生效中三态随 combat-state 实时切换 */
+.ability-readout {
+  position: absolute;
+  bottom: calc(96px + var(--safe-bottom));
+  left: 50%;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  background: rgba(4, 11, 15, 0.78);
+  transform: translateX(-50%);
+  font-variant-numeric: tabular-nums;
+}
+.ability-readout small { color: var(--muted); font: 600 8px/1 ui-monospace, monospace; letter-spacing: 0.08em; }
+.ability-readout b { color: var(--text); font-size: 11px; font-weight: 650; }
+.ability-readout > i { color: var(--accent); font: 700 9px/1 ui-monospace, monospace; font-style: normal; }
+body[data-ability-state="active"] .ability-readout > i { color: var(--amber); }
+body[data-ability-state="cooldown"] .ability-readout > i { color: var(--muted); }
+
 .desktop-flight-hint {
   position: absolute;
   right: calc(24px + var(--safe-right));
@@ -603,6 +624,14 @@ body[data-input-mode="touch"] .desktop-only { display: none; }
   bottom: calc(160px + var(--safe-bottom));
   width: 92px;
   height: 92px;
+}
+
+#AbilityControl {
+  right: calc(152px + var(--safe-right));
+  bottom: calc(160px + var(--safe-bottom));
+  width: 76px;
+  height: 76px;
+  border-color: rgba(240, 168, 60, 0.62);
 }
 
 #CameraControl,
@@ -1068,6 +1097,12 @@ body[data-mission="failed"] #MissionFailed { display: grid; }
     bottom: calc(115px + var(--safe-bottom));
     width: 68px;
     height: 68px;
+  }
+  #AbilityControl {
+    right: calc(116px + var(--safe-right));
+    bottom: calc(115px + var(--safe-bottom));
+    width: 62px;
+    height: 62px;
   }
   #CameraControl,
   #PauseControl {

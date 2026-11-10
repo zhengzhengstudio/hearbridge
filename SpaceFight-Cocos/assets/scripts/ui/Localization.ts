@@ -82,7 +82,7 @@ const zhCN = {
   'metric.charge': '充能 +{value}%', 'metric.range': '范围 {value}米', 'metric.recovery': '回收 {value}米', 'metric.shieldBoost': '回盾 +{value}%',
   'summary.primary': '主炮 {damage} / {rate} · 副武器 {secondary}',
   'summary.defense': '机体 {health} · 护盾 {shield} · 速度 ×{speed} · 能量 ×{energy} · 护盾回复 {regen}/秒',
-  'touch.fire': '开火', 'touch.alt': '副武器', 'touch.boost': '加速', 'touch.view': '视角', 'touch.swap': '切换', 'touch.pause': '暂停',
+  'touch.fire': '开火', 'touch.alt': '副武器', 'touch.boost': '加速', 'touch.view': '视角', 'touch.swap': '切换', 'touch.ability': '技能', 'touch.pause': '暂停',
   'touch.return': '返航', 'touch.dock': '停靠', 'navigation.dockReady': '碎光前哨 · 可停靠  R',
   'navigation.outpostRange': '前哨距离 {range}米', 'expedition.primary': '主要目标', 'expedition.decision': '继续深入或返航', 'objective.advanceHint': '空格 / 回车 继续深入 · 轻点 返航 撤离', 'navigation.returning': '轻点 返航 撤离 · 开火或加速将取消',
   'expedition.deepZone': '深区行动', 'expedition.return': '返航中', 'objective.sectorWave': '{sector} · 第 {wave} 波', 'cargo.capacity': '货舱 {used}/{capacity}',
@@ -145,6 +145,9 @@ const zhCN = {
   // 武器行为标签：选枪时就能看出打法区别，而不是只看伤害数字
   'behavior.standard': '常规直射', 'behavior.spread': '扇形散射', 'behavior.pierce': '贯穿',
   'behavior.splash': '范围爆破', 'behavior.homing': '追踪制导', 'behavior.jam': '干扰减速',
+  'ability.targeter': '火控锁定', 'ability.repair': '应急抢修', 'ability.fabricator': '能量灌注', 'ability.collector': '牵引脉冲',
+  'ability.aegis': '护盾过载', 'ability.jammer': '全域干扰', 'ability.overclock': '极限超频', 'ability.decoy': '幻影诱饵',
+  'ability.ready': '就绪', 'ability.cooldown': '冷却', 'ability.active': '生效中',
 } as const;
 
 export type CombatMessageKey = keyof typeof zhCN;
@@ -195,7 +198,7 @@ const zhTW: CombatMessages = {
   'metric.charge': '充能 +{value}%', 'metric.range': '範圍 {value}公尺', 'metric.recovery': '回收 {value}公尺', 'metric.shieldBoost': '回盾 +{value}%',
   'summary.primary': '主炮 {damage} / {rate} · 副武器 {secondary}',
   'summary.defense': '機體 {health} · 護盾 {shield} · 速度 ×{speed} · 能量 ×{energy} · 護盾回復 {regen}/秒',
-  'touch.fire': '開火', 'touch.alt': '副武器', 'touch.boost': '加速', 'touch.view': '視角', 'touch.swap': '切換', 'touch.pause': '暫停',
+  'touch.fire': '開火', 'touch.alt': '副武器', 'touch.boost': '加速', 'touch.view': '視角', 'touch.swap': '切換', 'touch.ability': '技能', 'touch.pause': '暫停',
   'touch.return': '返航', 'touch.dock': '停靠', 'navigation.dockReady': '破光前哨 · 可停靠  R',
   'navigation.outpostRange': '前哨距離 {range}公尺', 'expedition.primary': '主要目標', 'expedition.decision': '繼續深入或返航', 'objective.advanceHint': '空白鍵 / Enter 繼續深入 · 輕點 返航 撤離', 'navigation.returning': '輕點 返航 撤離 · 開火或加速將取消',
   'expedition.deepZone': '深區行動', 'expedition.return': '返航中', 'objective.sectorWave': '{sector} · 第 {wave} 波', 'cargo.capacity': '貨艙 {used}/{capacity}',
@@ -246,6 +249,9 @@ const zhTW: CombatMessages = {
   'outpost.interior': '艙內物資', 'outpost.interiorBack': '返回結算', 'outpost.interiorEmpty': '本次沒有回收物資',
   'behavior.standard': '常規直射', 'behavior.spread': '扇形散射', 'behavior.pierce': '貫穿',
   'behavior.splash': '範圍爆破', 'behavior.homing': '追蹤導引', 'behavior.jam': '干擾減速',
+  'ability.targeter': '火控鎖定', 'ability.repair': '緊急搶修', 'ability.fabricator': '能量灌注', 'ability.collector': '牽引脈衝',
+  'ability.aegis': '護盾過載', 'ability.jammer': '全域干擾', 'ability.overclock': '極限超頻', 'ability.decoy': '幻影誘餌',
+  'ability.ready': '就緒', 'ability.cooldown': '冷卻', 'ability.active': '生效中',
 };
 
 const en: CombatMessages = {
@@ -327,7 +333,7 @@ const en: CombatMessages = {
   'metric.charge': 'CHARGE +{value}%', 'metric.range': 'RANGE {value}m', 'metric.recovery': 'SALVAGE {value}m', 'metric.shieldBoost': 'SHIELD REGEN +{value}%',
   'summary.primary': 'PRIMARY {damage} / {rate} · SECONDARY {secondary}',
   'summary.defense': 'HULL {health} · SHIELD {shield} · SPEED ×{speed} · ENERGY ×{energy} · REGEN {regen}/s',
-  'touch.fire': 'FIRE', 'touch.alt': 'ALT', 'touch.boost': 'BOOST', 'touch.view': 'VIEW', 'touch.swap': 'SWAP', 'touch.pause': 'PAUSE',
+  'touch.fire': 'FIRE', 'touch.alt': 'ALT', 'touch.boost': 'BOOST', 'touch.view': 'VIEW', 'touch.swap': 'SWAP', 'touch.ability': 'SKILL', 'touch.pause': 'PAUSE',
   'touch.return': 'RETURN', 'touch.dock': 'DOCK', 'navigation.dockReady': 'SHATTERED OUTPOST · DOCK READY  R',
   'navigation.outpostRange': 'OUTPOST {range}m', 'expedition.primary': 'PRIMARY OBJECTIVE', 'expedition.decision': 'CONTINUE OR RETURN', 'objective.advanceHint': 'SPACE / ENTER to push on · TAP EXTRACT', 'navigation.returning': 'TAP EXTRACT · firing or boosting cancels',
   'expedition.deepZone': 'DEEP-ZONE OPERATION', 'expedition.return': 'RETURNING', 'objective.sectorWave': '{sector} · WAVE {wave}', 'cargo.capacity': 'CARGO {used}/{capacity}',
@@ -386,6 +392,9 @@ const en: CombatMessages = {
   'outpost.interior': 'CARGO BAY', 'outpost.interiorBack': 'BACK TO SETTLEMENT', 'outpost.interiorEmpty': 'NO CARGO RECOVERED THIS RUN',
   'behavior.standard': 'STANDARD', 'behavior.spread': 'SPREAD', 'behavior.pierce': 'PIERCE',
   'behavior.splash': 'BLAST', 'behavior.homing': 'HOMING', 'behavior.jam': 'JAM',
+  'ability.targeter': 'FIRE CONTROL', 'ability.repair': 'FIELD REPAIR', 'ability.fabricator': 'ENERGY INJECTION', 'ability.collector': 'TRACTOR PULSE',
+  'ability.aegis': 'SHIELD SURGE', 'ability.jammer': 'ECM BURST', 'ability.overclock': 'OVERCLOCK', 'ability.decoy': 'PHANTOM DECOY',
+  'ability.ready': 'READY', 'ability.cooldown': 'COOLDOWN', 'ability.active': 'ACTIVE',
 };
 
 const ja: CombatMessages = localize(en, {
@@ -455,7 +464,7 @@ const ja: CombatMessages = localize(en, {
   'metric.charge': '充填 +{value}%', 'metric.range': '範囲 {value}m', 'metric.recovery': '回収 {value}m', 'metric.shieldBoost': 'シールド回復 +{value}%',
   'summary.primary': '主砲 {damage} / {rate} · 副武装 {secondary}',
   'summary.defense': '機体 {health} · シールド {shield} · 速度 ×{speed} · エネルギー ×{energy} · 回復 {regen}/秒',
-  'touch.fire': '射撃', 'touch.alt': '副武器', 'touch.boost': 'ブースト', 'touch.view': '視点', 'touch.swap': '切替', 'touch.pause': '停止',
+  'touch.fire': '射撃', 'touch.alt': '副武器', 'touch.boost': 'ブースト', 'touch.view': '視点', 'touch.swap': '切替', 'touch.ability': 'スキル', 'touch.pause': '停止',
   'touch.return': '帰還', 'touch.dock': '入港', 'navigation.dockReady': '破光前哨基地 · 入港可能  R',
   'navigation.outpostRange': '前哨基地まで {range}m', 'expedition.primary': '主要目標', 'expedition.decision': '続行または帰還', 'objective.advanceHint': 'スペース / Enter で続行 · 帰還をタップで離脱', 'navigation.returning': '帰還をタップ · 射撃またはブーストで中断',
   'expedition.deepZone': '深部作戦', 'expedition.return': '帰還中', 'objective.sectorWave': '{sector} · 第 {wave} ウェーブ', 'cargo.capacity': '貨物 {used}/{capacity}',
@@ -523,6 +532,9 @@ const ja: CombatMessages = localize(en, {
   'outpost.interior': '船内物資', 'outpost.interiorBack': '精算に戻る', 'outpost.interiorEmpty': '今回の回収物資はありません',
   'behavior.standard': '標準射撃', 'behavior.spread': '拡散扇形', 'behavior.pierce': '貫通',
   'behavior.splash': '範囲爆発', 'behavior.homing': '追尾誘導', 'behavior.jam': '妨害減速',
+  'ability.targeter': '火器管制', 'ability.repair': '緊急修理', 'ability.fabricator': 'エネルギー注入', 'ability.collector': '牽引パルス',
+  'ability.aegis': 'シールド過負荷', 'ability.jammer': '全域妨害', 'ability.overclock': '極限オーバークロック', 'ability.decoy': '幻影デコイ',
+  'ability.ready': '待機', 'ability.cooldown': '再充填', 'ability.active': '発動中',
 });
 const ko: CombatMessages = localize(en, {
   'slot.ship': '기체',
@@ -591,7 +603,7 @@ const ko: CombatMessages = localize(en, {
   'metric.charge': '충전 +{value}%', 'metric.range': '범위 {value}미터', 'metric.recovery': '회수 {value}미터', 'metric.shieldBoost': '실드 회복 +{value}%',
   'summary.primary': '주포 {damage} / {rate} · 보조 무기 {secondary}',
   'summary.defense': '기체 {health} · 실드 {shield} · 속도 ×{speed} · 에너지 ×{energy} · 회복 {regen}/초',
-  'touch.fire': '발사', 'touch.alt': '보조', 'touch.boost': '가속', 'touch.view': '시점', 'touch.swap': '전환', 'touch.pause': '정지',
+  'touch.fire': '발사', 'touch.alt': '보조', 'touch.boost': '가속', 'touch.view': '시점', 'touch.swap': '전환', 'touch.ability': '스킬', 'touch.pause': '정지',
   'touch.return': '귀환', 'touch.dock': '도킹', 'navigation.dockReady': '파광 전초기지 · 도킹 가능  R',
   'navigation.outpostRange': '전초기지 {range}m', 'expedition.primary': '주요 목표', 'expedition.decision': '계속 진행 또는 귀환', 'objective.advanceHint': '스페이스 / Enter 로 진행 · 귀환 탭으로 이탈', 'navigation.returning': '귀환 탭 · 발사 또는 가속 시 취소',
   'expedition.deepZone': '심층 작전', 'expedition.return': '귀환 중', 'objective.sectorWave': '{sector} · {wave} 웨이브', 'cargo.capacity': '화물 {used}/{capacity}',
@@ -659,6 +671,9 @@ const ko: CombatMessages = localize(en, {
   'outpost.interior': '함내 화물', 'outpost.interiorBack': '정산으로 돌아가기', 'outpost.interiorEmpty': '이번 회차 회수 화물 없음',
   'behavior.standard': '기본 사격', 'behavior.spread': '산탄 확산', 'behavior.pierce': '관통',
   'behavior.splash': '범위 폭발', 'behavior.homing': '유도 추적', 'behavior.jam': '교란 감속',
+  'ability.targeter': '사격 통제', 'ability.repair': '긴급 수리', 'ability.fabricator': '에너지 주입', 'ability.collector': '견인 파동',
+  'ability.aegis': '실드 과부하', 'ability.jammer': '전역 교란', 'ability.overclock': '극한 오버클록', 'ability.decoy': '환영 미끼',
+  'ability.ready': '대기', 'ability.cooldown': '재충전', 'ability.active': '발동 중',
 });
 const de: CombatMessages = localize(en, {
   'home.profile': 'OFFLINE-PROFIL · LOKALE EXPEDITION', 'home.operations': 'EINSÄTZE', 'home.hangarNav': 'HANGAR', 'home.cargo': 'FRACHT', 'home.settings': 'EINSTELLUNGEN',
@@ -739,7 +754,7 @@ const es: CombatMessages = localize(en, {
   'metric.charge': 'CARGA +{value}%', 'metric.range': 'ALCANCE {value} m', 'metric.recovery': 'RECOGIDA {value} m', 'metric.shieldBoost': 'REGEN. DE ESCUDO +{value}%',
   'summary.primary': 'PRINCIPAL {damage} / {rate} · SECUNDARIA {secondary}',
   'summary.defense': 'CASCO {health} · ESCUDO {shield} · VELOCIDAD ×{speed} · ENERGÍA ×{energy} · REGEN. {regen}/s',
-  'touch.fire': 'FUEGO', 'touch.alt': 'SEC.', 'touch.boost': 'TURBO', 'touch.view': 'VISTA', 'touch.swap': 'CAMBIO', 'touch.pause': 'PAUSA',
+  'touch.fire': 'FUEGO', 'touch.alt': 'SEC.', 'touch.boost': 'TURBO', 'touch.view': 'VISTA', 'touch.swap': 'CAMBIO', 'touch.ability': 'HABILIDAD', 'touch.pause': 'PAUSA',
   'touch.return': 'REGRESAR', 'touch.dock': 'ACOPLAR', 'navigation.dockReady': 'PUESTO AVANZADO · ACOPLAMIENTO LISTO  R',
   'navigation.outpostRange': 'PUESTO A {range}m', 'expedition.primary': 'OBJETIVO PRINCIPAL', 'expedition.decision': 'CONTINUAR O REGRESAR', 'objective.advanceHint': 'ESPACIO / ENTER para avanzar · TOCA EXTRAER', 'navigation.returning': 'TOCA EXTRAER · disparar o acelerar cancela',
   'expedition.deepZone': 'OPERACIÓN PROFUNDA', 'expedition.return': 'REGRESANDO', 'objective.sectorWave': '{sector} · OLEADA {wave}', 'cargo.capacity': 'CARGA {used}/{capacity}',
@@ -807,6 +822,9 @@ const es: CombatMessages = localize(en, {
   'outpost.interior': 'BODEGA', 'outpost.interiorBack': 'VOLVER A LIQUIDACIÓN', 'outpost.interiorEmpty': 'SIN CARGA RECUPERADA',
   'behavior.standard': 'DISPARO ESTÁNDAR', 'behavior.spread': 'ABANICO', 'behavior.pierce': 'PERFORACIÓN',
   'behavior.splash': 'EXPLOSIÓN', 'behavior.homing': 'GUIADO', 'behavior.jam': 'INTERFERENCIA',
+  'ability.targeter': 'CONTROL DE TIRO', 'ability.repair': 'REPARACIÓN', 'ability.fabricator': 'INYECCIÓN DE ENERGÍA', 'ability.collector': 'PULSO TRACTOR',
+  'ability.aegis': 'SOBRECARGA DE ESCUDO', 'ability.jammer': 'PULSO ECM', 'ability.overclock': 'SUPERFRECUENCIA', 'ability.decoy': 'SEÑUELO FANTASMA',
+  'ability.ready': 'LISTO', 'ability.cooldown': 'RECARGA', 'ability.active': 'ACTIVO',
 });
 const ptBR: CombatMessages = localize(en, {
   'slot.ship': 'AERONAVE',
@@ -875,7 +893,7 @@ const ptBR: CombatMessages = localize(en, {
   'metric.charge': 'RECARGA +{value}%', 'metric.range': 'ALCANCE {value} m', 'metric.recovery': 'COLETA {value} m', 'metric.shieldBoost': 'REGEN. DE ESCUDO +{value}%',
   'summary.primary': 'PRINCIPAL {damage} / {rate} · SECUNDÁRIA {secondary}',
   'summary.defense': 'CASCO {health} · ESCUDO {shield} · VELOCIDADE ×{speed} · ENERGIA ×{energy} · REGEN. {regen}/s',
-  'touch.fire': 'ATIRAR', 'touch.alt': 'SEC.', 'touch.boost': 'IMPULSO', 'touch.view': 'VISÃO', 'touch.swap': 'TROCA', 'touch.pause': 'PAUSA',
+  'touch.fire': 'ATIRAR', 'touch.alt': 'SEC.', 'touch.boost': 'IMPULSO', 'touch.view': 'VISÃO', 'touch.swap': 'TROCA', 'touch.ability': 'HABILIDADE', 'touch.pause': 'PAUSA',
   'touch.return': 'RETORNAR', 'touch.dock': 'ATRACAR', 'navigation.dockReady': 'POSTO AVANÇADO · ATRACAÇÃO PRONTA  R',
   'navigation.outpostRange': 'POSTO A {range}m', 'expedition.primary': 'OBJETIVO PRINCIPAL', 'expedition.decision': 'CONTINUAR OU RETORNAR', 'objective.advanceHint': 'ESPAÇO / ENTER para avançar · TOQUE EM EXTRAIR', 'navigation.returning': 'TOQUE EM EXTRAIR · atirar ou impulsionar cancela',
   'expedition.deepZone': 'OPERAÇÃO PROFUNDA', 'expedition.return': 'RETORNANDO', 'objective.sectorWave': '{sector} · ONDA {wave}', 'cargo.capacity': 'CARGA {used}/{capacity}',
@@ -943,6 +961,9 @@ const ptBR: CombatMessages = localize(en, {
   'outpost.interior': 'PORÃO DE CARGA', 'outpost.interiorBack': 'VOLTAR AO ACERTO', 'outpost.interiorEmpty': 'SEM CARGA NESTA MISSÃO',
   'behavior.standard': 'TIRO PADRÃO', 'behavior.spread': 'LEQUE', 'behavior.pierce': 'PERFURAÇÃO',
   'behavior.splash': 'DETONAÇÃO', 'behavior.homing': 'TELEGUIADO', 'behavior.jam': 'INTERFERÊNCIA',
+  'ability.targeter': 'CONTROLE DE TIRO', 'ability.repair': 'REPARO DE CAMPO', 'ability.fabricator': 'INJEÇÃO DE ENERGIA', 'ability.collector': 'PULSO TRATOR',
+  'ability.aegis': 'SURTO DE ESCUDO', 'ability.jammer': 'RAJADA ECM', 'ability.overclock': 'SUPERCLOCK', 'ability.decoy': 'ISCA FANTASMA',
+  'ability.ready': 'PRONTO', 'ability.cooldown': 'RECARGA', 'ability.active': 'ATIVO',
 });
 const fr: CombatMessages = localize(en, {
   'slot.ship': 'APPAREIL',
@@ -1011,7 +1032,7 @@ const fr: CombatMessages = localize(en, {
   'metric.charge': 'RECHARGE +{value}%', 'metric.range': 'PORTÉE {value} m', 'metric.recovery': 'RÉCUPÉRATION {value} m', 'metric.shieldBoost': 'RÉGÉN. BOUCLIER +{value}%',
   'summary.primary': 'PRINCIPALE {damage} / {rate} · SECONDAIRE {secondary}',
   'summary.defense': 'COQUE {health} · BOUCLIER {shield} · VITESSE ×{speed} · ÉNERGIE ×{energy} · RÉGÉN. {regen}/s',
-  'touch.fire': 'TIR', 'touch.alt': 'SEC.', 'touch.boost': 'PROPULSION', 'touch.view': 'VUE', 'touch.swap': 'ÉCHANGE', 'touch.pause': 'ARRÊT',
+  'touch.fire': 'TIR', 'touch.alt': 'SEC.', 'touch.boost': 'PROPULSION', 'touch.view': 'VUE', 'touch.swap': 'ÉCHANGE', 'touch.ability': 'COMPÉTENCE', 'touch.pause': 'ARRÊT',
   'touch.return': 'RETOUR', 'touch.dock': 'AMARRER', 'navigation.dockReady': 'AVANT-POSTE · AMARRAGE POSSIBLE  R',
   'navigation.outpostRange': 'AVANT-POSTE À {range}m', 'expedition.primary': 'OBJECTIF PRINCIPAL', 'expedition.decision': 'CONTINUER OU REVENIR', 'objective.advanceHint': 'ESPACE / ENTRÉE pour avancer · TOUCHEZ EXTRAIRE', 'navigation.returning': 'TOUCHEZ EXTRAIRE · tirer ou accélérer annule',
   'expedition.deepZone': 'OPÉRATION PROFONDE', 'expedition.return': 'RETOUR EN COURS', 'objective.sectorWave': '{sector} · VAGUE {wave}', 'cargo.capacity': 'CARGAISON {used}/{capacity}',
@@ -1080,6 +1101,9 @@ const fr: CombatMessages = localize(en, {
   'outpost.interior': 'SOUTE', 'outpost.interiorBack': 'RETOUR AU DÉCOMPTE', 'outpost.interiorEmpty': 'AUCUN FRET RÉCUPÉRÉ',
   'behavior.standard': 'TIR STANDARD', 'behavior.spread': 'ÉVENTAIL', 'behavior.pierce': 'PERFORANT',
   'behavior.splash': 'SOUFFLE', 'behavior.homing': 'AUTOGUIDÉ', 'behavior.jam': 'BROUILLAGE',
+  'ability.targeter': 'CONTRÔLE DE TIR', 'ability.repair': 'RÉPARATION', 'ability.fabricator': 'INJECTION ÉNERGÉTIQUE', 'ability.collector': 'IMPULSION TRACTEUR',
+  'ability.aegis': 'SURCHARGE DE BOUCLIER', 'ability.jammer': 'RAFALE ECM', 'ability.overclock': 'SURCADENCE', 'ability.decoy': 'LEURRE FANTÔME',
+  'ability.ready': 'PRÊT', 'ability.cooldown': 'RECHARGE', 'ability.active': 'ACTIF',
 });
 
 function localize(base: CombatMessages, overrides: Partial<CombatMessages>): CombatMessages {

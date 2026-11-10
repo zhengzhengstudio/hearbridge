@@ -32,9 +32,18 @@ import {
   UTILITY_MODULES,
   WEAPON_CATALOG,
   behaviorForWeaponId,
+  deviceAbilityFor,
   resolveLoadout,
 } from './WeaponCatalog';
-import type { CombatLoadout, ResolvedCombatLoadout, WeaponDefinition, WeaponSlot } from './WeaponCatalog';
+import type {
+  CombatLoadout,
+  DeviceAbilityDefinition,
+  DeviceAbilityKind,
+  ResolvedCombatLoadout,
+  TacticalDeviceId,
+  WeaponDefinition,
+  WeaponSlot,
+} from './WeaponCatalog';
 
 /**
  * 决策窗口超过该秒数后，HUD 提示玩家尽快决定。
@@ -220,6 +229,8 @@ interface EnemyState {
   jammedUntil?: number;
   jamSpeedScale?: number;
   jamFireRateScale?: number;
+  /** 幻影诱饵生效期间敌人丢失目标：停追停火，到 decoyUntil 自动恢复。 */
+  decoyUntil?: number;
 }
 
 interface AimSolution {
@@ -254,7 +265,7 @@ interface ProjectileState {
 export type CombatEventSource = 'player' | 'enemy' | 'world';
 export type CombatEventType = 'hit' | 'destroyed' | 'player-hit' | 'shield-break' | 'wave-start'
   | 'rivalry-start' | 'rivalry-end' | 'ion-storm' | 'supply-drop' | 'weapon-fired' | 'outpost-serviced'
-  | 'outpost-service' | 'upgrade-activated' | 'weapons-swapped';
+  | 'outpost-service' | 'upgrade-activated' | 'weapons-swapped' | 'device-activated';
 
 export interface CombatEvent {
   readonly id: number;
@@ -312,6 +323,20 @@ export interface CombatSnapshot {
   cameraMode: 'chase' | 'cockpit';
   /** 主副武器是否已互换（true 时主开火键打副武器） */
   weaponsSwapped: boolean;
+  /**
+   * 战术设备主动技能的运行状态，HUD 用来显示「技能名 / 就绪 / 冷却 / 生效中」。
+   * 不按技能键时这里只是恒定的就绪态，不改变任何战斗数值。
+   */
+  deviceAbility: {
+    id: TacticalDeviceId;
+    kind: DeviceAbilityKind;
+    labelKey: string;
+    cooldown: number;
+    cooldownRemaining: number;
+    remaining: number;
+    active: boolean;
+    ready: boolean;
+  };
   aimPoint: Vector3;
   loadout: ResolvedCombatLoadout;
   player: {
@@ -640,6 +665,141 @@ export class CombatSimulation {
   private combatEvents: CombatEvent[] = [];
   private pickups: PickupState[];
   private cooldowns: Record<WeaponSlot, number> = { primary: 0, secondary: 0 };
+
+  /** 战术设备主动技能运行状态（数据表见 DEVICE_ABILITIES）。 */
+  private deviceCooldown = 0;
+  private deviceRemaining = 0;
+  private deviceActiveId: TacticalDeviceId | null = null;
+  private deviceHeld = false;
+
+  private abilityDefinition() {
+    return deviceAbilityFor(this.loadout.device);
+  }
+
+  /**
+   * 当前生效的技能倍率。未激活时每一项都是恒等元，
+   * 所以所有接入点乘上它之后，不按技能键的模拟结果与改造前逐值一致。
+   */
+  private abilityEffects(): {
+    damage: number;
+    fireRate: number;
+    energyCost: number;
+    speed: number;
+    incomingDamage: number;
+    shieldRecharge: number;
+    regen: number;
+  } {
+    const idle = {
+      damage: 1, fireRate: 1, energyCost: 1, speed: 1,
+      incomingDamage: 1, shieldRecharge: 1, regen: 0,
+    };
+    if (this.deviceRemaining <= 0 || this.deviceActiveId !== this.loadout.device) return idle;
+    const definition = this.abilityDefinition();
+    switch (definition.kind) {
+      case 'fire-control': return { ...idle, damage: definition.magnitude };
+      case 'field-repair': return { ...idle, regen: definition.magnitude };
+      case 'energy-injection': return { ...idle, energyCost: definition.magnitude };
+      case 'shield-surge': return { ...idle, incomingDamage: definition.magnitude };
+      // 超频：射速与航速暴涨，代价是护盾停止回充（不是免费增益）。
+      case 'overclock': return {
+        ...idle, fireRate: definition.magnitude, speed: 1.3, shieldRecharge: 0,
+      };
+      default: return idle;
+    }
+  }
+
+  /** 技能计时 + 边沿触发。每个固定步调用一次，位于所有战斗计算之前。 */
+  private updateDeviceAbility(command: FlightCommand, dt: number): void {
+    this.deviceCooldown = Math.max(0, this.deviceCooldown - dt);
+    this.deviceRemaining = Math.max(0, this.deviceRemaining - dt);
+    if (this.deviceRemaining === 0) this.deviceActiveId = null;
+
+    const risingEdge = command.deviceAbility && !this.deviceHeld;
+    this.deviceHeld = command.deviceAbility;
+    if (!risingEdge) {
+      this.applyPersistentEnemyAbility();
+      return;
+    }
+    const definition = this.abilityDefinition();
+    // 冷却中 / 能量不足：静默失败，不扣能量、不进冷却、不发事件；
+    // 但正在生效的敌人类技能仍要续窗口，否则这一帧会漏掉 debuff。
+    if (this.deviceCooldown > 0 || this.player.energy < definition.energyCost) {
+      this.applyPersistentEnemyAbility();
+      return;
+    }
+    this.player.energy -= definition.energyCost;
+    this.deviceCooldown = definition.cooldown;
+    this.deviceActiveId = definition.id;
+    this.deviceRemaining = definition.duration;
+    this.applyDeviceInstantEffect(definition);
+    this.combatEvents.push({
+      id: this.nextCombatEventId++,
+      type: 'device-activated',
+      position: cloneVector(this.player.position),
+      weapon: definition.kind,
+      duration: definition.duration,
+      source: 'player',
+    });
+    this.applyPersistentEnemyAbility();
+  }
+
+  /** 一次性结算的技能效果。 */
+  private applyDeviceInstantEffect(definition: DeviceAbilityDefinition): void {
+    switch (definition.kind) {
+      case 'field-repair':
+        this.player.health = Math.min(
+          this.player.maxHealth, this.player.health + definition.immediate,
+        );
+        break;
+      case 'energy-injection':
+        this.player.energy = this.player.maxEnergy;
+        break;
+      case 'shield-surge':
+        this.player.shield = Math.min(
+          this.player.maxShield, this.player.shield + definition.immediate,
+        );
+        break;
+      case 'tractor-pulse':
+        // 直接把半径内的拾取物拉到脚下，本步末的 collectPickups() 会正常结算，
+        // 不会绕过货舱 / 任务进度 / 星港券的任何既有逻辑。
+        for (const pickup of this.pickups) {
+          if (distance(this.player.position, pickup.position) <= definition.magnitude) {
+            pickup.position = cloneVector(this.player.position);
+          }
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  /**
+   * 持续型敌人效果：每帧给场上敌人续一个短窗口，
+   * 技能期间新刷出来的敌人同样吃到，技能结束后最多多留 0.2 秒。
+   */
+  private applyPersistentEnemyAbility(): void {
+    if (this.deviceRemaining <= 0 || this.deviceActiveId !== this.loadout.device) return;
+    const definition = this.abilityDefinition();
+    if (definition.kind !== 'ecm-burst' && definition.kind !== 'phantom-decoy') return;
+    const windowEnd = this.elapsed + Math.min(0.2, Math.max(0.02, this.deviceRemaining));
+    for (const enemy of this.enemies) {
+      if (definition.kind === 'ecm-burst') {
+        enemy.jammedUntil = Math.max(enemy.jammedUntil ?? 0, windowEnd);
+        enemy.jamSpeedScale = definition.magnitude;
+        enemy.jamFireRateScale = 0.55;
+      } else {
+        enemy.decoyUntil = Math.max(enemy.decoyUntil ?? 0, windowEnd);
+      }
+    }
+  }
+
+  /** 停靠 / 重新出击时清空技能状态，避免把上一趟的冷却或增益带进新一局。 */
+  private resetDeviceAbility(): void {
+    this.deviceCooldown = 0;
+    this.deviceRemaining = 0;
+    this.deviceActiveId = null;
+    this.deviceHeld = false;
+  }
 
   /** 连击：连续击杀计数 + 剩余时间（见 COMBAT_FEEL.comboWindowSeconds） */
   private comboCount = 0;
@@ -985,6 +1145,8 @@ export class CombatSimulation {
       this.pauseHeld = command.pause;
       this.cameraHeld = command.cameraToggle;
       this.swapHeld = command.swapWeapons;
+      // 暂停期间也要维护技能键 held 位：否则暂停时按住 F、恢复后会误触发一次。
+      this.deviceHeld = command.deviceAbility;
       return;
     }
     if (command.cameraToggle && !this.cameraHeld) {
@@ -1029,6 +1191,7 @@ export class CombatSimulation {
     this.tick += 1;
     this.elapsed += dt;
     this.updateCooldowns(dt);
+    this.updateDeviceAbility(command, dt);
     this.updateUpgrades(dt);
     this.syncUpgradeShieldCapacity();
     this.updateCombo(dt);
@@ -1165,7 +1328,9 @@ export class CombatSimulation {
     } else if (this.player.speedScale > targetSpeed) {
       this.player.speedScale = Math.max(targetSpeed, this.player.speedScale - speedStep);
     }
-    const speed = this.player.speedScale;
+    const ability = this.abilityEffects();
+    // 超频技能提高航速；未激活时倍率为 1，位移与改造前逐值一致。
+    const speed = this.player.speedScale * ability.speed;
 
     const forward = this.movementForwardVector();
     const aimYaw = this.player.attitude.aimYaw;
@@ -1215,11 +1380,12 @@ export class CombatSimulation {
     ));
     this.player.health = Math.min(
       this.player.maxHealth,
-      this.player.health + this.player.healthRegen * dt,
+      this.player.health + (this.player.healthRegen + ability.regen) * dt,
     );
     this.player.shield = Math.min(
       this.player.maxShield,
-      this.player.shield + this.player.shieldRecharge * dt,
+      // 超频期间护盾停止回充：这是主动技能换输出的代价，不是纯白嫖增益。
+      this.player.shield + this.player.shieldRecharge * ability.shieldRecharge * dt,
     );
     this.player.spawnProtection = Math.max(0, this.player.spawnProtection - dt);
     // 受击无敌帧倒计时
@@ -1350,13 +1516,14 @@ export class CombatSimulation {
   private fireWeapon(slot: WeaponSlot): void {
     const weapon = this.resolveWeaponForSlot(slot);
     const behavior = behaviorForWeaponId(weapon.id);
+    const ability = this.abilityEffects();
     // 能耗强化倍率乘在本武器能耗上；倍率随增益生效/到期动态读取，无需复原状态。
-    const energyCost = weapon.energyCost * this.upgradeEffects().energy;
+    const energyCost = weapon.energyCost * this.upgradeEffects().energy * ability.energyCost;
     if (this.cooldowns[slot] > 0 || this.player.energy < energyCost) {
       return;
     }
     this.cooldowns[slot] = weapon.cooldown * this.upgradeEffects().fireRate
-      / this.shipDefinition.fireRateMultiplier;
+      / this.shipDefinition.fireRateMultiplier / ability.fireRate;
     this.player.energy -= energyCost;
     const aim = this.aimSolution();
     const origin = computeMuzzlePosition(
@@ -1383,7 +1550,8 @@ export class CombatSimulation {
       source: 'player',
     });
 
-    const baseDamage = weapon.damage * this.player.damageMultiplier * this.upgradeEffects().damage;
+    const baseDamage = weapon.damage * this.player.damageMultiplier
+      * this.upgradeEffects().damage * ability.damage;
     const pelletCount = behavior.pelletCount ?? 1;
     const spreadRadians = ((behavior.spreadDegrees ?? 0) * Math.PI) / 180;
     for (let index = 0; index < pelletCount; index += 1) {
@@ -1543,13 +1711,17 @@ export class CombatSimulation {
       const jammed = (enemy.jammedUntil ?? 0) > this.elapsed;
       const jamSpeed = jammed ? (enemy.jamSpeedScale ?? 1) : 1;
       const jamFireRate = jammed ? (enemy.jamFireRateScale ?? 1) : 1;
+      // 幻影诱饵：敌人完全丢失目标 —— 不追、不积累开火冷却、也不开火。
+      // 与「离子干扰只是变慢」形成打法差异，而不是又一个倍率。
+      const decoyed = (enemy.decoyUntil ?? 0) > this.elapsed;
+      const decoySpeed = decoyed ? 0 : 1;
       if (trainingProtected && range > approachRange) {
-        const speed = 4.2 * jamSpeed;
+        const speed = 4.2 * jamSpeed * decoySpeed;
         enemy.position.x += (offset.x / range) * speed * dt;
         enemy.position.y += (offset.y / range) * speed * dt;
         enemy.position.z += (offset.z / range) * speed * dt;
       } else if (!trainingProtected) {
-        const eventSpeed = (this.activeWorldEvent === 'ion-storm' ? 0.68 : 1) * jamSpeed;
+        const eventSpeed = (this.activeWorldEvent === 'ion-storm' ? 0.68 : 1) * jamSpeed * decoySpeed;
         enemy.position.x += behavior.desiredVelocity.x * eventSpeed * dt;
         enemy.position.y += behavior.desiredVelocity.y * eventSpeed * dt;
         enemy.position.z += behavior.desiredVelocity.z * eventSpeed * dt;
@@ -1560,7 +1732,7 @@ export class CombatSimulation {
         z: (enemy.position.z - previousPosition.z) / dt,
       } : { x: 0, y: 0, z: 0 };
 
-      enemy.fireCooldown -= dt * jamFireRate;
+      enemy.fireCooldown -= dt * jamFireRate * decoySpeed;
       enemy.ramCooldown = Math.max(0, enemy.ramCooldown - dt);
       enemy.telegraphElapsed += dt;
       if (trainingProtected && !rival) continue;
@@ -1580,7 +1752,8 @@ export class CombatSimulation {
       const attackSlotAvailable = Boolean(rival) || playerAttackers.has(enemy.id);
       // 风暴区域：雷达受干扰，敌人锁定距离缩短（更近才敢开火 → 更难被远程压制）
       const lockRange = 140 * (this.regionRule().stormLockRangeScale ?? 1);
-      if (attackSlotAvailable && range <= lockRange && enemy.fireCooldown <= 0 && behavior.canFire) {
+      if (attackSlotAvailable && range <= lockRange && enemy.fireCooldown <= 0
+        && behavior.canFire && !decoyed) {
         // 子弹的 targetId 必须与真正的攻击对象一致，否则会打错人：
         // 冲向核心的敌人打的是核心（hit-defenses），打运输船的打运输船。
         const projectileTargetId = rival
@@ -2078,7 +2251,8 @@ export class CombatSimulation {
     const environment = Math.min(damage, Math.max(0, environmentDamage));
     const enemyDamage = damage - environment;
     const immune = this.player.hitGrace > 0 || this.player.spawnProtection > 0;
-    const appliedDamage = environment + (immune ? 0 : enemyDamage);
+    const appliedDamage = (environment + (immune ? 0 : enemyDamage))
+      * this.abilityEffects().incomingDamage;
     if (appliedDamage <= 0) return;
     this.damagedThisStep = true;
     const shieldBefore = this.player.shield;
@@ -2455,6 +2629,7 @@ export class CombatSimulation {
       : expedition.phase === 'complete' ? 'complete' : 'active';
     const sectorIndex = (this.sector - 1) % EXPEDITION_SECTORS.length;
     const progress = this.objectiveProgress();
+    const definition = this.abilityDefinition();
     return {
       seed: this.seed,
       tick: this.tick,
@@ -2462,6 +2637,17 @@ export class CombatSimulation {
       paused: this.paused,
       cameraMode: this.cameraMode,
       weaponsSwapped: this.weaponsSwapped,
+      deviceAbility: {
+        id: definition.id,
+        kind: definition.kind,
+        labelKey: definition.labelKey,
+        cooldown: definition.cooldown,
+        cooldownRemaining: rounded(this.deviceCooldown),
+        remaining: rounded(this.deviceRemaining),
+        active: this.deviceRemaining > 0,
+        ready: this.deviceCooldown <= 0
+          && this.player.energy >= definition.energyCost,
+      },
       aimPoint: snapshotVector(this.aimPoint()),
       loadout: { ...this.loadout },
       player: {
@@ -2724,6 +2910,7 @@ export class CombatSimulation {
     this.aimAssistGrace = 0;
     this.activeWorldEvent = null;
     this.worldEventRemaining = 0;
+    this.resetDeviceAbility();
     // 触发一次货物结算（settle 后货舱清空，重复返航不会重复计入/发券）。
     const settlement = this.cargo.settleExpedition('returned');
     this.securedCargoValue = settlement.keptValue;
@@ -2820,6 +3007,7 @@ export class CombatSimulation {
     this.damagedThisStep = false;
     this.accumulator = 0;
     this.cooldowns = { primary: 0, secondary: 0 };
+    this.resetDeviceAbility();
     // 保留 player 的 health/shield/energy/maxShield、score、loadout：
     // 站内买没买服务决定下一局开局状态。增益已清空，护盾上限复原到基准。
     this.player.maxShield = this.baseMaxShield;

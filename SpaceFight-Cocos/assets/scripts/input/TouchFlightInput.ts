@@ -20,7 +20,9 @@ export type TouchAction =
   /** 决策阶段"继续深入"按钮。 */
   | 'advanceRequested'
   /** 战斗中主副武器互换（与桌面 E 键、手柄 X 键一致）。 */
-  | 'swapWeapons';
+  | 'swapWeapons'
+  /** 战术设备主动技能（与桌面 F 键、手柄 RB 一致）。 */
+  | 'deviceAbility';
 
 interface Point {
   x: number;
@@ -146,6 +148,7 @@ export class TouchFlightInput {
       returnRequested: activeActions.has('returnRequested'),
       advanceRequested: activeActions.has('advanceRequested'),
       swapWeapons: activeActions.has('swapWeapons'),
+      deviceAbility: activeActions.has('deviceAbility'),
     });
     this.lookX = 0;
     this.lookY = 0;

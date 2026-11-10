@@ -11,6 +11,8 @@ export interface FlightCommand extends FlightLookCommand {
   secondaryFire: boolean;
   /** 战斗中主副武器互换（边沿触发，按一次切换一次，长按不会反复切换）。 */
   swapWeapons: boolean;
+  /** 战术设备主动技能（边沿触发；桌面 F / 手柄 RB / 触屏技能键）。 */
+  deviceAbility: boolean;
   cameraToggle: boolean;
   pause: boolean;
   returnRequested: boolean;
@@ -44,6 +46,7 @@ export function neutralFlightCommand(): FlightCommand {
     primaryFire: false,
     secondaryFire: false,
     swapWeapons: false,
+    deviceAbility: false,
     cameraToggle: false,
     pause: false,
     returnRequested: false,
@@ -62,6 +65,7 @@ export function normalizeFlightCommand(input?: FlightCommandInput | null): Fligh
     primaryFire: isPressed(source.primaryFire),
     secondaryFire: isPressed(source.secondaryFire),
     swapWeapons: isPressed(source.swapWeapons),
+    deviceAbility: isPressed(source.deviceAbility),
     cameraToggle: isPressed(source.cameraToggle),
     pause: isPressed(source.pause),
     returnRequested: isPressed(source.returnRequested),

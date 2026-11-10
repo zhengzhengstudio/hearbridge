@@ -28,6 +28,7 @@ import {
   PRIMARY_WEAPONS,
   PRIMARY_WEAPON_BEHAVIORS,
   SECONDARY_WEAPON_BEHAVIORS,
+  deviceAbilityFor,
   resolveLoadout,
   SECONDARY_WEAPONS,
   SHIELD_MODULES,
@@ -182,6 +183,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   private upgradeLabel: Label | null = null;
   /** 当前主/副武器读数（左下角，战斗中可一键互换） */
   private weaponLabel: Label | null = null;
+  private abilityLabel: Label | null = null;
   private lastWeaponSignature = '';
   private reticleGraphics: Graphics | null = null;
   private lastPlayerProjectileId = '';
@@ -533,6 +535,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.drawResourceBar(this.hullStatusBar, snapshot.player.health, snapshot.player.maxHealth, HUD_GREEN, snapshot.player.health <= snapshot.player.maxHealth * 0.3);
     this.drawResourceBar(this.shieldStatusBar, snapshot.player.shield, snapshot.player.maxShield, HUD_CYAN);
     this.drawResourceBar(this.energyStatusBar, snapshot.player.energy, snapshot.player.maxEnergy, HUD_ACTIVE);
+    this.updateAbilityReadout(snapshot);
     if (this.objectiveLabel) {
       if (this.tutorialHint) {
         // 教学关：目标读数行让位给当前待办步骤，不遮挡战场、不冻结输入。
@@ -846,6 +849,9 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.weaponLabel = this.createLabel('WeaponReadout', 14, HUD_WHITE);
     this.weaponLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
     this.weaponLabel.node.active = true;
+    this.abilityLabel = this.createLabel('AbilityReadout', 13, HUD_CYAN);
+    this.abilityLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    this.abilityLabel.node.active = true;
     this.debugTelemetryLabel = this.createLabel('DebugTelemetry', 11, new Color(180, 255, 180, 255));
     this.debugTelemetryLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
     // 调试遥测只供本地排查，正式包必须隐藏（此前直接泄漏在战斗 HUD 左上角）。
@@ -929,6 +935,11 @@ export class NativeCombatHud implements NativeInputFeedback {
       this.height - this.safeInsets.bottom - 34,
     ));
     this.weaponLabel?.getComponent(UITransform)?.setContentSize(280, 28);
+    this.abilityLabel?.node.setPosition(this.canvasPosition(
+      this.leftHanded ? this.width - this.safeInsets.right - 140 : this.safeInsets.left + 12 + 140,
+      this.height - this.safeInsets.bottom - 60,
+    ));
+    this.abilityLabel?.getComponent(UITransform)?.setContentSize(280, 24);
   }
 
   private createReticle(): void {
@@ -1877,7 +1888,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   private setCombatChromeVisible(visible: boolean): void {
     this.combatChromeVisible = visible;
     // 打开面板时连击/强化/武器读数也必须一并收起，否则旧读数浮在面板上。
-    for (const label of [this.statusLabel, this.objectiveLabel, this.sectorLabel, this.targetLabel, this.cargoLabel, this.combatFeedLabel, this.navigationLabel, this.weaponLabel, this.comboLabel, this.upgradeLabel]) {
+    for (const label of [this.statusLabel, this.objectiveLabel, this.sectorLabel, this.targetLabel, this.cargoLabel, this.combatFeedLabel, this.navigationLabel, this.weaponLabel, this.abilityLabel, this.comboLabel, this.upgradeLabel]) {
       if (label) label.node.active = visible;
     }
     if (this.reticleGraphics) this.reticleGraphics.node.active = visible;
@@ -2878,6 +2889,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       cameraToggle: 'touch.view',
       pause: 'touch.pause',
       swapWeapons: 'touch.swap',
+      deviceAbility: 'touch.ability',
       returnRequested: 'touch.return',
     };
     for (const control of layout.actions) {
@@ -2965,6 +2977,28 @@ export class NativeCombatHud implements NativeInputFeedback {
     } else {
       this.upgradeLabel.node.active = false;
     }
+  }
+
+  /**
+   * 战术设备主动技能读数：技能名 + 生效中 / 就绪 / 冷却 + 剩余秒数。
+   * 与 Web 两端 `AbilityState` 同一套语义，原生端也能判断该什么时候按键。
+   */
+  private updateAbilityReadout(snapshot: CombatSnapshot): void {
+    if (!this.abilityLabel) return;
+    const ability = snapshot.deviceAbility;
+    if (!ability) return;
+    const name = this.text(ability.labelKey as CombatMessageKey);
+    const phaseKey: CombatMessageKey = ability.active
+      ? 'ability.active'
+      : ability.ready ? 'ability.ready' : 'ability.cooldown';
+    const seconds = ability.active ? ability.remaining : ability.cooldownRemaining;
+    const phase = this.text(phaseKey);
+    this.abilityLabel.string = seconds > 0.05
+      ? `${name}  ${phase} ${seconds.toFixed(1)}s`
+      : `${name}  ${phase}`;
+    this.abilityLabel.color = ability.active
+      ? HUD_ACTIVE
+      : ability.ready ? HUD_GREEN : HUD_WHITE;
   }
 
   /**
@@ -3143,6 +3177,28 @@ export class NativeCombatHud implements NativeInputFeedback {
       graphics.lineTo(-radius * 0.08, radius * 0.26);
       graphics.moveTo(-radius * 0.26, radius * 0.04);
       graphics.lineTo(-radius * 0.08, -radius * 0.18);
+      graphics.stroke();
+    } else if (role === 'deviceAbility') {
+      // 战术设备技能：菱形核心 + 四向刻线，与主炮圆形 / 武器互换箭头明显区分。
+      graphics.strokeColor = HUD_ACTIVE;
+      graphics.lineWidth = 2;
+      const edge = radius * 0.42;
+      graphics.moveTo(0, -edge);
+      graphics.lineTo(edge, 0);
+      graphics.lineTo(0, edge);
+      graphics.lineTo(-edge, 0);
+      graphics.close();
+      graphics.stroke();
+      graphics.circle(0, 0, radius * 0.12);
+      graphics.stroke();
+      graphics.moveTo(0, -radius * 0.72);
+      graphics.lineTo(0, -radius * 0.56);
+      graphics.moveTo(radius * 0.72, 0);
+      graphics.lineTo(radius * 0.56, 0);
+      graphics.moveTo(0, radius * 0.72);
+      graphics.lineTo(0, radius * 0.56);
+      graphics.moveTo(-radius * 0.72, 0);
+      graphics.lineTo(-radius * 0.56, 0);
       graphics.stroke();
     } else {
       const tick = radius * 0.18;
@@ -3387,6 +3443,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       pause: 'Pause',
       returnRequested: 'ReturnAction',
       swapWeapons: 'WeaponSwap',
+      deviceAbility: 'DeviceAbility',
     };
     return names[role] || 'TouchAction';
   }

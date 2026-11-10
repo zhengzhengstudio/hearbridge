@@ -57,6 +57,11 @@
     pulse: '常规直射', scatter: '扇形散射', missile: '追踪制导', rail: '贯穿',
     plasma: '范围爆破', ion: '干扰减速', beam: '贯穿', rotary: '常规直射',
   };
+  // 战术设备主动技能名：与 WeaponCatalog.DEVICE_ABILITIES 一一对应。
+  const deviceAbilities = {
+    targeter: '火控锁定', repair: '应急抢修', fabricator: '能量灌注', collector: '牵引脉冲',
+    aegis: '护盾过载', jammer: '全域干扰', overclock: '极限超频', decoy: '幻影诱饵',
+  };
   const shipCatalog = {
     interceptor: { code: 'SF-09', name: '截击机', shield: 80, armor: 100, energy: 100 },
     scout: { code: 'SF-12', name: '侦察机', shield: 68, armor: 85, energy: 100 },
@@ -124,6 +129,7 @@
     const behaviorLabel = weaponBehaviors[loadout.weapon] || weaponBehaviors.pulse;
     setText('LoadoutSummary', summary);
     setText('LoadoutDetail', `${summary}　·　主炮打法 ${behaviorLabel}`);
+    setText('AbilityName', deviceAbilities[loadout.device] || deviceAbilities.targeter);
     setText('WeaponName', loadoutNames[loadout.weapon]);
     const weaponArt = document.getElementById('WeaponArt');
     if (weaponArt && weaponArtSources[loadout.weapon]) {
@@ -358,6 +364,14 @@
     setBar('EnergyBar', state.energy || 0, state.maxEnergy || 100);
     document.body.dataset.paused = state.paused ? 'true' : 'false';
     document.body.dataset.mission = state.missionStatus || 'active';
+    const ability = state.deviceAbility;
+    if (ability) {
+      setText('AbilityName', deviceAbilities[ability.id] || ability.id);
+      const phase = ability.active ? '生效中' : ability.ready ? '就绪' : '冷却';
+      const seconds = ability.active ? ability.remaining : ability.cooldownRemaining;
+      setText('AbilityState', seconds > 0 ? `${phase} ${seconds.toFixed(1)}s` : phase);
+      document.body.dataset.abilityState = ability.active ? 'active' : ability.ready ? 'ready' : 'cooldown';
+    }
   });
   // 折叠屏 / 三折叠 / 阔折叠 / 双屏：宽高比会在不重载页面的情况下突变，
   // 所以每次尺寸变化都重新求值，绝不把首次 orientation 当成永久状态。
