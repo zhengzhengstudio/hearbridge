@@ -825,7 +825,7 @@ test('outpost navigation exposes a usable docking radius', () => {
   assert.ok(snapshot.navigation.outpostRange < 24);
 });
 
-test('outpost service repairs the craft, clears fire, secures cargo, and launches outside the dock', () => {
+test('outpost service keeps combat damage; station purchases refill and depart resets the run', () => {
   const { CombatSimulation } = core;
   const simulation = new CombatSimulation({
     mission: {
@@ -837,18 +837,38 @@ test('outpost service repairs the craft, clears fire, secures cargo, and launche
   });
 
   simulation.step({ primaryFire: true }, 1 / 60);
+  // 模拟返航前带伤带耗（编译产物里 private 字段仍可写）。
+  simulation.player.health = 40;
+  simulation.player.shield = 12;
+  simulation.player.energy = 20;
   const docked = simulation.serviceAtOutpost();
   assert.equal(docked.navigation.docked, true);
-  assert.equal(docked.player.health, docked.player.maxHealth);
-  assert.equal(docked.player.shield, docked.player.maxShield);
-  assert.equal(docked.player.energy, docked.player.maxEnergy);
+  // 新行为：返航保留战斗损耗，不再无条件把三量写回 max。
+  assert.equal(docked.player.health, 40);
+  assert.equal(docked.player.shield, 12);
+  assert.equal(docked.player.energy, 20);
   assert.equal(docked.projectiles.length, 0);
   assert.ok(docked.combatEvents.some((event) => event.type === 'outpost-serviced'));
+
+  // 回满必须靠站内主动购买服务，并派发 outpost-service 事件供 HUD 提示。
+  const baseMaxShield = docked.player.maxShield;
+  const repaired = simulation.serviceStation('repair');
+  assert.equal(repaired.player.health, repaired.player.maxHealth);
+  const resupplied = simulation.serviceStation('resupply');
+  assert.equal(resupplied.player.energy, resupplied.player.maxEnergy);
+  const refitted = simulation.serviceStation('refit');
+  assert.equal(refitted.player.shield, refitted.player.maxShield);
+  assert.ok(refitted.player.maxShield > baseMaxShield, 'refit 永久提升护盾上限');
+  assert.ok(refitted.combatEvents.some((event) => event.type === 'outpost-service'));
 
   const launched = simulation.departOutpost();
   assert.equal(launched.navigation.docked, false);
   assert.equal(launched.navigation.canDock, false);
   assert.ok(launched.player.spawnProtection > 0);
+  // 站内买过的服务决定下一局开局状态：三量与 maxShield 提升都保留。
+  assert.equal(launched.player.health, launched.player.maxHealth);
+  assert.equal(launched.player.energy, launched.player.maxEnergy);
+  assert.equal(launched.player.shield, launched.player.maxShield);
 });
 
 test('announces deeper wave escalation with a readable threat tier', () => {
@@ -1299,8 +1319,23 @@ test('undocking after expedition complete resets phase and lets the ship fly (re
     'mission.status must be complete before undocking (freeze precondition)',
   );
 
+  // 制造上一局战果，验证离港是「完整重置」而不只是复位阶段。
+  simulation.kills = 9;
+  simulation.wave = 4;
+  simulation.waveKillBaseline = 6;
+  simulation.player.score = 500;
+
   // 2) 离港
   const afterDepart = simulation.departOutpost();
+
+  // 新行为：wave/kills/baseline/cargo 归零、重新投放第一波敌人，score 保留。
+  assert.equal(afterDepart.mission.wave, 1, 'wave 必须重置为 1');
+  assert.equal(afterDepart.mission.kills, 0, 'kills 必须清零');
+  assert.equal(afterDepart.mission.waveKillBaseline, 0, '波内击杀基准必须清零');
+  assert.equal(afterDepart.cargo.items.length, 0, '货舱必须清空');
+  assert.ok(afterDepart.enemies.length > 0, '离港必须重新 spawn 第一波敌人');
+  assert.equal(afterDepart.player.score, 500, 'score 必须保留');
+  assert.notEqual(afterDepart.mission.status, 'complete', '离港首帧不能沿用上一局完成态');
 
   // 3) 核心修复断言：离港后远征阶段必须复位回 primary，mission.status 不再恒为 complete。
   //    旧代码只置 docked=false，导致下一帧 Bootstrap 再次自动入港 → 飞船被钉死、整屏冻结。
@@ -1323,6 +1358,163 @@ test('undocking after expedition complete resets phase and lets the ship fly (re
   //    即 Bootstrap 的「status===complete → enterOutpost」分支不会再被触发。
   assert.equal(flown.navigation.docked, false, 'must not re-enter outpost dock after undock');
   assert.notEqual(flown.mission.status, 'complete', 'mission.status must remain non-complete while flying');
+});
+
+// ---------------------------------------------------------------------------
+// 新增护栏：锁定本轮修复的确定性行为，防止回归。
+// ---------------------------------------------------------------------------
+
+test('guard: rapid tapping of the return key cannot complete the expedition', () => {
+  const director = new core.ExpeditionDirector({ seed: 7, primaryEvent: 'breach' });
+  director.completeEvent('primary');
+  // 按一下松一下，每次只推进 0.2s；进度必须在松开时清零，不能靠连点累积。
+  for (let press = 0; press < 20; press += 1) {
+    director.step({ delta: 0.2, returnRequested: true, insideReturnZone: true });
+    director.step({ delta: 0.2, returnRequested: false, insideReturnZone: true });
+  }
+  assert.notEqual(director.snapshot().phase, 'complete', '连点不能凑满返航进度');
+  assert.equal(director.snapshot().returnProgress, 0, '松开返回键必须清零进度');
+  // 连续按住 2.4 秒仍应能正常返航，避免过度修复把返航锁死。
+  for (let frame = 0; frame < 200 && director.snapshot().phase !== 'complete'; frame += 1) {
+    director.step({ delta: 1 / 60, returnRequested: true, insideReturnZone: true });
+  }
+  assert.equal(director.snapshot().phase, 'complete');
+});
+
+test('guard: defense and escort objectives do not complete on the first frame', () => {
+  const { CombatSimulation } = core;
+  for (const type of ['defense', 'escort']) {
+    const simulation = createSimulation(CombatSimulation, {
+      objective: { type, surviveSeconds: 30 },
+    });
+    const snapshot = simulation.step({}, 1 / 60);
+    assert.equal(snapshot.mission.objectiveType, type);
+    assert.ok(
+      snapshot.mission.progress < snapshot.mission.progressTarget,
+      `${type} 首帧进度不能等于目标`,
+    );
+    assert.equal(snapshot.mission.status, 'active');
+  }
+});
+
+test('guard: hunt wave-2 target stays reachable (matches this wave elite count)', () => {
+  const { CombatSimulation } = core;
+  const simulation = createSimulation(CombatSimulation, {
+    enemies: [],
+    objective: { type: 'hunt', requiredKills: 4, eliteKind: 'gunship' },
+  });
+  simulation.step({}, 0);
+  // 把远征推进到 decision，再主动进入下一波。
+  simulation.expedition.completeEvent('primary');
+  const advanced = simulation.step({ advanceRequested: true }, 1 / 60);
+  assert.equal(advanced.mission.wave, 2, '必须真的推进到第 2 波');
+  const elites = advanced.enemies.filter(
+    (enemy) => enemy.role === 'elite' || enemy.kind === 'gunship',
+  ).length;
+  assert.ok(elites >= 1, '第 2 波必须有精英可杀');
+  assert.ok(
+    advanced.mission.progressTarget <= elites,
+    'hunt 目标不能超过本波精英投放数，否则不可达',
+  );
+});
+
+test('guard: repeated docking never settles the same cargo twice', () => {
+  const { CombatSimulation, LootAndCargoSystem } = core;
+  const simulation = new CombatSimulation({
+    mission: {
+      id: 'cargo-repeat',
+      enemies: [],
+      pickups: [
+        { id: 'scrap-1', kind: 'scrap', position: { x: 0, y: 0, z: 8 }, value: 120 },
+        { id: 'data-1', kind: 'data', position: { x: 0, y: 0, z: 8 }, value: 200 },
+      ],
+      objective: { type: 'eliminate', requiredKills: 99 },
+    },
+    seed: 9,
+  });
+  simulation.step({}, 1 / 60);
+  const first = simulation.serviceAtOutpost();
+  assert.ok(first.navigation.securedCargoValue > 0, '首次返航应结算出货物价值');
+  assert.equal(first.cargo.items.length, 0, '结算后货舱必须清空');
+
+  // 幂等守卫：重复进站不重复结算。
+  const again = simulation.serviceAtOutpost();
+  assert.equal(again.navigation.securedCargoValue, first.navigation.securedCargoValue);
+
+  // 离港清货，下一局不能再把同一批货算一次。
+  const launched = simulation.departOutpost();
+  assert.equal(launched.cargo.items.length, 0);
+  const secondRun = simulation.serviceAtOutpost();
+  assert.equal(secondRun.navigation.securedCargoValue, 0, '新一局没有旧货物可重复结算');
+
+  // cargo 层同样保证一次远征只结算一次。
+  const cargo = new LootAndCargoSystem(8, 1);
+  cargo.add({ id: 'a', category: 'material', insured: false, rarity: 'common', value: 50 });
+  assert.equal(cargo.settleExpedition('returned').keptValue, 50);
+  assert.equal(cargo.settleExpedition('returned').keptValue, 0);
+});
+
+test('guard: weapon swap is ignored while paused', () => {
+  const { CombatSimulation } = core;
+  const simulation = createSimulation(CombatSimulation);
+  // 单帧按下 pause 进入暂停，再松开一帧复位 pauseHeld。
+  assert.equal(simulation.step({ pause: true }, 1 / 60).paused, true);
+  assert.equal(simulation.step({}, 1 / 60).paused, true);
+  const before = simulation.step({}, 1 / 60).weaponsSwapped;
+  const duringPause = simulation.step({ swapWeapons: true }, 1 / 60);
+  assert.equal(duringPause.paused, true);
+  assert.equal(duringPause.weaponsSwapped, before, '暂停时不能切换武器');
+  assert.ok(
+    !duringPause.combatEvents.some((event) => event.type === 'weapons-swapped'),
+    '暂停时不能派发 weapons-swapped 事件',
+  );
+});
+
+test('guard: resolveLoadout rejects prototype-chain property names', () => {
+  const fallback = core.resolveLoadout();
+  const hostile = core.resolveLoadout({
+    weapon: 'toString',
+    device: 'constructor',
+    core: 'hasOwnProperty',
+    secondary: '__proto__',
+    engine: 'valueOf',
+    shield: 'toString',
+    utility: 'constructor',
+    boost: '__defineGetter__',
+    skin: 'toString',
+  });
+  assert.equal(hostile.weapon, fallback.weapon);
+  assert.equal(hostile.device, fallback.device);
+  assert.equal(hostile.core, fallback.core);
+  assert.equal(hostile.secondary, fallback.secondary);
+  assert.equal(hostile.engine, fallback.engine);
+  assert.equal(hostile.shield, fallback.shield);
+  assert.equal(hostile.utility, fallback.utility);
+  assert.equal(hostile.boost, fallback.boost);
+  assert.equal(hostile.skin, fallback.skin);
+});
+
+test('guard: shield upgrade multiplier raises maxShield and recovers on expiry', () => {
+  const { CombatSimulation } = core;
+  const simulation = createSimulation(CombatSimulation);
+  const base = simulation.snapshot().player.maxShield;
+  simulation.activeUpgrades.push({ id: 'ablative', remaining: 0.2 });
+  const boosted = simulation.step({}, 1 / 60);
+  assert.ok(boosted.player.maxShield > base, '护盾增益必须真正抬高 maxShield');
+  const expired = stepFrames(simulation, {}, 30);
+  assert.equal(expired.player.maxShield, base, '增益到期后 maxShield 必须复原');
+});
+
+test('guard: CoopNetwork drops stale frames and validates presence vectors', () => {
+  // CoopNetwork 不在 simulation 编译清单里，用源码契约护栏锁定两处修复。
+  const source = readFileSync(
+    path.join(cocosProjectRoot, 'assets', 'scripts', 'core', 'CoopNetwork.ts'),
+    'utf8',
+  );
+  assert.match(source, /frame\.seq <= this\.lastAppliedSeq/, '迟到帧必须被丢弃');
+  assert.match(source, /seq > maxSeq/, 'latest 必须返回最大 seq 对应帧');
+  assert.match(source, /Number\.isInteger\(presence\.seq\)/, 'seq 必须校验为有限非负整数');
+  assert.match(source, /isFiniteVec3\(presence\.position\)/, '向量字段必须校验有限');
 });
 
 

@@ -128,9 +128,9 @@ test('ShipPresenter 构造参数与调用方传参一致', () => {
   );
 });
 
-test('WebCoopSession 字段名不与方法名冲突', () => {
-  const source = readSource(path.join('platform', 'WebCoopSession.ts'));
-  const body = source.match(/export class WebCoopSession \{([\s\S]*)\n\}/);
+test('WsCoopSession 字段名不与方法名冲突', () => {
+  const source = readSource(path.join('platform', 'WsCoopSession.ts'));
+  const body = source.match(/export class WsCoopSession \{([\s\S]*)\n\}/);
   assert.ok(body, '必须能定位 WebCoopSession 类体');
 
   const fieldNames = [...body[1].matchAll(/private\s+(\w+)\s*[=:]/g)].map((m) => m[1]);
