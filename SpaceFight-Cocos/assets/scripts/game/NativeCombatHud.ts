@@ -159,8 +159,10 @@ export class NativeCombatHud implements NativeInputFeedback {
   /** 触控动作视觉表（原字段名 actions，因构造函数新增同名 actions 桥接参数而改名避免冲突）。 */
   private readonly actionVisuals = new Map<BrowserPointerRole, ActionVisual>();
   private readonly touchEnabled: boolean;
-  /** 战斗 HUD 是否可见（打开装配台/前哨/暂停时收起）。 */
-  private combatChromeVisible = true;
+  /** 战斗 HUD 是否可见（打开装配台/前哨/暂停时收起）。默认关闭，避免启动页叠出摇杆。 */
+  private combatChromeVisible = false;
+  /** 启动 / 初始化阶段：期间一律不渲染战斗控件，直到 showPreflight() 收口。 */
+  private startupVisible = true;
   /** 返航过场中：期间收起开火/切武器/加速/摇杆，避免「返航中还能开火」的状态矛盾。 */
   private returning = false;
   /** 返航压暗的第二层（靠近屏幕外沿），用于做两级羽化。 */
@@ -379,6 +381,9 @@ export class NativeCombatHud implements NativeInputFeedback {
     ]) {
       if (panel) panel.active = false;
     }
+    // 启动阶段先把战斗控件全部收起：否则摇杆 / 技能钮会叠在初始化主页上，
+    // 这些 Graphics 还会在尚未布局完成时进入首帧渲染。
+    this.setCombatChromeVisible(false);
   }
 
   resize(
@@ -388,8 +393,9 @@ export class NativeCombatHud implements NativeInputFeedback {
     leftHanded = false,
     controlScale = 1,
   ): void {
-    this.width = width;
-    this.height = height;
+    // 视图尚未就绪时可能传入 0 / NaN；用默认设计尺寸兜底，避免生成零面积路径。
+    this.width = Number.isFinite(width) && width > 0 ? width : 1280;
+    this.height = Number.isFinite(height) && height > 0 ? height : 720;
     this.safeInsets = safeInsets;
     this.leftHanded = leftHanded;
     this.controlScale = controlScale;
@@ -405,7 +411,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (!this.touchEnabled) return;
     if (this.actionVisuals.size === 0) this.createTouchControls();
     this.layoutTouchControls();
-    this.setCombatChromeVisible(!this.homeOpen && !this.outpostOpen && !this.loadoutOpen && !this.defeatOpen && !this.pauseOpen && !this.shouldShowTraining());
+    this.setCombatChromeVisible(!this.startupVisible && !this.homeOpen && !this.outpostOpen && !this.loadoutOpen && !this.defeatOpen && !this.pauseOpen && !this.shouldShowTraining());
   }
 
   setStick(x: number, y: number, active: boolean): void {
@@ -715,6 +721,8 @@ export class NativeCombatHud implements NativeInputFeedback {
   }
 
   public showPreflight(): void {
+    // 启动流程收口：此后由各面板状态决定是否显示战斗控件（主页仍是隐藏）。
+    this.startupVisible = false;
     this.preflight = true;
     if (this.bootPanel) this.bootPanel.active = false;
     this.setHomeOpen(true);
@@ -958,7 +966,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     graphics.strokeColor = accent;
     graphics.fillColor = accent;
     graphics.lineWidth = 2;
-    graphics.circle(0, 0, inner);
+    this.safeCircle(graphics, 0, 0, inner);
     graphics.moveTo(-outer, 0);
     graphics.lineTo(-inner, 0);
     graphics.moveTo(inner, 0);
@@ -982,8 +990,59 @@ export class NativeCombatHud implements NativeInputFeedback {
       graphics.lineTo(7, 18);
       graphics.stroke();
     }
-    graphics.circle(0, 0, 2.5);
+    this.safeCircle(graphics, 0, 0, 2.5);
     graphics.fill();
+  }
+
+  /**
+   * Cocos 3.8 原生 2D 绑定在零 / 负 / NaN 几何上会生成空或畸形路径，
+   * 随后 fill() / stroke() 触发 std::out_of_range: vector 并直接 SIGABRT
+   * （2026-11-10 实机「初始化主页叠摇杆 + 立刻闪退」复现）。
+   * 统一把几何收敛到合法最小尺寸，保证每次 fill/stroke 前都有可三角化的路径。
+   */
+  private safeCoord(value: number): number {
+    return Number.isFinite(value) ? value : 0;
+  }
+
+  private safeLength(value: number): number {
+    return Number.isFinite(value) ? Math.max(1, value) : 1;
+  }
+
+  private safeRect(graphics: Graphics, x: number, y: number, width: number, height: number): void {
+    graphics.rect(this.safeCoord(x), this.safeCoord(y), this.safeLength(width), this.safeLength(height));
+  }
+
+  private safeCircle(graphics: Graphics, x: number, y: number, radius: number): void {
+    graphics.circle(this.safeCoord(x), this.safeCoord(y), this.safeLength(radius));
+  }
+
+  private safeRoundRect(
+    graphics: Graphics,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radius: number,
+  ): void {
+    const w = this.safeLength(width);
+    const h = this.safeLength(height);
+    graphics.roundRect(this.safeCoord(x), this.safeCoord(y), w, h,
+      Math.min(this.safeLength(radius), w / 2, h / 2));
+  }
+
+  private safeArc(
+    graphics: Graphics,
+    x: number,
+    y: number,
+    radius: number,
+    startAngle: number,
+    endAngle: number,
+    counterclockwise: boolean,
+  ): void {
+    const start = Number.isFinite(startAngle) ? startAngle : 0;
+    let end = Number.isFinite(endAngle) ? endAngle : start + 0.01;
+    if (Math.abs(end - start) < 0.01) end = start + 0.01;
+    graphics.arc(this.safeCoord(x), this.safeCoord(y), this.safeLength(radius), start, end, counterclockwise);
   }
 
   private drawResourceBar(
@@ -999,21 +1058,21 @@ export class NativeCombatHud implements NativeInputFeedback {
     graphics.clear();
     // 战术分段条：平滑填充 + 等距刻度，与网页端 HUD 的分段状态条保持同一视觉语言。
     graphics.fillColor = new Color(3, 10, 14, 196);
-    graphics.rect(0, -4, width, 8);
+    this.safeRect(graphics, 0, -4, width, 8);
     graphics.fill();
     graphics.fillColor = critical ? HUD_RED : accent;
-    graphics.rect(0, -4, width * ratio, 8);
+    this.safeRect(graphics, 0, -4, width * ratio, 8);
     graphics.fill();
     graphics.fillColor = new Color(3, 10, 14, 235);
     const segments = 18;
     const step = width / segments;
     for (let index = 1; index < segments; index += 1) {
-      graphics.rect(index * step - 1, -4, 2, 8);
+      this.safeRect(graphics, index * step - 1, -4, 2, 8);
     }
     graphics.fill();
     graphics.strokeColor = new Color(96, 160, 172, 120);
     graphics.lineWidth = 1;
-    graphics.rect(0, -5, width, 10);
+    this.safeRect(graphics, 0, -5, width, 10);
     graphics.stroke();
   }
 
@@ -1026,14 +1085,14 @@ export class NativeCombatHud implements NativeInputFeedback {
     const width = Math.min(300, Math.max(180, this.width * 0.24));
     const ratio = Math.max(0, Math.min(1, maximum > 0 ? value / maximum : 0));
     graphics.fillColor = new Color(5, 12, 16, 210);
-    graphics.rect(-width / 2, -3, width, 6);
+    this.safeRect(graphics, -width / 2, -3, width, 6);
     graphics.fill();
     graphics.fillColor = ratio < 0.25 ? HUD_RED : HUD_ACTIVE;
-    graphics.rect(-width / 2, -3, width * ratio, 6);
+    this.safeRect(graphics, -width / 2, -3, width * ratio, 6);
     graphics.fill();
     graphics.strokeColor = new Color(226, 245, 255, 86);
     graphics.lineWidth = 1;
-    graphics.rect(-width / 2, -4, width, 8);
+    this.safeRect(graphics, -width / 2, -4, width, 8);
     graphics.stroke();
   }
 
@@ -1052,7 +1111,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     }
     graphics.stroke();
     if (lethal) {
-      graphics.circle(0, 0, 24);
+      this.safeCircle(graphics, 0, 0, 24);
       graphics.stroke();
     }
   }
@@ -1125,7 +1184,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.bootKeyArt = this.createKeyArt('NativeBootKeyArt', this.bootPanel);
     const shade = this.createNode('NativeBootShade', this.bootPanel).addComponent(Graphics);
     shade.fillColor = new Color(1, 7, 10, 210);
-    shade.rect(-640, -360, 1280, 720);
+    this.safeRect(shade, -640, -360, 1280, 720);
     shade.fill();
 
     const channel = this.createLabel('NativeBootChannel', 12, HUD_CYAN, this.bootPanel);
@@ -1285,10 +1344,10 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (this.trainingBackdrop) {
       this.trainingBackdrop.clear();
       this.trainingBackdrop.fillColor = new Color(1, 6, 10, 168);
-      this.trainingBackdrop.rect(-this.width / 2, -this.height / 2, this.width, this.height);
+      this.safeRect(this.trainingBackdrop, -this.width / 2, -this.height / 2, this.width, this.height);
       this.trainingBackdrop.fill();
       this.trainingBackdrop.fillColor = new Color(3, 13, 20, 240);
-      this.trainingBackdrop.rect(-frameW / 2, -frameH / 2, frameW, frameH);
+      this.safeRect(this.trainingBackdrop, -frameW / 2, -frameH / 2, frameW, frameH);
       this.trainingBackdrop.fill();
       this.trainingBackdrop.strokeColor = HUD_CYAN;
       this.trainingBackdrop.lineWidth = 2;
@@ -1554,20 +1613,20 @@ export class NativeCombatHud implements NativeInputFeedback {
     const veil = this.returnVeil;
     veil.clear();
     veil.fillColor = new Color(0, 8, 12, alpha);
-    veil.rect(-halfW, -halfH, this.width, band);
-    veil.rect(-halfW, halfH - band, this.width, band);
-    veil.rect(-halfW, -halfH, band, this.height);
-    veil.rect(halfW - band, -halfH, band, this.height);
+    this.safeRect(veil, -halfW, -halfH, this.width, band);
+    this.safeRect(veil, -halfW, halfH - band, this.width, band);
+    this.safeRect(veil, -halfW, -halfH, band, this.height);
+    this.safeRect(veil, halfW - band, -halfH, band, this.height);
     veil.fill();
     const inner = this.returnVeilInner;
     if (inner) {
       const ib = band * 0.5;
       inner.clear();
       inner.fillColor = new Color(0, 8, 12, alpha);
-      inner.rect(-halfW, -halfH, this.width, ib);
-      inner.rect(-halfW, halfH - ib, this.width, ib);
-      inner.rect(-halfW, -halfH, ib, this.height);
-      inner.rect(halfW - ib, -halfH, ib, this.height);
+      this.safeRect(inner, -halfW, -halfH, this.width, ib);
+      this.safeRect(inner, -halfW, halfH - ib, this.width, ib);
+      this.safeRect(inner, -halfW, -halfH, ib, this.height);
+      this.safeRect(inner, halfW - ib, -halfH, ib, this.height);
       inner.fill();
     }
   }
@@ -1886,7 +1945,8 @@ export class NativeCombatHud implements NativeInputFeedback {
   }
 
   private setCombatChromeVisible(visible: boolean): void {
-    this.combatChromeVisible = visible;
+    // 启动阶段无条件收起，任何调用点都不能把摇杆 / 技能钮提前点亮。
+    this.combatChromeVisible = visible && !this.startupVisible;
     // 打开面板时连击/强化/武器读数也必须一并收起，否则旧读数浮在面板上。
     for (const label of [this.statusLabel, this.objectiveLabel, this.sectorLabel, this.targetLabel, this.cargoLabel, this.combatFeedLabel, this.navigationLabel, this.weaponLabel, this.abilityLabel, this.comboLabel, this.upgradeLabel]) {
       if (label) label.node.active = visible;
@@ -1932,17 +1992,17 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (this.homeBackdrop) {
       this.homeBackdrop.clear();
       this.homeBackdrop.fillColor = new Color(2, 8, 12, 62);
-      this.homeBackdrop.rect(-this.width / 2, -this.height / 2, this.width, this.height);
+      this.safeRect(this.homeBackdrop, -this.width / 2, -this.height / 2, this.width, this.height);
       this.homeBackdrop.fill();
       this.homeBackdrop.fillColor = new Color(3, 10, 14, 238);
-      this.homeBackdrop.rect(leftEdge, bottomEdge, navWidth, topEdge - bottomEdge);
+      this.safeRect(this.homeBackdrop, leftEdge, bottomEdge, navWidth, topEdge - bottomEdge);
       this.homeBackdrop.fill();
       this.homeBackdrop.fillColor = new Color(3, 10, 14, 226);
-      this.homeBackdrop.rect(rightEdge - rightWidth, bottomEdge, rightWidth, topEdge - bottomEdge);
+      this.safeRect(this.homeBackdrop, rightEdge - rightWidth, bottomEdge, rightWidth, topEdge - bottomEdge);
       this.homeBackdrop.fill();
       this.homeBackdrop.fillColor = new Color(3, 10, 14, 204);
       const headerHeight = ultraCompact ? 48 : compact ? 58 : 72;
-      this.homeBackdrop.rect(leftEdge + navWidth, topEdge - headerHeight, rightEdge - leftEdge - navWidth - rightWidth, headerHeight);
+      this.safeRect(this.homeBackdrop, leftEdge + navWidth, topEdge - headerHeight, rightEdge - leftEdge - navWidth - rightWidth, headerHeight);
       this.homeBackdrop.fill();
       this.homeBackdrop.strokeColor = new Color(255, 172, 47, 126);
       this.homeBackdrop.lineWidth = 2;
@@ -1957,11 +2017,11 @@ export class NativeCombatHud implements NativeInputFeedback {
       this.homeBackdrop.stroke();
       const telemetryY = bottomEdge + (ultraCompact ? 42 : 58);
       this.homeBackdrop.fillColor = new Color(2, 11, 15, 214);
-      this.homeBackdrop.rect(leftEdge + navWidth + 14, telemetryY - 18, Math.min(360, headerWidth), 36);
+      this.safeRect(this.homeBackdrop, leftEdge + navWidth + 14, telemetryY - 18, Math.min(360, headerWidth), 36);
       this.homeBackdrop.fill();
       for (let index = 0; index < 4; index += 1) {
         this.homeBackdrop.fillColor = index === 3 ? new Color(255, 172, 47, 172) : new Color(59, 211, 255, 112);
-        this.homeBackdrop.rect(leftEdge + navWidth + 26 + index * 34, telemetryY - 3, 22, 3);
+        this.safeRect(this.homeBackdrop, leftEdge + navWidth + 26 + index * 34, telemetryY - 3, 22, 3);
         this.homeBackdrop.fill();
       }
       this.drawPanelFrame(this.homeBackdrop, leftEdge, bottomEdge, rightEdge - leftEdge, topEdge - bottomEdge, HUD_CYAN, 'standard', false);
@@ -2069,11 +2129,11 @@ export class NativeCombatHud implements NativeInputFeedback {
       if (background) {
         background.clear();
         background.fillColor = HUD_DARK;
-        background.roundRect(-(coopWidth / 2), -18, coopWidth, 36, 6);
+        this.safeRoundRect(background, -(coopWidth / 2), -18, coopWidth, 36, 6);
         background.fill();
         background.strokeColor = HUD_CYAN;
         background.lineWidth = 2;
-        background.roundRect(-(coopWidth / 2), -18, coopWidth, 36, 6);
+        this.safeRoundRect(background, -(coopWidth / 2), -18, coopWidth, 36, 6);
         background.stroke();
       }
     }
@@ -2098,11 +2158,11 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (this.outpostBackdrop) {
       this.outpostBackdrop.clear();
       this.outpostBackdrop.fillColor = new Color(1, 7, 10, 54);
-      this.outpostBackdrop.rect(-this.width / 2, -this.height / 2, this.width, this.height);
+      this.safeRect(this.outpostBackdrop, -this.width / 2, -this.height / 2, this.width, this.height);
       this.outpostBackdrop.fill();
       // 面板底色必须完全不透明，否则底下宣传图的英文标语会透过标题。
       this.outpostBackdrop.fillColor = new Color(2, 10, 14, 255);
-      this.outpostBackdrop.rect(right - panelWidth, bottom, panelWidth, top - bottom);
+      this.safeRect(this.outpostBackdrop, right - panelWidth, bottom, panelWidth, top - bottom);
       this.outpostBackdrop.fill();
       this.outpostBackdrop.strokeColor = new Color(59, 211, 255, 116);
       this.outpostBackdrop.lineWidth = 2;
@@ -2118,7 +2178,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       }
       this.outpostBackdrop.stroke();
       this.outpostBackdrop.fillColor = new Color(59, 211, 255, 112);
-      this.outpostBackdrop.rect(right - panelWidth + 18, top - (ultraCompact ? 112 : 161), 48, 3);
+      this.safeRect(this.outpostBackdrop, right - panelWidth + 18, top - (ultraCompact ? 112 : 161), 48, 3);
       this.outpostBackdrop.fill();
       this.drawPanelFrame(this.outpostBackdrop, right - panelWidth, bottom, panelWidth, top - bottom, HUD_CYAN, 'standard', false);
     }
@@ -2177,10 +2237,10 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (shade) {
       shade.clear();
       shade.fillColor = new Color(1, 7, 10, 72);
-      shade.rect(-this.width / 2, -this.height / 2, this.width, this.height);
+      this.safeRect(shade, -this.width / 2, -this.height / 2, this.width, this.height);
       shade.fill();
       shade.fillColor = new Color(1, 7, 10, 220);
-      shade.rect(-this.width / 2, -this.height / 2, Math.min(620, this.width * 0.52), this.height);
+      this.safeRect(shade, -this.width / 2, -this.height / 2, Math.min(620, this.width * 0.52), this.height);
       shade.fill();
     }
     const left = (-this.width / 2) + this.safeInsets.left + 34;
@@ -2204,10 +2264,10 @@ export class NativeCombatHud implements NativeInputFeedback {
     const width = Math.min(360, Math.max(220, this.width * 0.28));
     graphics.clear();
     graphics.fillColor = new Color(45, 70, 76, 220);
-    graphics.rect(0, -1, width, 2);
+    this.safeRect(graphics, 0, -1, width, 2);
     graphics.fill();
     graphics.fillColor = accent;
-    graphics.rect(0, -2, width * Math.max(0, Math.min(1, value)), 4);
+    this.safeRect(graphics, 0, -2, width * Math.max(0, Math.min(1, value)), 4);
     graphics.fill();
   }
 
@@ -2221,7 +2281,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (this.defeatBackdrop) {
       this.defeatBackdrop.clear();
       this.defeatBackdrop.fillColor = new Color(2, 7, 10, 224);
-      this.defeatBackdrop.rect(-this.width / 2, -this.height / 2, this.width, this.height);
+      this.safeRect(this.defeatBackdrop, -this.width / 2, -this.height / 2, this.width, this.height);
       this.defeatBackdrop.fill();
       this.defeatBackdrop.strokeColor = new Color(217, 86, 66, 220);
       this.defeatBackdrop.lineWidth = 2;
@@ -2260,10 +2320,10 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (this.pauseBackdrop) {
       this.pauseBackdrop.clear();
       this.pauseBackdrop.fillColor = new Color(1, 6, 10, 182);
-      this.pauseBackdrop.rect(-this.width / 2, -this.height / 2, this.width, this.height);
+      this.safeRect(this.pauseBackdrop, -this.width / 2, -this.height / 2, this.width, this.height);
       this.pauseBackdrop.fill();
       this.pauseBackdrop.fillColor = new Color(3, 13, 20, 242);
-      this.pauseBackdrop.rect(-frameW / 2, -frameH / 2, frameW, frameH);
+      this.safeRect(this.pauseBackdrop, -frameW / 2, -frameH / 2, frameW, frameH);
       this.pauseBackdrop.fill();
       this.pauseBackdrop.strokeColor = HUD_CYAN;
       this.pauseBackdrop.lineWidth = 2;
@@ -2407,7 +2467,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (this.loadoutBackdrop) {
       this.loadoutBackdrop.clear();
       this.loadoutBackdrop.fillColor = new Color(3, 10, 14, 138);
-      this.loadoutBackdrop.rect(-this.width / 2, -this.height / 2, this.width, this.height);
+      this.safeRect(this.loadoutBackdrop, -this.width / 2, -this.height / 2, this.width, this.height);
       this.loadoutBackdrop.fill();
       this.drawPanelFrame(this.loadoutBackdrop, -this.width / 2 + 14, -this.height / 2 + 14, this.width - 28, this.height - 28, HUD_CYAN, 'standard', false);
     }
@@ -2442,7 +2502,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (this.loadoutSlotRail) {
       this.loadoutSlotRail.clear();
       this.loadoutSlotRail.fillColor = new Color(3, 10, 14, 220);
-      this.loadoutSlotRail.rect((-this.width / 2) + this.safeInsets.left, -this.height / 2, gridAreaWidth + 24, this.height);
+      this.safeRect(this.loadoutSlotRail, (-this.width / 2) + this.safeInsets.left, -this.height / 2, gridAreaWidth + 24, this.height);
       this.loadoutSlotRail.fill();
       this.loadoutSlotRail.strokeColor = new Color(59, 211, 255, 86);
       this.loadoutSlotRail.moveTo((-this.width / 2) + this.safeInsets.left + gridAreaWidth + 24, -this.height / 2 + 18);
@@ -2468,7 +2528,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       g.close();
       g.stroke();
       g.strokeColor = new Color(226, 245, 255, 58);
-      g.circle(detailCenterX, schematicY, Math.max(8, shipHeight * 0.22));
+      this.safeCircle(g, detailCenterX, schematicY, Math.max(8, shipHeight * 0.22));
       g.moveTo(detailCenterX - shipWidth * 0.62, schematicY);
       g.lineTo(detailCenterX - shipWidth * 0.34, schematicY);
       g.moveTo(detailCenterX + shipWidth * 0.34, schematicY);
@@ -2476,7 +2536,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       g.stroke();
       for (let index = 0; index < 4; index += 1) {
         g.fillColor = index < 3 ? new Color(59, 211, 255, 126) : new Color(255, 172, 47, 182);
-        g.rect(detailCenterX - shipWidth / 2 + index * (shipWidth / 4), schematicY - shipHeight * 0.78, shipWidth / 4 - 4, 3);
+        this.safeRect(g, detailCenterX - shipWidth / 2 + index * (shipWidth / 4), schematicY - shipHeight * 0.78, shipWidth / 4 - 4, 3);
         g.fill();
       }
     }
@@ -2772,10 +2832,10 @@ export class NativeCombatHud implements NativeInputFeedback {
 
     // 右上状态点 + 左下琥珀编号条
     graphics.fillColor = new Color(HUD_ACTIVE.r, HUD_ACTIVE.g, HUD_ACTIVE.b, 210);
-    graphics.circle(right - 16, top - 16, 2.5);
+    this.safeCircle(graphics, right - 16, top - 16, 2.5);
     graphics.fill();
     graphics.fillColor = new Color(HUD_ACTIVE.r, HUD_ACTIVE.g, HUD_ACTIVE.b, 176);
-    graphics.rect(left + 12, bottom + 9, Math.max(20, width * 0.05), 3);
+    this.safeRect(graphics, left + 12, bottom + 9, Math.max(20, width * 0.05), 3);
     graphics.fill();
   }
 
@@ -2811,7 +2871,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     graphics.lineWidth = primary ? 2 : 1.25;
     graphics.stroke();
     graphics.fillColor = new Color(line.r, line.g, line.b, pressed ? 255 : 196);
-    graphics.rect(left + 4, bottom + 4, primary ? Math.max(20, width * 0.22) : 3, 3);
+    this.safeRect(graphics, left + 4, bottom + 4, primary ? Math.max(20, width * 0.22) : 3, 3);
     graphics.fill();
     if (kind === 'slot') {
       graphics.strokeColor = new Color(226, 245, 255, 60);
@@ -2820,7 +2880,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       graphics.lineTo(left + 10, top - 9);
       graphics.stroke();
       graphics.fillColor = new Color(line.r, line.g, line.b, 190);
-      graphics.rect(left + 4, top - 12, 3, 8);
+      this.safeRect(graphics, left + 4, top - 12, 3, 8);
       graphics.fill();
     }
 
@@ -2847,7 +2907,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     graphics.stroke();
 
     graphics.fillColor = new Color(line.r, line.g, line.b, pressed ? 255 : 190);
-    graphics.circle(right - 9, top - 9, 2);
+    this.safeCircle(graphics, right - 9, top - 9, 2);
     graphics.fill();
 
     if (primary) {
@@ -2945,7 +3005,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (progress <= 0) return;
     visual.graphics.strokeColor = HUD_WHITE;
     visual.graphics.lineWidth = 4;
-    visual.graphics.arc(0, 0, visual.radius - 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress, false);
+    this.safeArc(visual.graphics, 0, 0, visual.radius - 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress, false);
     visual.graphics.stroke();
   }
 
@@ -3094,11 +3154,11 @@ export class NativeCombatHud implements NativeInputFeedback {
   private drawDisc(graphics: Graphics, radius: number, accent: Color): void {
     graphics.clear();
     graphics.fillColor = HUD_DARK;
-    graphics.circle(0, 0, radius);
+    this.safeCircle(graphics, 0, 0, radius);
     graphics.fill();
     graphics.strokeColor = accent;
     graphics.lineWidth = 2;
-    graphics.circle(0, 0, radius - 2);
+    this.safeCircle(graphics, 0, 0, radius - 2);
     graphics.stroke();
   }
 
@@ -3115,16 +3175,16 @@ export class NativeCombatHud implements NativeInputFeedback {
     graphics.fillColor = active
       ? new Color(accent.r, accent.g, accent.b, 92)
       : new Color(3, 13, 20, primary ? 112 : 76);
-    graphics.circle(0, 0, radius);
+    this.safeCircle(graphics, 0, 0, radius);
     graphics.fill();
     graphics.strokeColor = accent;
     graphics.lineWidth = primary ? 2.5 : 1.5;
-    graphics.circle(0, 0, radius - 2);
+    this.safeCircle(graphics, 0, 0, radius - 2);
     graphics.stroke();
     if (primary) {
       graphics.strokeColor = new Color(255, 224, 170, active ? 255 : 150);
       graphics.lineWidth = 1;
-      graphics.circle(0, 0, radius * 0.68);
+      this.safeCircle(graphics, 0, 0, radius * 0.68);
       graphics.stroke();
       const arm = radius * 0.3;
       graphics.moveTo(-arm, 0);
@@ -3134,7 +3194,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       graphics.stroke();
     } else if (boost) {
       graphics.lineWidth = 3;
-      graphics.arc(0, 0, radius - 6, -2.7, -0.45, false);
+      this.safeArc(graphics, 0, 0, radius - 6, -2.7, -0.45, false);
       graphics.stroke();
       graphics.moveTo(-radius * 0.2, -radius * 0.24);
       graphics.lineTo(radius * 0.22, 0);
@@ -3147,16 +3207,16 @@ export class NativeCombatHud implements NativeInputFeedback {
       graphics.close();
       graphics.stroke();
     } else if (role === 'cameraToggle') {
-      graphics.rect(-radius * 0.25, -radius * 0.16, radius * 0.5, radius * 0.32);
+      this.safeRect(graphics, -radius * 0.25, -radius * 0.16, radius * 0.5, radius * 0.32);
       graphics.stroke();
-      graphics.circle(0, 0, radius * 0.1);
+      this.safeCircle(graphics, 0, 0, radius * 0.1);
       graphics.stroke();
     } else if (role === 'pause') {
-      graphics.rect(-radius * 0.16, -radius * 0.25, radius * 0.1, radius * 0.5);
-      graphics.rect(radius * 0.06, -radius * 0.25, radius * 0.1, radius * 0.5);
+      this.safeRect(graphics, -radius * 0.16, -radius * 0.25, radius * 0.1, radius * 0.5);
+      this.safeRect(graphics, radius * 0.06, -radius * 0.25, radius * 0.1, radius * 0.5);
       graphics.fill();
     } else if (role === 'returnRequested') {
-      graphics.arc(0, 0, radius * 0.3, -0.7, Math.PI * 1.6, false);
+      this.safeArc(graphics, 0, 0, radius * 0.3, -0.7, Math.PI * 1.6, false);
       graphics.stroke();
       graphics.moveTo(-radius * 0.32, radius * 0.06);
       graphics.lineTo(-radius * 0.38, radius * 0.3);
@@ -3189,7 +3249,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       graphics.lineTo(-edge, 0);
       graphics.close();
       graphics.stroke();
-      graphics.circle(0, 0, radius * 0.12);
+      this.safeCircle(graphics, 0, 0, radius * 0.12);
       graphics.stroke();
       graphics.moveTo(0, -radius * 0.72);
       graphics.lineTo(0, -radius * 0.56);
@@ -3211,21 +3271,21 @@ export class NativeCombatHud implements NativeInputFeedback {
   private drawStickDeadzone(graphics: Graphics, radius: number): void {
     graphics.clear();
     graphics.fillColor = new Color(3, 13, 20, 88);
-    graphics.circle(0, 0, radius);
+    this.safeCircle(graphics, 0, 0, radius);
     graphics.fill();
     graphics.strokeColor = new Color(150, 193, 188, 150);
     graphics.lineWidth = 1;
-    graphics.circle(0, 0, radius - 1);
+    this.safeCircle(graphics, 0, 0, radius - 1);
     graphics.stroke();
     graphics.strokeColor = new Color(226, 245, 255, 74);
-    graphics.circle(0, 0, Math.max(2, radius * 0.04));
+    this.safeCircle(graphics, 0, 0, Math.max(2, radius * 0.04));
     graphics.stroke();
     graphics.strokeColor = new Color(59, 211, 255, 92);
     graphics.lineWidth = 2;
-    graphics.arc(0, 0, radius * 0.68, 0.16, 1.38, false);
-    graphics.arc(0, 0, radius * 0.68, 1.76, 2.98, false);
-    graphics.arc(0, 0, radius * 0.68, 3.30, 4.52, false);
-    graphics.arc(0, 0, radius * 0.68, 4.90, 6.12, false);
+    this.safeArc(graphics, 0, 0, radius * 0.68, 0.16, 1.38, false);
+    this.safeArc(graphics, 0, 0, radius * 0.68, 1.76, 2.98, false);
+    this.safeArc(graphics, 0, 0, radius * 0.68, 3.30, 4.52, false);
+    this.safeArc(graphics, 0, 0, radius * 0.68, 4.90, 6.12, false);
     graphics.stroke();
     const tickStart = radius * 0.83;
     const tickEnd = radius * 0.94;
@@ -3245,7 +3305,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     const radius = this.touchLayout().movement.radius;
     graphics.strokeColor = new Color(123, 211, 188, 205);
     graphics.lineWidth = snapshot.threshold === 'full' ? 3 : 2;
-    graphics.arc(0, 0, radius * 0.74, snapshot.angle - 0.34, snapshot.angle + 0.34, false);
+    this.safeArc(graphics, 0, 0, radius * 0.74, snapshot.angle - 0.34, snapshot.angle + 0.34, false);
     graphics.stroke();
   }
 
