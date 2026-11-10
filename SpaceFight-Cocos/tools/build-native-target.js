@@ -8,6 +8,7 @@ const {
   mkdirSync,
   readFileSync,
   readdirSync,
+  renameSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -313,6 +314,29 @@ function normalizeAndroidIdentity(outputDirectory) {
   syncAndroidIcons(outputDirectory);
 }
 
+// Cocos 3.8's Android template registers `../libs` as a jniLibs source dir while
+// also compiling libcocos.so through CMake. A prebuilt libcocos.so left in
+// native/engine/android/libs/<abi>/ by an earlier successful build is then merged
+// alongside the freshly compiled one, and AGP aborts mergeReleaseNativeLibs with
+//   "2 files found with path 'lib/arm64-v8a/libcocos.so'".
+// Rename (never delete) the stale prebuilt copy on every successful export, so
+// the CMake output is the single source of truth and the old file stays restorable.
+function quarantinePrebuiltNativeLibraries() {
+  const libsRoot = path.join(projectRoot, 'native', 'engine', 'android', 'libs');
+  if (!existsSync(libsRoot)) return [];
+  const quarantined = [];
+  for (const abi of readdirSync(libsRoot)) {
+    const abiRoot = path.join(libsRoot, abi);
+    if (!statSync(abiRoot).isDirectory()) continue;
+    for (const entry of readdirSync(abiRoot)) {
+      if (entry !== 'libcocos.so') continue;
+      renameSync(path.join(abiRoot, entry), path.join(abiRoot, `${entry}.prebuilt`));
+      quarantined.push(path.relative(projectRoot, path.join(abiRoot, `${entry}.prebuilt`)));
+    }
+  }
+  return quarantined;
+}
+
 function normalizeAndroidProject(outputDirectory) {
   const propertiesPath = path.join(outputDirectory, 'proj', 'gradle.properties');
   if (!existsSync(propertiesPath)) return;
@@ -332,6 +356,12 @@ function normalizeAndroidProject(outputDirectory) {
   for (const updaterPath of new Set(updaterPaths)) {
     if (!existsSync(updaterPath)) continue;
     writeFileSync(updaterPath, normalizeAndroidUpdater(readFileSync(updaterPath, 'utf8')));
+  }
+  const quarantined = quarantinePrebuiltNativeLibraries();
+  if (quarantined.length > 0) {
+    process.stdout.write(
+      `Quarantined prebuilt native libraries (would collide with CMake output): ${quarantined.join(', ')}\n`,
+    );
   }
 }
 
@@ -764,6 +794,7 @@ module.exports = {
   normalizeHarmonyIdentity,
   normalizeHarmonyModuleJson,
   pruneStaleNativeRuntimeFiles,
+  quarantinePrebuiltNativeLibraries,
   recordCompiledArtifact,
   recordCompiledArtifacts,
   validateNativeRuntimeOutput,

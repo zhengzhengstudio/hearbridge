@@ -20,8 +20,8 @@
       "ver": "1.0.3",
       "imported": true,
       "files": [
-        ".json",
-        ".png"
+        ".jpg",
+        ".json"
       ],
       "subMetas": {}
     },
@@ -41,15 +41,15 @@
       ],
       "subMetas": {}
     },
-    "70c05": {
+    "7035a": {
       "importer": "gltf-mesh",
-      "uuid": "a71c8f10-1366-4c61-b5e8-4fae8725b339@70c05",
+      "uuid": "a71c8f10-1366-4c61-b5e8-4fae8725b339@7035a",
       "displayName": "",
-      "id": "70c05",
-      "name": "material.mesh",
+      "id": "7035a",
+      "name": "node_0.mesh",
       "userData": {
         "gltfIndex": 0,
-        "triangleCount": 3584
+        "triangleCount": 80000
       },
       "ver": "1.1.1",
       "imported": true,
@@ -74,8 +74,8 @@
       "ver": "1.0.3",
       "imported": true,
       "files": [
-        ".json",
-        ".png"
+        ".jpg",
+        ".json"
       ],
       "subMetas": {}
     },
@@ -94,8 +94,8 @@
       "ver": "1.0.3",
       "imported": true,
       "files": [
-        ".json",
-        ".png"
+        ".jpg",
+        ".json"
       ],
       "subMetas": {}
     },
@@ -220,7 +220,7 @@
     },
     "assetFinder": {
       "meshes": [
-        "a71c8f10-1366-4c61-b5e8-4fae8725b339@70c05"
+        "a71c8f10-1366-4c61-b5e8-4fae8725b339@7035a"
       ],
       "skeletons": [],
       "textures": [

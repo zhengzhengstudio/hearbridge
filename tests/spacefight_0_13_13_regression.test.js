@@ -239,3 +239,34 @@ for (const name of SHELLS) {
     assert.ok(ejs.includes(`<span>BUILD ${build}</span>`), `${name} 启动页 BUILD 仍写死旧值`);
   });
 }
+
+test('Web 构建脚本修复 CSS 里未哈希的静态资源引用（前哨站舱内背景不再 404）', () => {
+  const js = read('tools/build-web-release.js');
+  assert.match(js, /function repairHashedAssetReferences/,
+    '缺少 CSS 静态资源引用修复');
+  assert.match(js, /repairHashedAssetReferences\(outputDirectory\)/,
+    '构建完成后未调用修复');
+  assert.ok(js.includes('(css|html)$'), '修复未同时覆盖 css 与 html');
+  assert.match(js, /for \(const outputName of readdirSync\(releaseRoot\)\)/,
+    '修复未遍历所有 release 输出，web-mobile 也会踩同一个 404');
+  assert.ok(!/cd4fa|9aae1|078d9|60574|a7b39|ce860/.test(js),
+    '不能把某次构建的 MD5 哈希写死在脚本里，重建即失效');
+  for (const name of SHELLS) {
+    const css = template(name, 'spacefight-shell.css');
+    assert.match(css, /url\("outpost-interior\.jpg"\)/,
+      `${name} 模板应继续引用源文件名，由构建脚本在产物里改写`);
+  }
+});
+
+test('Android 导出脚本隔离预编译 libcocos.so，避免 mergeReleaseNativeLibs 重复', () => {
+  const js = read('tools/build-native-target.js');
+  assert.match(js, /function quarantinePrebuiltNativeLibraries/,
+    '缺少预编译 native 库隔离');
+  assert.match(js, /quarantinePrebuiltNativeLibraries\(\)/,
+    '导出成功后未执行隔离');
+  assert.match(js, /\$\{entry\}\.prebuilt/, '应改名保留而非删除');
+  assert.match(js, /quarantinePrebuiltNativeLibraries,/, '未导出供测试复用');
+  const gradle = read('native/engine/android/app/build.gradle');
+  assert.match(gradle, /jniLibs\.srcDirs "\.\.\/libs"/,
+    '若模板不再把 ../libs 当 jniLibs，此隔离逻辑可评估移除');
+});

@@ -57,3 +57,58 @@ const settingsPath = path.join(sourceDirectory, settingsFile);
 const settings = JSON.parse(readFileSync(settingsPath, 'utf8'));
 delete settings.splashScreen;
 writeFileSync(settingsPath, `${JSON.stringify(settings)}\n`);
+
+// Cocos Creator appends an MD5 suffix to build-template static assets and rewrites
+// the references inside index.html, but it does NOT rewrite url(...) references
+// inside build-template CSS. A rule such as
+//   background: url("outpost-interior.jpg") center / cover no-repeat;
+// therefore points at a file that no longer exists in the release (the real name
+// is outpost-interior.<md5>.jpg) and silently 404s at runtime. Resolve those by
+// looking up the emitted hashed filename instead of hard-coding any hash, so the
+// fix survives every rebuild and works for web-mobile too.
+function repairHashedAssetReferences(outputDirectory) {
+  const entries = readdirSync(outputDirectory);
+  const hashedNames = new Map();
+  for (const entry of entries) {
+    const match = /^(.+)\.([0-9a-f]{4,8})\.([A-Za-z0-9]+)$/.exec(entry);
+    if (match && /\.(jpg|jpeg|png|webp|gif|svg|ico)$/i.test(entry)) {
+      hashedNames.set(`${match[1]}.${match[3]}`, entry);
+    }
+  }
+  const repaired = [];
+  for (const entry of entries) {
+    if (!/\.(css|html)$/i.test(entry)) continue;
+    const target = path.join(outputDirectory, entry);
+    let content = readFileSync(target, 'utf8');
+    let changed = false;
+    for (const [original, hashedName] of hashedNames) {
+      if (existsSync(path.join(outputDirectory, original))) continue;
+      const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const next = content.replace(
+        new RegExp(`(["'(])${escaped}(?=["')\\s])`, 'g'),
+        (_match, prefix) => `${prefix}${hashedName}`,
+      );
+      if (next !== content) {
+        content = next;
+        changed = true;
+      }
+    }
+    if (changed) {
+      writeFileSync(target, content);
+      repaired.push(entry);
+    }
+  }
+  return repaired;
+}
+
+const releaseRoot = path.join(projectRoot, 'release');
+for (const outputName of readdirSync(releaseRoot)) {
+  const outputDirectory = path.join(releaseRoot, outputName);
+  if (!existsSync(path.join(outputDirectory, 'index.html'))) continue;
+  const repaired = repairHashedAssetReferences(outputDirectory);
+  if (repaired.length > 0) {
+    process.stdout.write(
+      `Rewrote hashed static asset references in ${outputName}: ${repaired.join(', ')}\n`,
+    );
+  }
+}
