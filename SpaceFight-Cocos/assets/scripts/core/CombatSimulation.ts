@@ -31,6 +31,7 @@ import {
   TACTICAL_DEVICES,
   UTILITY_MODULES,
   WEAPON_CATALOG,
+  behaviorForWeaponId,
   resolveLoadout,
 } from './WeaponCatalog';
 import type { CombatLoadout, ResolvedCombatLoadout, WeaponDefinition, WeaponSlot } from './WeaponCatalog';
@@ -215,6 +216,10 @@ interface EnemyState {
   intent: EnemyIntentMode;
   faction: EnemyFaction;
   lastDamagedBy: CombatEventSource;
+  /** 被离子类武器命中后的干扰状态：到 jammedUntil 之前位移与开火都变慢 */
+  jammedUntil?: number;
+  jamSpeedScale?: number;
+  jamFireRateScale?: number;
 }
 
 interface AimSolution {
@@ -234,6 +239,16 @@ interface ProjectileState {
   owner: 'player' | 'enemy';
   sourceId?: string;
   targetId?: string;
+  /** 武器行为字段（见 WeaponCatalog.behaviorForWeaponId）；缺省即常规单发直线弹。 */
+  pierceLeft?: number;
+  pierceDamageScale?: number;
+  splashRadius?: number;
+  splashDamageScale?: number;
+  jamSeconds?: number;
+  jamSpeedScale?: number;
+  jamFireRateScale?: number;
+  /** 穿透弹已命中的目标，避免同一发反复打同一个敌人 */
+  hitIds?: string[];
 }
 
 export type CombatEventSource = 'player' | 'enemy' | 'world';
@@ -377,6 +392,9 @@ export interface CombatSnapshot {
     owner: 'player' | 'enemy';
     sourceId?: string;
     targetId?: string;
+    pierceLeft?: number;
+    splashRadius?: number;
+    jamSeconds?: number;
   }>;
   combatEvents: CombatEvent[];
   worldEvent: {
@@ -1331,6 +1349,7 @@ export class CombatSimulation {
 
   private fireWeapon(slot: WeaponSlot): void {
     const weapon = this.resolveWeaponForSlot(slot);
+    const behavior = behaviorForWeaponId(weapon.id);
     // 能耗强化倍率乘在本武器能耗上；倍率随增益生效/到期动态读取，无需复原状态。
     const energyCost = weapon.energyCost * this.upgradeEffects().energy;
     if (this.cooldowns[slot] > 0 || this.player.energy < energyCost) {
@@ -1363,22 +1382,47 @@ export class CombatSimulation {
       targetId: aim.target?.id,
       source: 'player',
     });
-    this.projectiles.push({
-      id: `projectile-${this.nextProjectileId++}`,
-      weapon: weapon.id,
-      origin,
-      position: cloneVector(origin),
-      velocity: {
-        x: direction.x * weapon.speed,
-        y: direction.y * weapon.speed,
-        z: direction.z * weapon.speed,
-      },
-      damage: weapon.damage * this.player.damageMultiplier * this.upgradeEffects().damage,
-      radius: weapon.radius,
-      life: weapon.life,
-      owner: 'player',
-      targetId: aim.target?.id,
-    });
+
+    const baseDamage = weapon.damage * this.player.damageMultiplier * this.upgradeEffects().damage;
+    const pelletCount = behavior.pelletCount ?? 1;
+    const spreadRadians = ((behavior.spreadDegrees ?? 0) * Math.PI) / 180;
+    for (let index = 0; index < pelletCount; index += 1) {
+      // 单发武器（含默认 pulse / missile）走原路径：方向、伤害都与改造前逐值一致。
+      // 多弹武器绕世界 Y 轴做扇形偏转，中间那发仍指向收敛点。
+      const angle = pelletCount > 1
+        ? (index / (pelletCount - 1) - 0.5) * spreadRadians
+        : 0;
+      const heading = angle === 0
+        ? direction
+        : {
+          x: direction.x * Math.cos(angle) + direction.z * Math.sin(angle),
+          y: direction.y,
+          z: -direction.x * Math.sin(angle) + direction.z * Math.cos(angle),
+        };
+      this.projectiles.push({
+        id: `projectile-${this.nextProjectileId++}`,
+        weapon: weapon.id,
+        origin,
+        position: cloneVector(origin),
+        velocity: {
+          x: heading.x * weapon.speed,
+          y: heading.y * weapon.speed,
+          z: heading.z * weapon.speed,
+        },
+        damage: baseDamage * (behavior.pelletDamageScale ?? 1),
+        radius: weapon.radius,
+        life: weapon.life,
+        owner: 'player',
+        targetId: aim.target?.id,
+        pierceLeft: behavior.pierceCount,
+        pierceDamageScale: behavior.pierceDamageScale,
+        splashRadius: behavior.splashRadius,
+        splashDamageScale: behavior.splashDamageScale,
+        jamSeconds: behavior.jamSeconds,
+        jamSpeedScale: behavior.jamSpeedScale,
+        jamFireRateScale: behavior.jamFireRateScale,
+      });
+    }
   }
 
   private updateWorldEvents(dt: number): void {
@@ -1495,13 +1539,17 @@ export class CombatSimulation {
         })),
       });
       enemy.intent = behavior.mode;
+      // 离子类武器命中后的干扰：位移与开火都变慢，到时自动失效，不需要额外清理。
+      const jammed = (enemy.jammedUntil ?? 0) > this.elapsed;
+      const jamSpeed = jammed ? (enemy.jamSpeedScale ?? 1) : 1;
+      const jamFireRate = jammed ? (enemy.jamFireRateScale ?? 1) : 1;
       if (trainingProtected && range > approachRange) {
-        const speed = 4.2;
+        const speed = 4.2 * jamSpeed;
         enemy.position.x += (offset.x / range) * speed * dt;
         enemy.position.y += (offset.y / range) * speed * dt;
         enemy.position.z += (offset.z / range) * speed * dt;
       } else if (!trainingProtected) {
-        const eventSpeed = this.activeWorldEvent === 'ion-storm' ? 0.68 : 1;
+        const eventSpeed = (this.activeWorldEvent === 'ion-storm' ? 0.68 : 1) * jamSpeed;
         enemy.position.x += behavior.desiredVelocity.x * eventSpeed * dt;
         enemy.position.y += behavior.desiredVelocity.y * eventSpeed * dt;
         enemy.position.z += behavior.desiredVelocity.z * eventSpeed * dt;
@@ -1512,7 +1560,7 @@ export class CombatSimulation {
         z: (enemy.position.z - previousPosition.z) / dt,
       } : { x: 0, y: 0, z: 0 };
 
-      enemy.fireCooldown -= dt;
+      enemy.fireCooldown -= dt * jamFireRate;
       enemy.ramCooldown = Math.max(0, enemy.ramCooldown - dt);
       enemy.telegraphElapsed += dt;
       if (trainingProtected && !rival) continue;
@@ -1689,6 +1737,8 @@ export class CombatSimulation {
         }
       } else {
         const target = this.enemies.find((enemy) => {
+          // 穿透弹不能在同一目标上反复结算，否则一发能瞬间打空整队。
+          if (projectile.hitIds && projectile.hitIds.indexOf(enemy.id) >= 0) return false;
           const lockAssist = enemy.id === projectile.targetId
             ? Math.min(2.4, 0.7 + distance(previousPosition, enemy.position) * 0.012)
             : 0;
@@ -1696,19 +1746,21 @@ export class CombatSimulation {
             <= projectile.radius + enemy.radius + lockAssist;
         });
         if (target) {
-          const damage = Math.min(target.health, projectile.damage);
-          target.health -= projectile.damage;
-          target.lastDamagedBy = 'player';
-          this.combatEvents.push({
-            id: this.nextCombatEventId++,
-            type: 'hit',
-            position: closestPointOnSegment(previousPosition, projectile.position, target.position),
-            targetId: target.id,
-            weapon: projectile.weapon,
-            damage,
-            lethal: target.health <= 0,
-            source: 'player',
-          });
+          this.applyPlayerProjectileHit(projectile, target, previousPosition);
+          if ((projectile.pierceLeft ?? 0) > 0) {
+            // 穿透：记录已命中目标、按系数衰减伤害，本帧直接续飞（跳过残骸碰撞）。
+            projectile.pierceLeft = (projectile.pierceLeft ?? 0) - 1;
+            projectile.damage *= projectile.pierceDamageScale ?? 1;
+            projectile.hitIds = [...(projectile.hitIds ?? []), target.id];
+            // 清掉锁定，否则制导会带着穿透弹绕回刚打过的目标，永远够不到后排。
+            projectile.targetId = undefined;
+            if (
+              projectile.life > 0
+              && distance(projectile.position, this.player.position) <= FLIGHT_TUNING.projectile.cullDistance
+            ) {
+              survivors.push(projectile);
+            }
+          }
           continue;
         }
         // 残骸带：玩家子弹命中残骸扣血，扣到 0 后由 updateDebris 清除（此前 health 从不减少）。
@@ -1820,6 +1872,60 @@ export class CombatSimulation {
     return pool[pool.length - 1];
   }
 
+  /**
+   * 玩家弹丸命中目标：基础伤害 + 武器行为（溅射 / 干扰）。
+   *
+   * 击杀、连击与掉落统一由 `updateProjectiles` 末尾的 destroyed 过滤处理，
+   * 所以溅射打死的敌人也会正常计分、进连击、掉货，不需要在这里重复一遍。
+   */
+  private applyPlayerProjectileHit(
+    projectile: ProjectileState,
+    target: EnemyState,
+    previousPosition: Vector3,
+  ): void {
+    const damage = Math.min(target.health, projectile.damage);
+    target.health -= projectile.damage;
+    target.lastDamagedBy = 'player';
+    this.combatEvents.push({
+      id: this.nextCombatEventId++,
+      type: 'hit',
+      position: closestPointOnSegment(previousPosition, projectile.position, target.position),
+      targetId: target.id,
+      weapon: projectile.weapon,
+      damage,
+      lethal: target.health <= 0,
+      source: 'player',
+    });
+    if (projectile.splashRadius && projectile.splashDamageScale) {
+      const splashDamage = projectile.damage * projectile.splashDamageScale;
+      for (const other of this.enemies) {
+        if (other.id === target.id || other.health <= 0) continue;
+        if (distance(target.position, other.position) > projectile.splashRadius + other.radius) continue;
+        const dealt = Math.min(other.health, splashDamage);
+        other.health -= splashDamage;
+        other.lastDamagedBy = 'player';
+        this.combatEvents.push({
+          id: this.nextCombatEventId++,
+          type: 'hit',
+          position: cloneVector(other.position),
+          targetId: other.id,
+          weapon: projectile.weapon,
+          damage: dealt,
+          lethal: other.health <= 0,
+          source: 'player',
+        });
+      }
+    }
+    if (projectile.jamSeconds) {
+      target.jammedUntil = Math.max(
+        target.jammedUntil ?? 0,
+        this.elapsed + projectile.jamSeconds,
+      );
+      target.jamSpeedScale = projectile.jamSpeedScale ?? 1;
+      target.jamFireRateScale = projectile.jamFireRateScale ?? 1;
+    }
+  }
+
   private guidePlayerProjectile(projectile: ProjectileState, dt: number): void {
     const target = this.enemies.find((enemy) => enemy.id === projectile.targetId);
     if (!target) return;
@@ -1836,7 +1942,9 @@ export class CombatSimulation {
       y: projectile.velocity.y / speed,
       z: projectile.velocity.z / speed,
     };
-    const turnRate = projectile.weapon === 'missile' ? 7.5 : projectile.weapon === 'plasma' ? 3.8 : 2.4;
+    // 转向率统一由武器行为表给出。副武器 missile(7.5) / plasma(3.8) 与改造前一致；
+    // 顺带修正主炮 missile-primary 此前被当成普通弹（只给 2.4）的不一致。
+    const turnRate = behaviorForWeaponId(projectile.weapon).homingTurnRate ?? 2.4;
     const blend = Math.min(1, turnRate * dt);
     const steered = {
       x: current.x + (desired.x - current.x) * blend,
@@ -2416,6 +2524,10 @@ export class CombatSimulation {
         owner: projectile.owner,
         sourceId: projectile.sourceId,
         targetId: projectile.targetId,
+        // 行为字段只在对应武器上存在，常规弹的快照结构与改造前逐键一致。
+        ...(projectile.pierceLeft !== undefined ? { pierceLeft: projectile.pierceLeft } : {}),
+        ...(projectile.splashRadius !== undefined ? { splashRadius: projectile.splashRadius } : {}),
+        ...(projectile.jamSeconds !== undefined ? { jamSeconds: projectile.jamSeconds } : {}),
       })),
       combatEvents: this.combatEvents.map((event) => ({
         ...event,

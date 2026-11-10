@@ -175,3 +175,151 @@ export const WEAPON_CATALOG: Record<WeaponSlot, WeaponDefinition> = {
   primary: PRIMARY_WEAPONS.pulse,
   secondary: SECONDARY_WEAPONS.missile,
 };
+
+/**
+ * 武器行为表（玩法差异化第一阶段）。
+ *
+ * 此前 `WeaponDefinition` 只有数值字段，`fireWeapon()` 永远只发一发直线弹丸：
+ * 「散射炮」不散射、「蜂群导弹」只发一发、「磁轨炮 / 束炮」不穿透、
+ * 「等离子炮」不溅射、「离子炮」不干扰 —— 换枪只是换数字，玩家感觉不到打法区别。
+ *
+ * `kind` 只用于装配台 / HUD 的行为标签，具体参数彼此独立、可组合
+ * （例如蜂群导弹 = 多弹扇形 + 制导；等离子炮 = 溅射 + 轻度制导）。
+ *
+ * ⚠️ 基线约束：`pulse` 与默认副武器 `missile` 必须保持原有数值与单发路径完全不变，
+ * 否则既有确定性模拟测试（弹丸数量、枪口位置、初速方向）会全线漂移。
+ */
+export type WeaponBehaviorKind =
+  | 'standard' | 'spread' | 'pierce' | 'splash' | 'homing' | 'jam';
+
+export interface WeaponBehavior {
+  readonly kind: WeaponBehaviorKind;
+  /** 装配台 / HUD 行为标签的本地化键 */
+  readonly labelKey: string;
+  /** 一次开火发射的弹丸数（spread） */
+  readonly pelletCount?: number;
+  /** 扇形总张角（度） */
+  readonly spreadDegrees?: number;
+  /** 多弹时每发伤害系数，用于把总输出拉回可控区间 */
+  readonly pelletDamageScale?: number;
+  /** 首次命中后还能继续命中的目标数（pierce） */
+  readonly pierceCount?: number;
+  /** 每穿透一个目标后的伤害保留系数 */
+  readonly pierceDamageScale?: number;
+  /** 溅射半径与溅射伤害系数（splash） */
+  readonly splashRadius?: number;
+  readonly splashDamageScale?: number;
+  /** 制导转向率；缺省沿用 guidePlayerProjectile 的默认 2.4 */
+  readonly homingTurnRate?: number;
+  /** 命中后让目标减速 / 开火变慢的时长与倍率（jam） */
+  readonly jamSeconds?: number;
+  readonly jamSpeedScale?: number;
+  readonly jamFireRateScale?: number;
+}
+
+const STANDARD_BEHAVIOR: WeaponBehavior = {
+  kind: 'standard',
+  labelKey: 'behavior.standard',
+};
+
+export const PRIMARY_WEAPON_BEHAVIORS: Readonly<Record<PrimaryWeaponId, WeaponBehavior>> = {
+  pulse: STANDARD_BEHAVIOR,
+  scatter: {
+    kind: 'spread',
+    labelKey: 'behavior.spread',
+    pelletCount: 3,
+    spreadDegrees: 13,
+    pelletDamageScale: 0.46,
+  },
+  missile: {
+    kind: 'homing',
+    labelKey: 'behavior.homing',
+    homingTurnRate: 7.5,
+  },
+  rail: {
+    kind: 'pierce',
+    labelKey: 'behavior.pierce',
+    pierceCount: 3,
+    pierceDamageScale: 0.78,
+  },
+  plasma: {
+    kind: 'splash',
+    labelKey: 'behavior.splash',
+    splashRadius: 3.4,
+    splashDamageScale: 0.45,
+    homingTurnRate: 3.8,
+  },
+  ion: {
+    kind: 'jam',
+    labelKey: 'behavior.jam',
+    jamSeconds: 2.6,
+    jamSpeedScale: 0.55,
+    jamFireRateScale: 0.6,
+  },
+  beam: {
+    kind: 'pierce',
+    labelKey: 'behavior.pierce',
+    pierceCount: 4,
+    pierceDamageScale: 0.86,
+  },
+  rotary: STANDARD_BEHAVIOR,
+};
+
+export const SECONDARY_WEAPON_BEHAVIORS: Readonly<Record<SecondaryWeaponId, WeaponBehavior>> = {
+  missile: {
+    kind: 'homing',
+    labelKey: 'behavior.homing',
+    homingTurnRate: 7.5,
+  },
+  torpedo: {
+    kind: 'splash',
+    labelKey: 'behavior.splash',
+    splashRadius: 4.4,
+    splashDamageScale: 0.55,
+  },
+  flak: {
+    kind: 'splash',
+    labelKey: 'behavior.splash',
+    splashRadius: 3.6,
+    splashDamageScale: 0.5,
+  },
+  swarm: {
+    kind: 'spread',
+    labelKey: 'behavior.spread',
+    pelletCount: 3,
+    spreadDegrees: 17,
+    pelletDamageScale: 0.62,
+    homingTurnRate: 5,
+  },
+  mine: {
+    kind: 'splash',
+    labelKey: 'behavior.splash',
+    splashRadius: 5.2,
+    splashDamageScale: 0.62,
+  },
+  rocket: STANDARD_BEHAVIOR,
+};
+
+/**
+ * 弹丸携带的是 `WeaponDefinition.id`，不是 catalog key：
+ * 主炮 missile 的 id 是 `'missile-primary'`，副武器才是 `'missile'`。
+ * 这里按真实 id 建索引，调用方不必记两套命名。
+ */
+const BEHAVIOR_BY_PROJECTILE_ID: Readonly<Record<string, WeaponBehavior>> = (() => {
+  const table: Record<string, WeaponBehavior> = {};
+  const primaryIds = Object.keys(PRIMARY_WEAPONS) as PrimaryWeaponId[];
+  for (const key of primaryIds) {
+    table[PRIMARY_WEAPONS[key].id] = PRIMARY_WEAPON_BEHAVIORS[key];
+  }
+  const secondaryIds = Object.keys(SECONDARY_WEAPONS) as SecondaryWeaponId[];
+  for (const key of secondaryIds) {
+    table[SECONDARY_WEAPONS[key].id] = SECONDARY_WEAPON_BEHAVIORS[key];
+  }
+  return table;
+})();
+
+export function behaviorForWeaponId(id: string): WeaponBehavior {
+  return owns(BEHAVIOR_BY_PROJECTILE_ID, id)
+    ? BEHAVIOR_BY_PROJECTILE_ID[id]
+    : STANDARD_BEHAVIOR;
+}

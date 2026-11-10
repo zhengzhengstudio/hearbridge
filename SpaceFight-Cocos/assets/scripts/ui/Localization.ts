@@ -142,6 +142,9 @@ const zhCN = {
   'outpost.ticketsGain': '星港券  {value}   ·   本趟 +{gain}',
   // 前哨站舱内物资台账（本轮新增）
   'outpost.interior': '舱内物资', 'outpost.interiorBack': '返回结算', 'outpost.interiorEmpty': '本趟没有回收物资',
+  // 武器行为标签：选枪时就能看出打法区别，而不是只看伤害数字
+  'behavior.standard': '常规直射', 'behavior.spread': '扇形散射', 'behavior.pierce': '贯穿',
+  'behavior.splash': '范围爆破', 'behavior.homing': '追踪制导', 'behavior.jam': '干扰减速',
 } as const;
 
 export type CombatMessageKey = keyof typeof zhCN;
@@ -241,6 +244,8 @@ const zhTW: CombatMessages = {
   'home.tutorial': '新手教學', 'home.tutorialDetail': '完整走一遍回收流程', 'home.tutorialStart': '開始新手教學', 'tutorial.target': '擊落訓練靶機', 'tutorial.pickup': '飛近發光物資並回收', 'outpost.ticketsGain': '星港券  {value}   ·   本趟 +{gain}',
   // 前哨站舱内物资台账（本轮新增）
   'outpost.interior': '艙內物資', 'outpost.interiorBack': '返回結算', 'outpost.interiorEmpty': '本次沒有回收物資',
+  'behavior.standard': '常規直射', 'behavior.spread': '扇形散射', 'behavior.pierce': '貫穿',
+  'behavior.splash': '範圍爆破', 'behavior.homing': '追蹤導引', 'behavior.jam': '干擾減速',
 };
 
 const en: CombatMessages = {
@@ -379,6 +384,8 @@ const en: CombatMessages = {
   'home.tutorial': 'FIRST FLIGHT', 'home.tutorialDetail': 'Fly one full salvage run', 'home.tutorialStart': 'START TUTORIAL', 'tutorial.target': 'Destroy the training drone', 'tutorial.pickup': 'Fly into glowing cargo to recover it', 'outpost.ticketsGain': 'TICKETS  {value}   ·   +{gain} THIS RUN',
   // 前哨站舱内物资台账（本轮新增）
   'outpost.interior': 'CARGO BAY', 'outpost.interiorBack': 'BACK TO SETTLEMENT', 'outpost.interiorEmpty': 'NO CARGO RECOVERED THIS RUN',
+  'behavior.standard': 'STANDARD', 'behavior.spread': 'SPREAD', 'behavior.pierce': 'PIERCE',
+  'behavior.splash': 'BLAST', 'behavior.homing': 'HOMING', 'behavior.jam': 'JAM',
 };
 
 const ja: CombatMessages = localize(en, {
@@ -514,6 +521,8 @@ const ja: CombatMessages = localize(en, {
   'home.tutorial': '初回訓練', 'home.tutorialDetail': '回収の一巡を体験', 'home.tutorialStart': '訓練を開始', 'tutorial.target': '訓練機を撃墜', 'tutorial.pickup': '光る物資に接近して回収', 'outpost.ticketsGain': '星港券  {value}   ·   本次 +{gain}',
   // 前哨站舱内物资台账（本轮新增）
   'outpost.interior': '船内物資', 'outpost.interiorBack': '精算に戻る', 'outpost.interiorEmpty': '今回の回収物資はありません',
+  'behavior.standard': '標準射撃', 'behavior.spread': '拡散扇形', 'behavior.pierce': '貫通',
+  'behavior.splash': '範囲爆発', 'behavior.homing': '追尾誘導', 'behavior.jam': '妨害減速',
 });
 const ko: CombatMessages = localize(en, {
   'slot.ship': '기체',
@@ -648,6 +657,8 @@ const ko: CombatMessages = localize(en, {
   'home.tutorial': '초회 훈련', 'home.tutorialDetail': '회수 한 순환 체험', 'home.tutorialStart': '훈련 시작', 'tutorial.target': '훈련 표적 격추', 'tutorial.pickup': '빛나는 화물에 접근해 회수', 'outpost.ticketsGain': '항만권  {value}   ·   이번 +{gain}',
   // 前哨站舱内物资台账（本轮新增）
   'outpost.interior': '함내 화물', 'outpost.interiorBack': '정산으로 돌아가기', 'outpost.interiorEmpty': '이번 회차 회수 화물 없음',
+  'behavior.standard': '기본 사격', 'behavior.spread': '산탄 확산', 'behavior.pierce': '관통',
+  'behavior.splash': '범위 폭발', 'behavior.homing': '유도 추적', 'behavior.jam': '교란 감속',
 });
 const de: CombatMessages = localize(en, {
   'home.profile': 'OFFLINE-PROFIL · LOKALE EXPEDITION', 'home.operations': 'EINSÄTZE', 'home.hangarNav': 'HANGAR', 'home.cargo': 'FRACHT', 'home.settings': 'EINSTELLUNGEN',
@@ -794,6 +805,8 @@ const es: CombatMessages = localize(en, {
   'home.tutorial': 'PRIMER VUELO', 'home.tutorialDetail': 'Completa una ruta de rescate', 'home.tutorialStart': 'INICIAR TUTORIAL', 'tutorial.target': 'Derriba el blanco de entrenamiento', 'tutorial.pickup': 'Acércate a la carga brillante', 'outpost.ticketsGain': 'BONOS  {value}   ·   +{gain} ESTA SALIDA',
   // 前哨站舱内物资台账（本轮新增）
   'outpost.interior': 'BODEGA', 'outpost.interiorBack': 'VOLVER A LIQUIDACIÓN', 'outpost.interiorEmpty': 'SIN CARGA RECUPERADA',
+  'behavior.standard': 'DISPARO ESTÁNDAR', 'behavior.spread': 'ABANICO', 'behavior.pierce': 'PERFORACIÓN',
+  'behavior.splash': 'EXPLOSIÓN', 'behavior.homing': 'GUIADO', 'behavior.jam': 'INTERFERENCIA',
 });
 const ptBR: CombatMessages = localize(en, {
   'slot.ship': 'AERONAVE',
@@ -928,6 +941,8 @@ const ptBR: CombatMessages = localize(en, {
   'home.tutorial': 'PRIMEIRO VOO', 'home.tutorialDetail': 'Complete um resgate completo', 'home.tutorialStart': 'INICIAR TUTORIAL', 'tutorial.target': 'Abata o alvo de treino', 'tutorial.pickup': 'Aproxime-se da carga brilhante', 'outpost.ticketsGain': 'TÍQUETES  {value}   ·   +{gain} NESTA MISSÃO',
   // 前哨站舱内物资台账（本轮新增）
   'outpost.interior': 'PORÃO DE CARGA', 'outpost.interiorBack': 'VOLTAR AO ACERTO', 'outpost.interiorEmpty': 'SEM CARGA NESTA MISSÃO',
+  'behavior.standard': 'TIRO PADRÃO', 'behavior.spread': 'LEQUE', 'behavior.pierce': 'PERFURAÇÃO',
+  'behavior.splash': 'DETONAÇÃO', 'behavior.homing': 'TELEGUIADO', 'behavior.jam': 'INTERFERÊNCIA',
 });
 const fr: CombatMessages = localize(en, {
   'slot.ship': 'APPAREIL',
@@ -1063,6 +1078,8 @@ const fr: CombatMessages = localize(en, {
   'home.tutorial': 'PREMIER VOL', 'home.tutorialDetail': 'Effectuez une récupération complète', 'home.tutorialStart': 'DÉMARRER LE TUTORIEL', 'tutorial.target': 'Détruisez la cible d’entraînement', 'tutorial.pickup': 'Approchez-vous du chargement lumineux', 'outpost.ticketsGain': 'TICKETS  {value}   ·   +{gain} CETTE SORTIE',
   // 前哨站舱内物资台账（本轮新增）
   'outpost.interior': 'SOUTE', 'outpost.interiorBack': 'RETOUR AU DÉCOMPTE', 'outpost.interiorEmpty': 'AUCUN FRET RÉCUPÉRÉ',
+  'behavior.standard': 'TIR STANDARD', 'behavior.spread': 'ÉVENTAIL', 'behavior.pierce': 'PERFORANT',
+  'behavior.splash': 'SOUFFLE', 'behavior.homing': 'AUTOGUIDÉ', 'behavior.jam': 'BROUILLAGE',
 });
 
 function localize(base: CombatMessages, overrides: Partial<CombatMessages>): CombatMessages {

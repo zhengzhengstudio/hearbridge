@@ -51,6 +51,7 @@ try {
     const tests = spawnSync(process.execPath, [
       '--test',
       path.join(repositoryRoot, 'tests', 'spacefight_cocos_simulation.test.js'),
+      path.join(repositoryRoot, 'tests', 'spacefight_weapon_behavior.test.js'),
     ], {
       cwd: repositoryRoot,
       env: {

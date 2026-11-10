@@ -26,6 +26,8 @@ import {
   ENGINE_MODULES,
   FRAME_CORES,
   PRIMARY_WEAPONS,
+  PRIMARY_WEAPON_BEHAVIORS,
+  SECONDARY_WEAPON_BEHAVIORS,
   resolveLoadout,
   SECONDARY_WEAPONS,
   SHIELD_MODULES,
@@ -2580,11 +2582,15 @@ export class NativeCombatHud implements NativeInputFeedback {
       }
       case 'weapon': {
         const weapon = PRIMARY_WEAPONS[this.pendingLoadout.weapon];
-        return `${name} · ${this.text('metric.damage', { value: weapon.damage })} / ${this.text('metric.shots', { value: (1 / weapon.cooldown).toFixed(1) })}`;
+        const behavior = PRIMARY_WEAPON_BEHAVIORS[this.pendingLoadout.weapon];
+        const stats = `${this.text('metric.damage', { value: weapon.damage })} / ${this.text('metric.shots', { value: (1 / weapon.cooldown).toFixed(1) })}`;
+        // 先讲打法再讲数值：玩家换枪时首先该看到「这把怎么打」。
+        return `${name} · ${this.text(behavior.labelKey as CombatMessageKey)} · ${stats}`;
       }
       case 'secondary': {
         const weapon = SECONDARY_WEAPONS[this.pendingLoadout.secondary];
-        return `${name} · ${this.text('metric.damage', { value: weapon.damage })}`;
+        const behavior = SECONDARY_WEAPON_BEHAVIORS[this.pendingLoadout.secondary];
+        return `${name} · ${this.text(behavior.labelKey as CombatMessageKey)} · ${this.text('metric.damage', { value: weapon.damage })}`;
       }
       case 'device': {
         const device = TACTICAL_DEVICES[this.pendingLoadout.device];

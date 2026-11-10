@@ -40,6 +40,12 @@
     targeter: '猎手阵列', repair: '纳米修复', fabricator: '弹药织机', collector: '牵引收集器', aegis: '神盾投射器',
     balanced: '均衡核心', vector: '矢量核心', bastion: '堡垒核心', reactor: '反应堆核心', phantom: '幻影核心', dreadnought: '无畏核心',
   };
+  // 主炮行为标签：与 WeaponCatalog.PRIMARY_WEAPON_BEHAVIORS 一一对应。
+  // 选枪时先讲「怎么打」，避免装配台只堆伤害数字。
+  const weaponBehaviors = {
+    pulse: '常规直射', scatter: '扇形散射', missile: '追踪制导', rail: '贯穿',
+    plasma: '范围爆破', ion: '干扰减速', beam: '贯穿', rotary: '常规直射',
+  };
   const shipCatalog = {
     interceptor: { code: 'SF-09', name: '截击机', shield: 80, armor: 100, energy: 100 },
     scout: { code: 'SF-12', name: '侦察机', shield: 68, armor: 85, energy: 100 },
@@ -106,8 +112,9 @@
       button.dataset.selected = loadout[button.dataset.loadoutSlot] === button.dataset.loadoutValue ? 'true' : 'false';
     });
     const summary = `${loadoutNames[loadout.weapon]} / ${loadoutNames[loadout.device]} / ${loadoutNames[loadout.core]}`;
+    const behaviorLabel = weaponBehaviors[loadout.weapon] || weaponBehaviors.pulse;
     setText('LoadoutSummary', summary);
-    setText('LoadoutDetail', summary);
+    setText('LoadoutDetail', `${summary}　·　主炮打法 ${behaviorLabel}`);
     setText('WeaponName', loadoutNames[loadout.weapon]);
     const weaponArt = document.getElementById('WeaponArt');
     if (weaponArt && weaponArtSources[loadout.weapon]) {
