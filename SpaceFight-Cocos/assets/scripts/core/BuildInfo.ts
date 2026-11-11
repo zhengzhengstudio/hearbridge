@@ -5,8 +5,8 @@
  * 用户报「启动画面为什么还是 client 57」即此因。
  */
 export const BUILD_INFO = {
-  version: '0.13.17',
-  build: 81,
+  version: '0.13.18',
+  build: 82,
 } as const;
 
 export function buildLabel(): string {

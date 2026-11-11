@@ -20,6 +20,7 @@ import {
   view,
 } from 'cc';
 import { nativeTrace } from '../platform/NativeDiagnostics';
+import { attachGraphics, graphicsOf } from '../platform/NativeGraphicsShim';
 import type { CargoItem } from '../core/LootAndCargoSystem';
 import type { CombatSnapshot } from '../core/CombatSimulation';
 import {
@@ -874,11 +875,11 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.targetLabel = this.createLabel('TargetStatus', 14, HUD_ACTIVE);
     this.cargoLabel = this.createLabel('CargoStrip', 14, HUD_WHITE);
     this.cargoLabel.horizontalAlign = HorizontalTextAlignment.RIGHT;
-    this.hullStatusBar = this.createNode('HullStatusBar').addComponent(Graphics);
-    this.shieldStatusBar = this.createNode('ShieldStatusBar').addComponent(Graphics);
-    this.energyStatusBar = this.createNode('EnergyStatusBar').addComponent(Graphics);
-    this.targetHealthBar = this.createNode('TargetHealthBar').addComponent(Graphics);
-    this.hitMarker = this.createNode('HitMarker').addComponent(Graphics);
+    this.hullStatusBar = attachGraphics(this.createNode('HullStatusBar'));
+    this.shieldStatusBar = attachGraphics(this.createNode('ShieldStatusBar'));
+    this.energyStatusBar = attachGraphics(this.createNode('EnergyStatusBar'));
+    this.targetHealthBar = attachGraphics(this.createNode('TargetHealthBar'));
+    this.hitMarker = attachGraphics(this.createNode('HitMarker'));
     this.combatFeedLabel = this.createLabel('CombatFeedLabel', 18, HUD_WHITE);
     this.navigationLabel = this.createLabel('OutpostNavigationLabel', 13, HUD_WHITE);
     this.comboLabel = this.createLabel('ComboCounter', 22, HUD_ACTIVE);
@@ -983,7 +984,7 @@ export class NativeCombatHud implements NativeInputFeedback {
 
   private createReticle(): void {
     const node = this.createNode('AimReticle');
-    this.reticleGraphics = node.addComponent(Graphics);
+    this.reticleGraphics = attachGraphics(node);
     this.drawReticle(HUD_CYAN);
   }
 
@@ -1213,9 +1214,9 @@ export class NativeCombatHud implements NativeInputFeedback {
     });
     this.loadoutPanel = this.createNode('NativeLoadoutPanel');
     this.loadoutHangarArt = this.createKeyArt('NativeLoadoutHangarArt', this.loadoutPanel);
-    this.loadoutBackdrop = this.createNode('NativeLoadoutShade', this.loadoutPanel).addComponent(Graphics);
-    this.loadoutSlotRail = this.createNode('NativeLoadoutSlotRail', this.loadoutPanel).addComponent(Graphics);
-    this.loadoutSchematic = this.createNode('NativeLoadoutShipSchematic', this.loadoutPanel).addComponent(Graphics);
+    this.loadoutBackdrop = attachGraphics(this.createNode('NativeLoadoutShade', this.loadoutPanel));
+    this.loadoutSlotRail = attachGraphics(this.createNode('NativeLoadoutSlotRail', this.loadoutPanel));
+    this.loadoutSchematic = attachGraphics(this.createNode('NativeLoadoutShipSchematic', this.loadoutPanel));
 
     const title = this.createLabel('NativeLoadoutTitle', 24, HUD_WHITE, this.loadoutPanel);
     title.string = this.text('loadout.title');
@@ -1260,7 +1261,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   private createBootPanel(): void {
     this.bootPanel = this.createNode('NativeBootPanel');
     this.bootKeyArt = this.createKeyArt('NativeBootKeyArt', this.bootPanel);
-    const shade = this.createNode('NativeBootShade', this.bootPanel).addComponent(Graphics);
+    const shade = attachGraphics(this.createNode('NativeBootShade', this.bootPanel));
     shade.fillColor = new Color(1, 7, 10, 210);
     this.safeRect(shade, -640, -360, 1280, 720);
     this.safeFill(shade);
@@ -1277,13 +1278,13 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.bootStatusLabel = this.createLabel('NativeBootStatus', 12, HUD_WHITE, this.bootPanel);
     this.bootStatusLabel.string = this.text('boot.verifying');
     this.bootStatusLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
-    this.bootProgress = this.createNode('NativeBootProgress', this.bootPanel).addComponent(Graphics);
+    this.bootProgress = attachGraphics(this.createNode('NativeBootProgress', this.bootPanel));
     this.drawBootProgress(0.18);
   }
 
   private createDefeatPanel(): void {
     this.defeatPanel = this.createNode('NativeDefeatPanel');
-    this.defeatBackdrop = this.defeatPanel.addComponent(Graphics);
+    this.defeatBackdrop = attachGraphics(this.defeatPanel);
     const signal = this.createLabel('NativeDefeatSignal', 12, HUD_ACTIVE, this.defeatPanel);
     signal.string = this.text('defeat.signal');
     const title = this.createLabel('NativeDefeatTitle', 32, HUD_WHITE, this.defeatPanel);
@@ -1311,7 +1312,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   private createPausePanel(): void {
     this.pausePanel = this.createNode('NativePausePanel');
     this.pausePanel.addComponent(UIOpacity);
-    this.pauseBackdrop = this.pausePanel.addComponent(Graphics);
+    this.pauseBackdrop = attachGraphics(this.pausePanel);
     const signal = this.createLabel('NativePauseSignal', 12, HUD_CYAN, this.pausePanel);
     signal.string = this.text('pause.signal');
     const title = this.createLabel('NativePauseTitle', 30, HUD_WHITE, this.pausePanel);
@@ -1342,7 +1343,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   private createTrainingPanel(): void {
     this.trainingPanel = this.createNode('NativeTrainingPanel');
     this.trainingPanel.addComponent(UIOpacity);
-    this.trainingBackdrop = this.trainingPanel.addComponent(Graphics);
+    this.trainingBackdrop = attachGraphics(this.trainingPanel);
     this.trainingTitleLabel = this.createLabel('NativeTrainingTitle', 26, HUD_WHITE, this.trainingPanel);
     this.trainingStepLabel = this.createLabel('NativeTrainingStep', 12, HUD_CYAN, this.trainingPanel);
     this.trainingHintLabel = this.createLabel('NativeTrainingHint', 15, HUD_WHITE, this.trainingPanel);
@@ -1455,7 +1456,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.homePanel = this.createNode('NativeHomePanel');
     this.homePanel.addComponent(UIOpacity);
     this.homeKeyArt = this.createKeyArt('NativeHomeKeyArt', this.homePanel);
-    this.homeBackdrop = this.createNode('NativeHomeShade', this.homePanel).addComponent(Graphics);
+    this.homeBackdrop = attachGraphics(this.createNode('NativeHomeShade', this.homePanel));
     const eyebrow = this.createLabel('NativeHomeEyebrow', 13, HUD_CYAN, this.homePanel);
     eyebrow.string = 'SPACEFIGHT / OPERATIONS';
     eyebrow.horizontalAlign = HorizontalTextAlignment.LEFT;
@@ -1595,7 +1596,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.outpostPanel = this.createNode('NativeOutpostPanel');
     this.outpostPanel.addComponent(UIOpacity);
     this.outpostKeyArt = this.createKeyArt('NativeOutpostKeyArt', this.outpostPanel);
-    this.outpostBackdrop = this.createNode('NativeOutpostShade', this.outpostPanel).addComponent(Graphics);
+    this.outpostBackdrop = attachGraphics(this.createNode('NativeOutpostShade', this.outpostPanel));
     const eyebrow = this.createLabel('NativeOutpostEyebrow', 12, HUD_CYAN, this.outpostPanel);
     eyebrow.string = 'DOCK 07 / SERVICE DECK';
     eyebrow.horizontalAlign = HorizontalTextAlignment.LEFT;
@@ -1656,9 +1657,9 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.returnOverlay = this.createNode('NativeReturnOverlay');
     this.returnOverlay.addComponent(UIOpacity);
     // 压暗层挂到 HUD 最底层：只压暗 3D 战场，不再把顶部状态/目标文字一起压暗。
-    this.returnVeil = this.createNode('NativeReturnVeil', this.root).addComponent(Graphics);
+    this.returnVeil = attachGraphics(this.createNode('NativeReturnVeil', this.root));
     this.returnVeil.node.setSiblingIndex(0);
-    this.returnVeilInner = this.createNode('NativeReturnVeilInner', this.root).addComponent(Graphics);
+    this.returnVeilInner = attachGraphics(this.createNode('NativeReturnVeilInner', this.root));
     this.returnVeilInner.node.setSiblingIndex(1);
     this.returnBanner = this.createLabel('NativeReturnBanner', 26, HUD_ACTIVE, this.returnOverlay);
     this.returnBanner.horizontalAlign = HorizontalTextAlignment.CENTER;
@@ -2203,7 +2204,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (this.coopJoinInput) {
       this.coopJoinInput.node.setPosition(boardCenterX, missionBottom + 108, 4);
       this.coopJoinInput.node.getComponent(UITransform)?.setContentSize(coopWidth, 36);
-      const background = this.coopJoinInput.node.getComponent(Graphics);
+      const background = graphicsOf(this.coopJoinInput.node);
       if (background) {
         this.safeClear(background);
         background.fillColor = HUD_DARK;
@@ -2311,7 +2312,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (!panel) return;
     panel.getComponent(UITransform)?.setContentSize(this.width, this.height);
     this.bootKeyArt?.node.getComponent(UITransform)?.setContentSize(this.width, this.height);
-    const shade = panel.getChildByName('NativeBootShade')?.getComponent(Graphics);
+    const shade = graphicsOf(panel.getChildByName('NativeBootShade'));
     if (shade) {
       this.safeClear(shade);
       shade.fillColor = new Color(1, 7, 10, 72);
@@ -2789,7 +2790,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   ): Node {
     const node = this.createNode(name, parent);
     node.getComponent(UITransform)?.setContentSize(214, 82);
-    const graphics = node.addComponent(Graphics);
+    const graphics = attachGraphics(node);
     this.buttonKinds.set(node, kind);
     this.drawPanelSurface(graphics, 214, 82, kind === 'primary' ? HUD_ACTIVE : HUD_CYAN, kind, false);
     const label = this.createLabel('Label', 14, HUD_WHITE, node);
@@ -2830,7 +2831,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   ): void {
     if (!node) return;
     node.getComponent(UITransform)?.setContentSize(width, height);
-    const graphics = node.getComponent(Graphics);
+    const graphics = graphicsOf(node);
     if (graphics) {
       this.drawPanelSurface(graphics, width, height, accent, this.buttonKinds.get(node) || 'standard', false);
     }
@@ -3009,15 +3010,15 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (!this.touchEnabled) return;
     const layout = this.touchLayout();
     const stick = this.createNode('FixedMoveStick');
-    const base = stick.addComponent(Graphics);
+    const base = attachGraphics(stick);
     this.drawStickDeadzone(base, layout.movement.radius);
     this.actionVisuals.set('movement', { node: stick, graphics: base, radius: layout.movement.radius });
 
     const directionNode = this.createNode('FixedMoveStickDirection', stick);
-    this.stickDirection = directionNode.addComponent(Graphics);
+    this.stickDirection = attachGraphics(directionNode);
 
     this.stickThumb = this.createNode('FixedMoveStickThumb');
-    const thumb = this.stickThumb.addComponent(Graphics);
+    const thumb = attachGraphics(this.stickThumb);
     this.drawDisc(thumb, layout.movement.radius * 0.34, HUD_WHITE);
 
     const labels: Readonly<Record<string, CombatMessageKey>> = {
@@ -3032,7 +3033,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     };
     for (const control of layout.actions) {
       const node = this.createNode(this.actionNodeName(control.role));
-      const graphics = node.addComponent(Graphics);
+      const graphics = attachGraphics(node);
       this.drawActionControl(graphics, control.role, control.radius, false);
       const label = this.createLabel(`${this.actionNodeName(control.role)}Label`, 16, HUD_WHITE, node);
       label.string = this.text(labels[control.role]);
@@ -3057,7 +3058,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (!visual) {
       const control = returnControlCircle(this.width, this.height, this.safeInsets, this.controlScale);
       const node = this.createNode('ReturnAction');
-      const graphics = node.addComponent(Graphics);
+      const graphics = attachGraphics(node);
       const label = this.createLabel('ReturnActionLabel', 16, HUD_WHITE, node);
       label.string = this.text(this.canDock ? 'touch.dock' : 'touch.return');
       label.getComponent(UITransform)?.setContentSize(control.radius * 2, 32);
@@ -3170,7 +3171,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     }
     stick?.node.setPosition(this.canvasPosition(center.x, center.y, 1));
     this.stickThumb?.setPosition(this.canvasPosition(center.x, center.y, 2));
-    const thumb = this.stickThumb?.getComponent(Graphics);
+    const thumb = graphicsOf(this.stickThumb);
     if (thumb) this.drawDisc(thumb, layout.movement.radius * 0.34, HUD_WHITE);
     for (const control of layout.actions) {
       const visual = this.actionVisuals.get(control.role);
@@ -3218,7 +3219,7 @@ export class NativeCombatHud implements NativeInputFeedback {
    */
   private createCoopJoinInput(parent: Node): EditBox | null {
     const node = this.createNode('NativeCoopJoinInput', parent);
-    node.addComponent(Graphics); // 背景在 layout 阶段按 coopWidth 绘制
+    attachGraphics(node); // 背景在 layout 阶段按 coopWidth 绘制
     const textLabel = this.createLabel('TextLabel', 16, HUD_WHITE, node);
     const placeholderLabel = this.createLabel('PlaceholderLabel', 16, new Color(150, 150, 150, 255), node);
     const editBox = node.addComponent(EditBox);

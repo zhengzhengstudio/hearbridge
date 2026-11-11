@@ -1420,6 +1420,10 @@ export class CombatBootstrap extends Component {
     console.info('[SpaceFight boot] combat presentation ready');
     nativeTrace('boot: combat presentation ready');
     dispatchBrowserEvent('spacefight:engine-ready');
+    // 存活心跳：轨迹文件已镜像到外部存储，可远程判断进程是否稳定跑过启动阶段。
+    for (const delay of [0.5, 1.5, 3, 6]) {
+      this.scheduleOnce(() => nativeTrace(`boot: alive ${delay}s`), delay);
+    }
     this.scheduleOnce(
       () => this.initializeOptionalWorld(worldRoot, player),
       this.graphicsTier === 'low' ? 0.8 : 0,

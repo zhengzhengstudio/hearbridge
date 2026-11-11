@@ -616,6 +616,16 @@ public class AppActivity extends CocosActivity {
         }
         next.append(spaceFightTimestamp()).append("  ").append(stage).append('\n');
         writeSpaceFightText(file, next.toString());
+        // 镜像到外部存储：非 root 真机无法读取应用私有目录，镜像后可经 Termux/adb
+        // 直接读取启动轨迹与存活心跳，不需要用户手动复制诊断弹窗。
+        try {
+            File mirrorDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+            if (mirrorDir != null) {
+                writeSpaceFightText(new File(mirrorDir, CRASH_TRACE_FILE), next.toString());
+            }
+        } catch (Exception ignored) {
+            // 外部存储不可写时不影响崩溃诊断本身
+        }
     }
 
     private static String spaceFightTimestamp() {

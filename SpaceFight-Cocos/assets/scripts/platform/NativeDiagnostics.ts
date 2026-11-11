@@ -7,7 +7,7 @@
  * Web / 桌面 / iOS 没有这套反射，所有调用静默跳过，不影响其它端。
  */
 
-import { installNativeGraphicsGuard } from './NativeGraphicsGuard';
+import { installNativeGraphicsGuard, isNativeRuntime } from './NativeGraphicsGuard';
 
 type ReflectionApi = {
   callStaticMethod(className: string, methodName: string, signature: string, ...args: unknown[]): unknown;
@@ -62,7 +62,8 @@ function describeError(event: unknown): string {
 /** 全局脚本错误：先留轨迹，只有命中原生致命关键字才弹窗。 */
 export function installNativeErrorHooks(): void {
   // 必须在任何 Graphics 组件被创建/绘制之前接管原型，否则首帧仍会走未受保护的绑定。
-  installNativeGraphicsGuard();
+  const guarded = installNativeGraphicsGuard();
+  nativeTrace(`boot: graphics guard ${guarded ? 'on' : 'off'} (native=${isNativeRuntime()})`);
   const scope = globalThis as unknown as {
     addEventListener?: (type: string, listener: (event: unknown) => void) => void;
   };

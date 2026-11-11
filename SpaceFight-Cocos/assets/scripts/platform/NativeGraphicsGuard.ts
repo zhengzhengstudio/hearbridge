@@ -13,6 +13,18 @@
 
 import { Graphics, sys } from 'cc';
 
+/**
+ * native 运行时判定：不单一依赖 sys.isNative（某些导出配置下它可能未定义）。
+ * reflection API 是 Cocos 原生运行时独有的，可作为确定的辅助信号。
+ */
+export function isNativeRuntime(): boolean {
+  const scope = globalThis as unknown as {
+    jsb?: { reflection?: unknown };
+    native?: { reflection?: unknown };
+  };
+  return Boolean(sys.isNative || scope.jsb?.reflection || scope.native?.reflection);
+}
+
 type AnyFn = (...args: unknown[]) => unknown;
 type GraphicsProto = { [key: string]: unknown; __spaceFightGuarded?: boolean };
 
@@ -66,11 +78,11 @@ function rawCall(originals: Record<string, AnyFn>, name: string, target: object,
   }
 }
 
-export function installNativeGraphicsGuard(): void {
-  if (!sys.isNative) return;
+export function installNativeGraphicsGuard(): boolean {
+  if (!isNativeRuntime()) return false;
 
   const proto = Graphics.prototype as unknown as GraphicsProto;
-  if (!proto || proto.__spaceFightGuarded) return;
+  if (!proto || proto.__spaceFightGuarded) return false;
 
   const names = [
     'clear', 'moveTo', 'lineTo', 'close', 'rect', 'circle', 'roundRect', 'ellipse',
@@ -84,7 +96,7 @@ export function installNativeGraphicsGuard(): void {
   // 没有 clear/fill/stroke 说明引擎 API 变了，宁可不接管也不制造半套守卫。
   if (!originals.clear || !originals.fill || !originals.stroke) {
     console.warn('[SpaceFight graphics guard] unexpected Graphics API; guard skipped');
-    return;
+    return false;
   }
 
   const define = (name: string, fn: (this: object, ...args: unknown[]) => unknown): void => {
@@ -207,4 +219,5 @@ export function installNativeGraphicsGuard(): void {
     // 标记失败不影响守卫本身
   }
   console.info('[SpaceFight graphics guard] installed for native 2D path');
+  return true;
 }

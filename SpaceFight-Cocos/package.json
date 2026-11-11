@@ -1,7 +1,7 @@
 {
   "name": "spacefight-cocos",
-  "version": "0.13.17",
-  "build": 81,
+  "version": "0.13.18",
+  "build": 82,
   "private": true,
   "scripts": {
     "build:web:release": "node tools/build-web-release.js",
@@ -21,9 +21,10 @@
     "test:platform": "node tools/run-input-tests.js && node --test ../tests/spacefight_platform_bridge.test.js",
     "test:regression": "node --test ../tests/spacefight_0_13_13_regression.test.js",
     "test:localization": "node --test ../tests/spacefight_localization.test.js",
-    "test:all": "npm run test:contract && npm run test:simulation && npm run test:input && npm run test:graphics && npm run test:graphics-guard && npm run test:hud && npm run test:ship-device && npm run test:update-notes && npm run test:localization && npm run test:regression",
+    "test:all": "npm run test:contract && npm run test:simulation && npm run test:input && npm run test:graphics && npm run test:graphics-guard && npm run test:graphics-shim && npm run test:hud && npm run test:ship-device && npm run test:update-notes && npm run test:localization && npm run test:regression",
     "test:graphics": "node --test ../tests/spacefight_graphics_policy.test.js",
     "test:graphics-guard": "node --test ../tests/spacefight_native_graphics_guard.test.js",
+    "test:graphics-shim": "node --test ../tests/spacefight_native_graphics_shim.test.js",
     "test:hud": "node --test ../tests/spacefight_cocos_hud_ui_contract.test.js",
     "test:fullscreen": "node --test ../tests/spacefight_cocos_fullscreen_contract.test.js",
     "verify:native": "node tools/verify-native-foundation.js",

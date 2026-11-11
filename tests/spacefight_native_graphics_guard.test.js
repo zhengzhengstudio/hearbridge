@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * 0.13.17 / BUILD 81 原生 2D Graphics 崩溃守卫回归。
+ * 0.13.17~0.13.18 原生 2D Graphics 守卫回归。
  *
  * 真机 HBP-AL00 / Android 16 的 SIGABRT 经 libcocos.so（BuildId 0683a23b…）符号化：
  * 引擎遍历两个平行 vector 时 vector::at 越界，抛 std::out_of_range: vector。
@@ -68,7 +68,7 @@ function loadGuard(isNative = true) {
 
 test('守卫在所有其它 Graphics 绘制之前，由 installNativeErrorHooks 安装', () => {
   const diagnostics = fs.readFileSync(DIAGNOSTICS_PATH, 'utf8');
-  assert.match(diagnostics, /import \{ installNativeGraphicsGuard \} from '\.\/NativeGraphicsGuard'/);
+  assert.match(diagnostics, /import \{ installNativeGraphicsGuard, isNativeRuntime \} from '\.\/NativeGraphicsGuard'/);
   const installIndex = diagnostics.indexOf('installNativeGraphicsGuard()');
   const hookIndex = diagnostics.indexOf('export function installNativeErrorHooks');
   assert.ok(installIndex > hookIndex, '守卫必须是错误钩子安装流程的第一步');
