@@ -2658,12 +2658,32 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.loadoutSummaryLabel?.getComponent(UITransform)?.setContentSize(detailWidth - 12, ultraCompact ? 50 : compact ? 62 : 82);
     if (this.loadoutSummaryLabel) {
       this.loadoutSummaryLabel.fontSize = ultraCompact ? 9 : compact ? 11 : 14;
-      this.loadoutSummaryLabel.lineHeight = ultraCompact ? 11 : compact ? 14 : 18;
+      this.loadoutSummaryLabel.lineHeight = ultraCompact ? 13 : compact ? 16 : 20;
     }
     this.loadoutDetailLabel?.node.setPosition(detailCenterX, gridTop - (ultraCompact ? 48 : compact ? 65 : 94), 3);
     this.loadoutDetailLabel?.getComponent(UITransform)?.setContentSize(detailWidth - 12, ultraCompact ? 64 : compact ? 86 : 126);
     this.loadoutFeedbackLabel?.node.setPosition(detailCenterX, feedbackY, 3);
     this.loadoutFeedbackLabel?.getComponent(UITransform)?.setContentSize(detailWidth - 12, feedbackHeight);
+    // 窄屏下用暗底面板框把「选中详情 / 战力概要」两处浮动文字包起来，
+    // 避免像脱离锚点的裸文字（截图里主炮详情飘在舰体上方）。
+    if (compact || ultraCompact) {
+      const pad = 10;
+      const detailH = (ultraCompact ? 64 : 86) + pad * 2;
+      const detailW = (detailWidth - 12) + pad * 2;
+      const detailY = gridTop - (ultraCompact ? 48 : compact ? 65 : 94);
+      const summaryH = (ultraCompact ? 50 : 62) + pad * 2;
+      const summaryW = (detailWidth - 12) + pad * 2;
+      const summaryBoxY = summaryY + (ultraCompact ? 10 : compact ? 16 : 28);
+      if (this.loadoutSlotRail) {
+        const g = this.loadoutSlotRail;
+        g.fillColor = new Color(3, 12, 16, 232);
+        this.safeRect(g, detailCenterX - detailW / 2, detailY - detailH / 2, detailW, detailH);
+        this.safeRect(g, detailCenterX - summaryW / 2, summaryBoxY - summaryH / 2, summaryW, summaryH);
+        this.safeFill(g);
+        this.drawPanelFrame(g, detailCenterX - detailW / 2, detailY - detailH / 2, detailW, detailH, HUD_CYAN, 'standard', false);
+        this.drawPanelFrame(g, detailCenterX - summaryW / 2, summaryBoxY - summaryH / 2, summaryW, summaryH, HUD_CYAN, 'standard', false);
+      }
+    }
     const actionWidth = Math.min(190, (detailWidth - 10) / 2);
     this.applyLoadoutButton?.setPosition(detailCenterX + (actionWidth / 2) + 5, actionY, 3);
     this.applyLoadoutButton?.setScale(Vec3.ONE);
@@ -2842,7 +2862,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     const label = node.getChildByName('Label')?.getComponent(Label);
     if (!label) return;
     label.fontSize = fontSize;
-    label.lineHeight = fontSize + 3;
+    label.lineHeight = fontSize + 4;
     const kind = this.buttonKinds.get(node) || 'standard';
     label.horizontalAlign = kind === 'slot' || kind === 'nav'
       ? HorizontalTextAlignment.LEFT
