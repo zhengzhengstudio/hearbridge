@@ -1,5 +1,4 @@
 import {
-  builtinResMgr,
   Color,
   Material,
   MeshRenderer,
@@ -53,10 +52,8 @@ const MUZZLE_TEXTURE = 'textures/muzzle-flash/texture';
 const SPARK_TEXTURE = 'textures/spark/texture';
 
 function unlitMaterial(color: Color): Material {
-  const parent = builtinResMgr.get<Material>('missing-material');
-  if (!parent) throw new Error('Cocos precompiled unlit material is unavailable');
   const material = new Material();
-  material.copy(parent);
+  material.initialize({ effectName: 'builtin-unlit' });
   material.setProperty('mainColor', color);
   return material;
 }

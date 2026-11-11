@@ -947,12 +947,19 @@ export class ShipPresenter {
 
   private applyTint(visual: Node, tint: Color): void {
     for (const renderer of visual.getComponentsInChildren(MeshRenderer)) {
-      // 逐 submesh 取原材质实例：保留贴图，仅改乘色；没有 mainColor 的材质跳过，不替换。
+      // 逐 submesh 取原材质实例：保留贴图，仅改乘色。
+      // 兼容 unlit（mainColor）与 PBR 标准材质（baseColor）两种写法：
+      // GLB 机体用的是标准材质，只暴露 baseColor，旧代码因只认 mainColor 而整段跳过，
+      // 导致除近白默认涂装外的彩色涂装全部不生效。
       const materials = renderer.sharedMaterials;
       for (let index = 0; index < materials.length; index += 1) {
         const instance = renderer.getMaterialInstance(index);
-        if (!instance || instance.getProperty('mainColor') == null) continue;
-        instance.setProperty('mainColor', tint);
+        if (!instance) continue;
+        if (instance.getProperty('mainColor') != null) {
+          instance.setProperty('mainColor', tint);
+        } else if (instance.getProperty('baseColor') != null) {
+          instance.setProperty('baseColor', tint);
+        }
       }
     }
   }

@@ -1,5 +1,4 @@
 import {
-  builtinResMgr,
   Color,
   CurveRange,
   GradientRange,
@@ -87,10 +86,8 @@ function constantColor(value: Color): GradientRange {
 }
 
 function unlitMaterial(color: Color): Material {
-  const parent = builtinResMgr.get<Material>('missing-material');
-  if (!parent) throw new Error('Cocos precompiled unlit material is unavailable');
   const material = new Material();
-  material.copy(parent);
+  material.initialize({ effectName: 'builtin-unlit' });
   material.setProperty('mainColor', color);
   return material;
 }

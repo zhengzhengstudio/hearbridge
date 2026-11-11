@@ -1,6 +1,5 @@
 import {
   _decorator,
-  builtinResMgr,
   Camera,
   Color,
   Component,
@@ -309,12 +308,15 @@ function constantColor(value: Color): GradientRange {
 }
 
 function cockpitMaterial(color: Color): Material | null {
-  const parent = builtinResMgr.get<Material>('missing-material');
-  if (!parent) return null;
-  const material = new Material();
-  material.copy(parent);
-  material.setProperty('mainColor', color);
-  return material;
+  try {
+    const material = new Material();
+    material.initialize({ effectName: 'builtin-unlit' });
+    material.setProperty('mainColor', color);
+    return material;
+  } catch (error) {
+    console.warn('[SpaceFight cockpit] unlit material unavailable', error);
+    return null;
+  }
 }
 
 function browserDataset(): DOMStringMap | undefined {

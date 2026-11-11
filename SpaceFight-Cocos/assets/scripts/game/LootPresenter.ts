@@ -1,4 +1,4 @@
-import { builtinResMgr, Color, Material, MeshRenderer, Node, primitives, utils, Vec3 } from 'cc';
+import { Color, Material, MeshRenderer, Node, primitives, utils, Vec3 } from 'cc';
 import type { CombatSnapshot } from '../core/CombatSimulation';
 
 type PickupView = CombatSnapshot['pickups'][number];
@@ -157,11 +157,15 @@ export class LootPresenter {
     const key = `${color.r},${color.g},${color.b}`;
     const cached = this.materialCache.get(key);
     if (cached) return cached;
-    const parent = builtinResMgr.get<Material>('missing-material');
-    if (!parent) return null;
-    const result = new Material();
-    result.copy(parent);
-    result.setProperty('mainColor', color);
+    let result: Material;
+    try {
+      result = new Material();
+      result.initialize({ effectName: 'builtin-unlit' });
+      result.setProperty('mainColor', color);
+    } catch (error) {
+      console.warn('[SpaceFight loot] unlit material unavailable', error);
+      return null;
+    }
     this.materialCache.set(key, result);
     return result;
   }

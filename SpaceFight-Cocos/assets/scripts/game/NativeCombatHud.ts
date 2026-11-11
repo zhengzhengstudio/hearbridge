@@ -2020,6 +2020,10 @@ export class NativeCombatHud implements NativeInputFeedback {
     for (const [id, panel] of overlays) {
       if (panel) panel.active = id === active;
     }
+    // 任一覆盖面板（home/loadout/outpost/defeat/pause）激活时，强制收起首飞校准面板，
+    // 否则它曾停留在战斗态，会在菜单/装配台上叠加漂浮的步骤标签（状态机串台 + 双步骤重叠）。
+    if (this.trainingPanel) this.trainingPanel.active = false;
+    this.trainingOpen = false;
     if (this.bootPanel) this.bootPanel.active = false;
   }
 

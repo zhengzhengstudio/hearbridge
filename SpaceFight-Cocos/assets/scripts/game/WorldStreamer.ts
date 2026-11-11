@@ -1,5 +1,4 @@
 import {
-  builtinResMgr,
   Color,
   Material,
   MeshRenderer,
@@ -67,10 +66,8 @@ function hashCoordinate(x: number, z: number, salt: number): number {
 }
 
 function createMaterial(color: Color, _metallic: number, _roughness: number): Material {
-  const parent = builtinResMgr.get<Material>('missing-material');
-  if (!parent) throw new Error('Cocos precompiled unlit material is unavailable');
   const material = new Material();
-  material.copy(parent);
+  material.initialize({ effectName: 'builtin-unlit' });
   material.setProperty('mainColor', color);
   return material;
 }
