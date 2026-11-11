@@ -166,6 +166,8 @@ export class NativeCombatHud implements NativeInputFeedback {
   private startupVisible = true;
   /** resize 打点节流：只在尺寸变化时写轨迹，避免每帧文件 IO。 */
   private lastTraceSize = '';
+  /** 首次按帧同步的执行轨迹：只在第一次 syncCombat 打点，崩在原生层时可定位到具体绘制。 */
+  private syncTraceDone = false;
   /** 返航过场中：期间收起开火/切武器/加速/摇杆，避免「返航中还能开火」的状态矛盾。 */
   private returning = false;
   /** 返航压暗的第二层（靠近屏幕外沿），用于做两级羽化。 */
@@ -410,7 +412,9 @@ export class NativeCombatHud implements NativeInputFeedback {
     }
     this.leftHanded = leftHanded;
     this.controlScale = controlScale;
-    this.root.getComponent(UITransform)?.setContentSize(width, height);
+    // 用兜底后的尺寸：上层可能传入 0 / NaN（视图尚未就绪），零面积 UITransform
+    // 会让下游 layout 生成零面积路径，原生 2D 绑定在三角化时越界。
+    this.root.getComponent(UITransform)?.setContentSize(this.width, this.height);
     this.layoutStatus();
     this.layoutLoadoutPanel();
     this.layoutHomePanel();
@@ -504,7 +508,14 @@ export class NativeCombatHud implements NativeInputFeedback {
     };
   }
 
+  /** 只在首次同步写轨迹；原生崩溃不会经过 JS 异常钩子，靠这些阶段点缩小范围。 */
+  private traceSyncStage(stage: string): void {
+    if (this.syncTraceDone) return;
+    nativeTrace(`hud:sync ${stage}`);
+  }
+
   syncCombat(snapshot: CombatSnapshot): void {
+    this.traceSyncStage('enter');
     this.latestSnapshot = snapshot;
     this.setTrainingOpen(this.shouldShowTraining());
     this.setPauseOpen(snapshot.paused && !this.homeOpen && !this.loadoutOpen && !this.outpostOpen && !this.defeatOpen);
@@ -549,6 +560,7 @@ export class NativeCombatHud implements NativeInputFeedback {
         this.text('status.energy', { current: Math.ceil(snapshot.player.energy), max: snapshot.player.maxEnergy }),
       ].join('   ');
     }
+    this.traceSyncStage('resource bars');
     this.drawResourceBar(this.hullStatusBar, snapshot.player.health, snapshot.player.maxHealth, HUD_GREEN, snapshot.player.health <= snapshot.player.maxHealth * 0.3);
     this.drawResourceBar(this.shieldStatusBar, snapshot.player.shield, snapshot.player.maxShield, HUD_CYAN);
     this.drawResourceBar(this.energyStatusBar, snapshot.player.energy, snapshot.player.maxEnergy, HUD_ACTIVE);
@@ -639,6 +651,7 @@ export class NativeCombatHud implements NativeInputFeedback {
         })
         : this.text('target.none');
       this.targetLabel.color = target ? HUD_ACTIVE : HUD_WHITE;
+      this.traceSyncStage('target health');
       this.drawTargetHealth(target?.health || 0, target?.maxHealth || 1, Boolean(target));
       this.lastTargetId = target?.id || '';
       this.lastTargetHealth = target?.health ?? Number.POSITIVE_INFINITY;
@@ -687,13 +700,17 @@ export class NativeCombatHud implements NativeInputFeedback {
       this.lastPlayerProjectileId = latestPlayerProjectile.id;
       this.shotFeedbackFrames = 5;
     }
+    this.traceSyncStage('reticle');
     this.drawReticle(
       this.shotFeedbackFrames > 0 ? HUD_ACTIVE : HUD_CYAN,
       this.shotFeedbackFrames > 0,
       snapshot.target?.locked === true,
     );
+    this.traceSyncStage('hit marker');
     this.drawHitMarker(this.hitFeedbackFrames > 0, this.hitFeedbackLethal);
+    this.traceSyncStage('return progress');
     this.drawReturnProgress(snapshot.expedition.returnProgress);
+    this.traceSyncStage('return overlay');
     this.updateReturnOverlay(snapshot);
     this.updateComboReadout(snapshot.combo);
     this.updateUpgradeReadout(snapshot.upgrades);
@@ -702,6 +719,8 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.hitFeedbackFrames = Math.max(0, this.hitFeedbackFrames - 1);
     this.combatFeedFrames = Math.max(0, this.combatFeedFrames - 1);
     if (this.combatFeedLabel) this.combatFeedLabel.node.active = this.combatFeedFrames > 0;
+    this.traceSyncStage('done');
+    this.syncTraceDone = true;
   }
 
   showBootState(message: string, progress?: number): void {
@@ -1039,13 +1058,15 @@ export class NativeCombatHud implements NativeInputFeedback {
   }
 
   private safeFill(graphics: Graphics): void {
-    // 默认按 1 处理：兼容未经 safeClear 的 Graphics，不误伤既有绘制。
-    if ((this.graphicsPathSegments.get(graphics) ?? 1) <= 0) return;
+    // 0.13.16 这里默认按 1 放行，导致「从未提交任何几何」的 Graphics 也会执行
+    // 空路径 fill()，原生端随即 vector::at 越界。默认改为 0：只有确实画过几何才提交。
+    // 所有正常绘制块都会先经过 safeRect/Circle/LineTo 等 mark，视觉不受影响。
+    if ((this.graphicsPathSegments.get(graphics) ?? 0) <= 0) return;
     graphics.fill();
   }
 
   private safeStroke(graphics: Graphics): void {
-    if ((this.graphicsPathSegments.get(graphics) ?? 1) <= 0) return;
+    if ((this.graphicsPathSegments.get(graphics) ?? 0) <= 0) return;
     graphics.stroke();
   }
 
@@ -1092,8 +1113,12 @@ export class NativeCombatHud implements NativeInputFeedback {
     counterclockwise: boolean,
   ): void {
     const start = Number.isFinite(startAngle) ? startAngle : 0;
-    let end = Number.isFinite(endAngle) ? endAngle : start + 0.01;
-    if (Math.abs(end - start) < 0.01) end = start + 0.01;
+    const end = Number.isFinite(endAngle) ? endAngle : start;
+    const span = Math.abs(end - start);
+    // 0.13.16 曾把零跨度抬成 0.01 弧度「保底」，结果原生端只细分出 0~1 个点，
+    // 随后的 stroke() 在 polyline 生成器里 vector::at 越界并 SIGABRT（真机实测）。
+    // 极小跨度直接不提交几何；原型层守卫还会再做一次同样的拦截。
+    if (!Number.isFinite(span) || span < 0.12) return;
     graphics.arc(this.safeCoord(x), this.safeCoord(y), this.safeLength(radius), start, end, counterclockwise);
     this.markGraphicsPath(graphics);
   }
@@ -3055,7 +3080,8 @@ export class NativeCombatHud implements NativeInputFeedback {
     const visual = this.actionVisuals.get('returnRequested');
     if (!visual || (!this.canReturn && !this.canDock)) return;
     this.drawActionControl(visual.graphics, 'returnRequested', visual.radius, progress > 0);
-    if (progress <= 0) return;
+    // 极小/非法的进度会画出零跨度圆弧；直接省略进度环，按钮本身仍完整。
+    if (!Number.isFinite(progress) || progress <= 0.02) return;
     visual.graphics.strokeColor = HUD_WHITE;
     visual.graphics.lineWidth = 4;
     this.safeArc(visual.graphics, 0, 0, visual.radius - 5, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress, false);
