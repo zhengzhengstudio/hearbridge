@@ -22,6 +22,7 @@ import {
   view,
 } from 'cc';
 import { AIM_CONVERGENCE_DISTANCE, computeAimRay } from '../core/AimConvergence';
+import { installNativeErrorHooks, nativeTrace } from '../platform/NativeDiagnostics';
 import {
   CombatSimulation,
   PRIMARY_OUTPOST_POSITION,
@@ -502,6 +503,7 @@ export class CombatBootstrap extends Component {
 
   protected onLoad(): void {
     console.info('[SpaceFight boot] scene loaded');
+    nativeTrace('boot: scene loaded');
     this.initializePlatformRuntime();
     if (sys.isNative) {
       try {
@@ -518,6 +520,7 @@ export class CombatBootstrap extends Component {
 
   protected start(): void {
     console.info('[SpaceFight boot] combat bootstrap starting');
+    nativeTrace('boot: combat bootstrap starting');
     if (!sys.isNative) this.initializeBrowserRuntime();
     void this.initialize().catch((error: unknown) => {
       console.error('SpaceFight combat initialization failed', error);
@@ -1288,6 +1291,7 @@ export class CombatBootstrap extends Component {
   private initializeNativeHud(scene: Node): void {
     if (!sys.isNative || this.nativeHud) return;
     try {
+      nativeTrace('boot: native HUD constructing');
       this.nativeHud = new NativeCombatHud(
         scene,
         sys.isMobile,
@@ -1305,12 +1309,15 @@ export class CombatBootstrap extends Component {
       this.cocosInput?.setFeedback(this.nativeHud);
       this.nativeHud.syncCombat(this.snapshot);
       console.info('[SpaceFight boot] native HUD ready');
+      nativeTrace('boot: native HUD ready');
     } catch (error: unknown) {
       console.error('[SpaceFight boot] native HUD unavailable; combat remains playable', error);
     }
   }
 
   private async initialize(): Promise<void> {
+    installNativeErrorHooks();
+    nativeTrace('boot: initialize');
     const scene = this.node.scene;
     if (!scene) {
       throw new Error('Combat scene root is unavailable');
@@ -1326,6 +1333,8 @@ export class CombatBootstrap extends Component {
     }
 
     console.info('[SpaceFight boot] preparing graphics');
+
+    nativeTrace('boot: preparing graphics');
     await this.prepareGraphicsProfile();
 
     const cameraNode = scene.getChildByName('CombatCamera');
@@ -1376,6 +1385,8 @@ export class CombatBootstrap extends Component {
     this.worldRoot = worldRoot;
 
     console.info('[SpaceFight boot] loading essential ships');
+
+    nativeTrace('boot: loading essential ships');
     this.shipPresenter = new ShipPresenter(shipRoot, this.graphicsProfile.maxVisibleEnemies);
     this.shipPresenter.setPlayerShipKind(resolveLoadout(readBrowserLoadout()).ship);
     const player = this.shipPresenter.initialize();
@@ -1394,6 +1405,7 @@ export class CombatBootstrap extends Component {
     this.nativeHud?.showBootState('正在装载战机与敌机', 0.78);
     const visualMode = await this.shipPresenter.ensurePlayerVisual();
     console.info(`[SpaceFight boot] combat visual mode: ${visualMode}`);
+    nativeTrace('boot: combat visual mode');
     this.shipPresenter.applyPlayerSkin(readBrowserLoadout()?.skin);
 
     this.shipPresenter.sync(this.snapshot);
@@ -1406,6 +1418,7 @@ export class CombatBootstrap extends Component {
     this.cocosInput?.refreshInteractionState();
     dismissNativeLaunchScreen(runtimePlatform());
     console.info('[SpaceFight boot] combat presentation ready');
+    nativeTrace('boot: combat presentation ready');
     dispatchBrowserEvent('spacefight:engine-ready');
     this.scheduleOnce(
       () => this.initializeOptionalWorld(worldRoot, player),
@@ -1421,6 +1434,7 @@ export class CombatBootstrap extends Component {
       );
       this.worldStreamer.update(player.worldPosition);
       console.info('[SpaceFight boot] world rendering ready');
+      nativeTrace('boot: world rendering ready');
     } catch (error: unknown) {
       this.worldStreamer = null;
       console.error('[SpaceFight boot] world rendering unavailable; combat remains playable', error);
@@ -1435,6 +1449,7 @@ export class CombatBootstrap extends Component {
         physics: this.graphicsTier === 'high',
       });
       console.info('[SpaceFight boot] projectile rendering ready');
+      nativeTrace('boot: projectile rendering ready');
     } catch (error: unknown) {
       this.projectilePresenter = null;
       console.error('[SpaceFight boot] projectile rendering unavailable; combat remains playable', error);
@@ -1449,6 +1464,7 @@ export class CombatBootstrap extends Component {
         this.graphicsProfile.feedbackLights,
       );
       console.info('[SpaceFight boot] combat feedback rendering ready');
+      nativeTrace('boot: combat feedback rendering ready');
     } catch (error: unknown) {
       this.combatFeedbackPresenter = null;
       console.error('[SpaceFight boot] combat feedback rendering unavailable', error);
@@ -1465,6 +1481,7 @@ export class CombatBootstrap extends Component {
       this.combatVisuals.loadTextures();
       this.combatVisuals.attachStarfield(camera);
       console.info('[SpaceFight boot] combat visuals ready');
+      nativeTrace('boot: combat visuals ready');
     } catch (error: unknown) {
       this.combatVisuals = null;
       console.error('[SpaceFight boot] combat visuals unavailable', error);

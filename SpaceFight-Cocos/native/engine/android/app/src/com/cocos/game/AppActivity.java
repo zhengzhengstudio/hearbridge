@@ -30,6 +30,8 @@ import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.app.ActivityManager;
 import android.app.Dialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -76,15 +78,20 @@ import java.io.BufferedReader;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.lang.ref.WeakReference;
 import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
@@ -107,12 +114,21 @@ public class AppActivity extends CocosActivity {
     private ObjectAnimator updateProgressAnimator;
     private static WeakReference<AppActivity> activeActivity = new WeakReference<>(null);
 
+    // ---- 崩溃诊断：会话标记 / 错因暂存 / JS 阶段轨迹 ----
+    private static final String CRASH_SESSION_FILE = "spacefight-session.txt";
+    private static final String CRASH_REPORT_FILE = "spacefight-last-crash.txt";
+    private static final String CRASH_TRACE_FILE = "spacefight-trace.txt";
+    private static Thread.UncaughtExceptionHandler originalCrashHandler;
+    private static boolean crashHandlerInstalled = false;
+    private static boolean crashDialogVisible = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         activeActivity = new WeakReference<>(this);
         showSpaceFightLaunchScreen();
         SDKWrapper.shared().init(this);
+        installSpaceFightCrashReporting();
         getWindow().getDecorView().postDelayed(() -> checkForUpdates(false), 2500L);
     }
 
@@ -120,6 +136,7 @@ public class AppActivity extends CocosActivity {
     protected void onResume() {
         super.onResume();
         SDKWrapper.shared().onResume();
+        writeSpaceFightText(new File(getFilesDir(), CRASH_SESSION_FILE), "foreground");
         if (pendingInstallUri != null && canInstallPackages()) {
             Uri uri = pendingInstallUri;
             pendingInstallUri = null;
@@ -129,12 +146,16 @@ public class AppActivity extends CocosActivity {
 
     @Override
     protected void onPause() {
+        // 切到后台属于正常状态：之后即便被系统回收，也不应误判为闪退。
+        writeSpaceFightText(new File(getFilesDir(), CRASH_SESSION_FILE), "background");
         super.onPause();
         SDKWrapper.shared().onPause();
     }
 
     @Override
     protected void onDestroy() {
+        // 正常退出时清掉会话标记；原生崩溃不会走到这里，标记会留到下次启动。
+        new File(getFilesDir(), CRASH_SESSION_FILE).delete();
         if (activeActivity.get() == this) {
             activeActivity.clear();
         }
@@ -173,6 +194,23 @@ public class AppActivity extends CocosActivity {
             android.util.Log.w("SpaceFight", "Native bridge request failed", error);
         }
         return "null";
+    }
+
+    /** JS 阶段打点：崩溃前的最后一条轨迹会写进错因报告。Web 端无此桥时由 TS 侧静默跳过。 */
+    public static void spaceFightTrace(String stage) {
+        AppActivity activity = activeActivity.get();
+        if (activity == null) return;
+        activity.appendSpaceFightTrace(stage);
+    }
+
+    /** JS 致命错误：立刻弹诊断窗，不依赖「下次启动」。 */
+    public static void spaceFightFatal(String reason, String detail) {
+        AppActivity activity = activeActivity.get();
+        if (activity == null) return;
+        activity.runOnUiThread(() -> {
+            String report = activity.buildSpaceFightCrashReport("脚本致命错误 · " + reason, detail);
+            activity.showSpaceFightCrashDialog(report, false);
+        });
     }
 
     public static void hideSpaceFightLaunchScreen() {
@@ -460,6 +498,245 @@ public class AppActivity extends CocosActivity {
             attributes.dimAmount = 0.78f;
             window.setAttributes(attributes);
             int available = Math.max(dp(300), getResources().getDisplayMetrics().widthPixels - dp(32));
+            window.setLayout(Math.min(available, dp(520)), ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
+    // ==================== 崩溃诊断 ====================
+    // 原生层 SIGABRT 会直接结束进程，无法当场弹窗；因此用「会话标记 + 下次启动补弹」覆盖，
+    // Java 未捕获异常则当场写完整堆栈。两者共用同一套错因文本与同一个诊断弹窗。
+
+    private void installSpaceFightCrashReporting() {
+        if (!crashHandlerInstalled) {
+            crashHandlerInstalled = true;
+            originalCrashHandler = Thread.getDefaultUncaughtExceptionHandler();
+            Thread.setDefaultUncaughtExceptionHandler((thread, error) -> {
+                try {
+                    StringWriter buffer = new StringWriter();
+                    error.printStackTrace(new PrintWriter(buffer));
+                    String report = buildSpaceFightCrashReport(
+                        "Java 未捕获异常 · " + thread.getName(), buffer.toString());
+                    writeSpaceFightText(new File(getFilesDir(), CRASH_REPORT_FILE), report);
+                } catch (Throwable ignored) {
+                    // 崩溃处理本身不允许再抛异常
+                }
+                if (originalCrashHandler != null) {
+                    originalCrashHandler.uncaughtException(thread, error);
+                } else {
+                    android.os.Process.killProcess(android.os.Process.myPid());
+                    System.exit(2);
+                }
+            });
+        }
+
+        File session = new File(getFilesDir(), CRASH_SESSION_FILE);
+        File pending = new File(getFilesDir(), CRASH_REPORT_FILE);
+        String previousState = readSpaceFightText(session).trim();
+        String report = readSpaceFightText(pending);
+        if (report.isEmpty() && "foreground".equals(previousState)) {
+            // 上次运行在前台被直接终止：原生崩溃不会走 onDestroy，也不会触发 Java 异常处理器。
+            report = buildSpaceFightCrashReport(
+                "前台异常退出（疑似原生层崩溃）",
+                "上次运行时进程在前台被直接终止，未经过正常退出流程。\n"
+                    + "常见原因：Cocos 原生渲染 / 脚本绑定层抛出未捕获异常（如 SIGABRT）。");
+        }
+        pending.delete();
+        writeSpaceFightText(session, "foreground");
+        if (!report.isEmpty()) {
+            final String finalReport = report;
+            getWindow().getDecorView().postDelayed(
+                () -> showSpaceFightCrashDialog(finalReport, true), 1200L);
+        }
+    }
+
+    private String buildSpaceFightCrashReport(String kind, String detail) {
+        StringBuilder report = new StringBuilder();
+        report.append("SPACEFIGHT 错误报告\n");
+        report.append("时间: ").append(spaceFightTimestamp()).append('\n');
+        report.append(spaceFightVersionLabel()).append('\n');
+        report.append("设备: ").append(Build.MODEL).append(" / Android ").append(Build.VERSION.RELEASE)
+            .append(" / ").append(Build.SUPPORTED_ABIS.length > 0 ? Build.SUPPORTED_ABIS[0] : "unknown")
+            .append('\n');
+        report.append("类型: ").append(kind == null ? "未知" : kind).append('\n');
+        report.append("\n---- 最后执行阶段 ----\n");
+        report.append(readSpaceFightText(new File(getFilesDir(), CRASH_TRACE_FILE)));
+        report.append("\n---- 错误详情 ----\n");
+        report.append(detail == null || detail.isEmpty()
+            ? "（无可用堆栈；多为原生层信号中断）" : detail);
+        report.append("\n\n---- 系统日志片段 ----\n");
+        String logs = collectSpaceFightLogcat();
+        report.append(logs.isEmpty() ? "（当前应用无可读日志）" : logs);
+        report.append("\n---- 反馈时请复制以上全部内容 ----\n");
+        return report.toString();
+    }
+
+    private static String collectSpaceFightLogcat() {
+        java.lang.Process process = null;
+        BufferedReader reader = null;
+        try {
+            process = Runtime.getRuntime().exec(
+                new String[] { "logcat", "-d", "-v", "brief", "-t", "400" });
+            reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
+            String[] keys = { "SpaceFight", "cocos", "Fatal", "DEBUG", "libc", "abort",
+                "tombstone", "out_of_range", "SIG", "JS:", "AndroidRuntime" };
+            StringBuilder kept = new StringBuilder();
+            String line;
+            int count = 0;
+            while ((line = reader.readLine()) != null) {
+                boolean matched = false;
+                for (String key : keys) {
+                    if (line.contains(key)) { matched = true; break; }
+                }
+                if (matched) {
+                    kept.append(line).append('\n');
+                    if (++count >= 60) break;
+                }
+            }
+            return kept.toString();
+        } catch (Exception ignored) {
+            return "";
+        } finally {
+            if (reader != null) {
+                try { reader.close(); } catch (Exception ignored) {}
+            }
+            if (process != null) process.destroy();
+        }
+    }
+
+    private void appendSpaceFightTrace(String stage) {
+        if (stage == null || stage.isEmpty()) return;
+        File file = new File(getFilesDir(), CRASH_TRACE_FILE);
+        String[] lines = readSpaceFightText(file).split("\n");
+        StringBuilder next = new StringBuilder();
+        int start = Math.max(0, lines.length - 11);
+        for (int i = start; i < lines.length; i++) {
+            String line = lines[i].trim();
+            if (!line.isEmpty()) next.append(line).append('\n');
+        }
+        next.append(spaceFightTimestamp()).append("  ").append(stage).append('\n');
+        writeSpaceFightText(file, next.toString());
+    }
+
+    private static String spaceFightTimestamp() {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+    }
+
+    private String spaceFightVersionLabel() {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            long code = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                ? info.getLongVersionCode() : info.versionCode;
+            return "版本 " + info.versionName + " / BUILD " + code;
+        } catch (Exception ignored) {
+            return "版本 未知";
+        }
+    }
+
+    private static void writeSpaceFightText(File file, String value) {
+        try (FileOutputStream output = new FileOutputStream(file, false)) {
+            output.write(value.getBytes(StandardCharsets.UTF_8));
+            output.flush();
+        } catch (Exception ignored) {}
+    }
+
+    private static String readSpaceFightText(File file) {
+        try (InputStream input = new FileInputStream(file)) {
+            java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+            byte[] chunk = new byte[4096];
+            int read;
+            while ((read = input.read(chunk)) >= 0) buffer.write(chunk, 0, read);
+            return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
+    /** 与「作战客户端更新」同款排版：深色圆角面板、频道标签、滚动错因、成对按钮。 */
+    private void showSpaceFightCrashDialog(String report, boolean previousSession) {
+        if (isFinishing() || isDestroyed() || crashDialogVisible) return;
+        crashDialogVisible = true;
+        final Dialog dialog = new Dialog(this);
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
+
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(dp(24), dp(22), dp(24), dp(20));
+        panel.setBackground(panelBackground(Color.rgb(13, 20, 27), 8));
+
+        TextView channel = updateLabel("SPACEFIGHT // DIAGNOSTICS", 11,
+            Color.rgb(255, 143, 112), true);
+        channel.setLetterSpacing(0.08f);
+        TextView title = updateLabel(previousSession ? "上次运行异常退出" : "运行错误",
+            24, Color.WHITE, true);
+        title.setPadding(0, dp(9), 0, dp(8));
+        TextView release = updateLabel(spaceFightVersionLabel() + "   ·   " + spaceFightTimestamp(),
+            13, Color.rgb(198, 211, 219), true);
+        release.setPadding(0, 0, 0, dp(12));
+        TextView detail = updateLabel(
+            "错误详情已生成。可复制错因反馈给开发者，或按「退出」关闭应用。",
+            14, Color.rgb(154, 171, 181), false);
+        detail.setLineSpacing(0, 1.18f);
+        panel.addView(channel);
+        panel.addView(title);
+        panel.addView(release);
+        panel.addView(detail);
+
+        ScrollView scroll = new ScrollView(this);
+        scroll.setBackground(panelBackground(Color.rgb(7, 14, 20), 6));
+        scroll.setPadding(dp(10), dp(8), dp(10), dp(8));
+        TextView body = new TextView(this);
+        body.setText(report);
+        body.setTextSize(11);
+        body.setTextColor(Color.rgb(198, 211, 219));
+        body.setTypeface(Typeface.MONOSPACE);
+        body.setTextIsSelectable(true);
+        scroll.addView(body);
+        LinearLayout.LayoutParams bodyParams = new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            Math.min(dp(230), getResources().getDisplayMetrics().heightPixels / 3));
+        bodyParams.topMargin = dp(14);
+        panel.addView(scroll, bodyParams);
+
+        LinearLayout actions = new LinearLayout(this);
+        actions.setGravity(Gravity.END);
+        actions.setPadding(0, dp(20), 0, 0);
+        Button exit = updateButton("退出", Color.rgb(34, 45, 55), Color.rgb(218, 226, 232));
+        Button copy = updateButton("复制错因", Color.rgb(67, 213, 229), Color.rgb(5, 17, 22));
+        LinearLayout.LayoutParams exitParams = new LinearLayout.LayoutParams(dp(92), dp(46));
+        exitParams.setMarginEnd(dp(10));
+        actions.addView(exit, exitParams);
+        actions.addView(copy, new LinearLayout.LayoutParams(dp(128), dp(46)));
+        panel.addView(actions);
+
+        copy.setOnClickListener(view -> {
+            ClipboardManager manager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            if (manager != null) {
+                manager.setPrimaryClip(ClipData.newPlainText("SpaceFight 错误报告", report));
+                Toast.makeText(this, "错因已复制", Toast.LENGTH_SHORT).show();
+            }
+        });
+        exit.setOnClickListener(view -> {
+            dialog.dismiss();
+            finishAffinity();
+            getWindow().getDecorView().postDelayed(() -> {
+                android.os.Process.killProcess(android.os.Process.myPid());
+                System.exit(0);
+            }, 150L);
+        });
+
+        dialog.setContentView(panel);
+        dialog.show();
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+            WindowManager.LayoutParams attributes = window.getAttributes();
+            attributes.dimAmount = 0.78f;
+            window.setAttributes(attributes);
+            int available = Math.max(dp(300),
+                getResources().getDisplayMetrics().widthPixels - dp(32));
             window.setLayout(Math.min(available, dp(520)), ViewGroup.LayoutParams.WRAP_CONTENT);
         }
     }
