@@ -3,6 +3,12 @@ import {
   neutralFlightCommand,
   normalizeFlightCommand,
 } from '../core/FlightCommand';
+import {
+  boundKeySet,
+  isActionPressed,
+  type GameAction,
+  type KeyBindings,
+} from './KeyBindings';
 import { InputSettings, normalizeInputSettings } from './InputSettings';
 
 export interface DesktopKeyEvent {
@@ -23,13 +29,6 @@ type DesktopDocument = Pick<Document,
 type DesktopCanvas = Pick<HTMLElement, 'addEventListener' | 'removeEventListener' | 'requestPointerLock'>;
 type PointerCaptureGuard = () => boolean;
 
-const GAMEPLAY_KEYS = new Set([
-  'KeyW', 'KeyA', 'KeyS', 'KeyD',
-  'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
-  'ShiftLeft', 'ShiftRight', 'Space', 'KeyQ', 'KeyE', 'KeyF', 'KeyR',
-  'Enter', 'NumpadEnter',
-  'F2', 'Escape',
-]);
 const LOOK_PIXELS_FOR_FULL_AXIS = 52;
 
 export function neutralInputCommand(): FlightCommand {
@@ -38,6 +37,9 @@ export function neutralInputCommand(): FlightCommand {
 
 export class DesktopFlightInput {
   private readonly settings: InputSettings;
+  private readonly bindings: KeyBindings;
+  /** 只接受当前绑定里的键，改键后立刻生效，未绑定的键不再抢输入。 */
+  private readonly gameplayKeys: Set<string>;
   private readonly keys = new Set<string>();
   private pointerLocked = false;
   private mouseX = 0;
@@ -60,6 +62,8 @@ export class DesktopFlightInput {
 
   constructor(settings?: Partial<InputSettings>) {
     this.settings = normalizeInputSettings(settings);
+    this.bindings = this.settings.keyBindings;
+    this.gameplayKeys = boundKeySet(this.bindings);
   }
 
   handlePointerLockChange(locked: boolean): void {
@@ -83,42 +87,40 @@ export class DesktopFlightInput {
   }
 
   handleKeyDown(event: DesktopKeyEvent): boolean {
-    if (event.isComposing || event.code === 'F5' || !GAMEPLAY_KEYS.has(event.code)) return false;
-    if (!event.repeat && event.code === 'F2') this.cameraTogglePending = true;
-    if (!event.repeat && event.code === 'Escape') this.pausePending = true;
-    this.keys.add(event.code);
+    const code = event.code;
+    if (event.isComposing || !this.gameplayKeys.has(code)) return false;
+    if (!event.repeat && this.bindings.cameraToggle.includes(code)) this.cameraTogglePending = true;
+    if (!event.repeat && this.bindings.pause.includes(code)) this.pausePending = true;
+    this.keys.add(code);
     return true;
   }
 
   handleKeyUp(event: DesktopKeyEvent): boolean {
-    if (event.isComposing || !GAMEPLAY_KEYS.has(event.code)) return false;
+    if (event.isComposing || !this.gameplayKeys.has(event.code)) return false;
     this.keys.delete(event.code);
     return true;
   }
 
   consumeCommand(): FlightCommand {
-    const vertical = this.axis('KeyS', 'KeyW') || this.axis('ArrowDown', 'ArrowUp');
-    const horizontal = this.axis('KeyA', 'KeyD') || this.axis('ArrowLeft', 'ArrowRight');
-    const pitchDirection = this.settings.invertY ? 1 : -1;
+    const pressed = (action: GameAction): boolean => isActionPressed(this.bindings, action, this.keys);
     const command = normalizeFlightCommand({
-      throttle: vertical,
-      strafe: horizontal,
+      throttle: this.axis('throttleBack', 'throttleForward'),
+      strafe: this.axis('strafeLeft', 'strafeRight'),
       yaw: (this.mouseX / LOOK_PIXELS_FOR_FULL_AXIS) * this.settings.sensitivity,
-      pitch: (this.mouseY / LOOK_PIXELS_FOR_FULL_AXIS) * this.settings.sensitivity * pitchDirection,
-      boost: this.keys.has('ShiftLeft') || this.keys.has('ShiftRight'),
-      primaryFire: this.primaryFire || this.keys.has('Space'),
-      secondaryFire: this.secondaryFire || this.keys.has('KeyQ'),
-      // 主副武器互换：E 键，战斗中一键切换主炮 / 副武器火力配置。
-      swapWeapons: this.keys.has('KeyE'),
-      // 战术设备主动技能：F 键（边沿触发由 CombatSimulation 负责，这里只报按住状态）。
-      deviceAbility: this.keys.has('KeyF'),
+      pitch: (this.mouseY / LOOK_PIXELS_FOR_FULL_AXIS) * this.settings.sensitivity
+        * (this.settings.invertY ? 1 : -1),
+      boost: pressed('boost'),
+      // 鼠标左右键与键盘绑定并存，任何一端按下都算开火。
+      primaryFire: this.primaryFire || pressed('primaryFire'),
+      secondaryFire: this.secondaryFire || pressed('secondaryFire'),
+      swapWeapons: pressed('swapWeapons'),
+      deviceAbility: pressed('deviceAbility'),
       cameraToggle: this.cameraTogglePending,
       pause: this.pausePending,
-      returnRequested: this.keys.has('KeyR'),
-      // 决策阶段按 Enter / 空格 确认继续深入（空格已是主武器，
-      // 因此只在决策阶段才把空格当作推进，避免误触影响射击手感）。
-      advanceRequested: this.keys.has('Enter') || this.keys.has('NumpadEnter')
-        || (this.snapshotPhase === 'decision' && this.keys.has('Space')),
+      returnRequested: pressed('returnRequested'),
+      // 决策阶段主武器键兼作「继续深入」；平时不抢射击手感。
+      advanceRequested: pressed('advanceRequested')
+        || (this.snapshotPhase === 'decision' && pressed('primaryFire')),
     });
     this.mouseX = 0;
     this.mouseY = 0;
@@ -216,7 +218,10 @@ export class DesktopFlightInput {
     cleanup?.();
   }
 
-  private axis(negative: string, positive: string): number {
-    return Number(this.keys.has(positive)) - Number(this.keys.has(negative));
+  /** 正方向动作减去负方向动作；一个动作允许绑多个键，任一按下即算。 */
+  private axis(negative: GameAction, positive: GameAction): number {
+    const negativePressed = isActionPressed(this.bindings, negative, this.keys);
+    const positivePressed = isActionPressed(this.bindings, positive, this.keys);
+    return Number(positivePressed) - Number(negativePressed);
   }
 }

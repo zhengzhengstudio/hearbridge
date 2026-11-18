@@ -29,12 +29,15 @@ export function touchStickFeedback(
         ? 'cruise'
         : 'active';
 
+  // 操控手感优化 0.13.23：近中心做平滑缓动（smoothstep），小幅推摇杆时转向更精细、
+  // 更易微操；travel=1 时 eased 仍为 1，满偏机动不受影响。仅影响原生触屏。
+  const eased = travel * travel * (3 - 2 * travel);
   return {
     active,
     axis: length > 0
       ? {
-        x: (safeX / length) * travel,
-        y: (safeY / length) * travel,
+        x: (safeX / length) * eased,
+        y: (safeY / length) * eased,
       }
       : { x: 0, y: 0 },
     travel,

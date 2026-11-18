@@ -661,7 +661,10 @@ body[data-input-mode="touch"] .desktop-only { display: none; }
   background: rgba(3, 8, 11, 0.9);
 }
 
-body[data-playing="true"][data-paused="true"] #PauseOverlay { display: grid; }
+/* 暂停遮罩的判定不能挂在 data-playing 上：退出全屏时壳会把 playing 置 false，
+   那时游戏其实还冻着，遮罩却会消失 —— 玩家看着就像「卡住」。
+   改为「已暂停 + 任务进行中」即显示。 */
+body[data-paused="true"][data-mission="active"] #PauseOverlay { display: grid; }
 
 #PauseOverlay > div {
   width: min(88vw, 440px);
@@ -1670,4 +1673,23 @@ body[data-outpost-open="true"] #OutpostPanel { display: grid; }
   .supply-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .supply-grid .supply-wide { grid-column: span 2; }
   .outpost-shell { padding: 18px; gap: 14px; }
+}
+
+/* 输入调试读数：游戏侧在 body[data-input-debug="true"] 时派发 spacefight:input-debug。
+   用 ?input-debug=1 打开，桌面端调输入手感时不用再猜。 */
+.input-debug {
+  position: fixed;
+  left: 8px;
+  bottom: 8px;
+  z-index: 40;
+  margin: 0;
+  padding: 6px 8px;
+  max-width: 70vw;
+  font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #9ff3ff;
+  background: rgba(3, 12, 18, .84);
+  border: 1px solid rgba(59, 211, 255, .34);
+  border-radius: 4px;
+  pointer-events: none;
+  white-space: pre-wrap;
 }

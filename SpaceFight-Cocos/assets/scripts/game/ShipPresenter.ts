@@ -474,9 +474,14 @@ export class ShipPresenter {
       -attitude.yaw * 180 / Math.PI,
       0,
     );
+    // 机头朝向：必须把 orientationX 也带进来。后三艘 Hunyuan3D 重做件
+    // （scout/bomber/gunship/boss）源模型是「竖着平板」，必须先绕 X 转 -90 放平，
+    // 否则玩家自己的机体仍直立、机头朝天，等于整艘朝向错误（敌机走同一套
+    // MODEL_NORMALIZATION 且同时带 X/Y，所以只有玩家机体歪）。
+    const normalization = MODEL_NORMALIZATION[this.playerShipKind];
     this.playerVisual?.setRotationFromEuler(
-      0,
-      MODEL_NORMALIZATION[this.playerShipKind].orientationY,
+      normalization.orientationX,
+      normalization.orientationY,
       attitude.roll * 180 / Math.PI,
     );
     this.syncMuzzle(

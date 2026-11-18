@@ -78,3 +78,50 @@ test('覆盖面板共用战术框架，按钮保留刻度与角标细节', () =>
   assert.match(source, /战术按钮细节：切角内框/, '面板按钮应保留内框与刻度细节');
   assert.match(source, /顶边等距刻度/, '按钮顶边应有等距刻度');
 });
+
+test('联机房间码输入框必须随视图显隐，不许常驻主页', () => {
+  const source = stripComments(fs.readFileSync(HUD_PATH, 'utf8'));
+  // 视图切换函数里必须同时收起输入框、状态码与邀请码，否则「输入房间码」会压在任务列表上。
+  const switcher = source.match(/private updateCoopControls\(\)[^{]*\{[\s\S]*?\n  \}/);
+  assert.ok(switcher, '应存在 updateCoopControls');
+  const body = switcher[0];
+  assert.match(body, /coopJoinInput[\s\S]*?node\.active = viewVisible/, '房间码输入框必须按视图显隐');
+  assert.match(body, /coopStatusLabel[\s\S]*?node\.active = viewVisible/, '联机状态必须按视图显隐');
+  assert.match(body, /coopCodeLabel[\s\S]*?node\.active = viewVisible/, '邀请码必须按视图显隐');
+});
+
+test('EditBox 必须在 Label 挂好之后再激活，杜绝引擎自建孤儿 "label" 节点', () => {
+  const source = stripComments(fs.readFileSync(HUD_PATH, 'utf8'));
+  const factory = source.match(/private createCoopJoinInput[\s\S]*?\n  \}/);
+  assert.ok(factory, '应存在 createCoopJoinInput');
+  const body = factory[0];
+  const deactivateAt = body.indexOf('node.active = false');
+  const attachAt = body.indexOf('addComponent(EditBox)');
+  const assignAt = body.indexOf('editBox.textLabel = textLabel');
+  const activateAt = body.indexOf('node.active = true');
+  assert.ok(deactivateAt >= 0, '建输入框时必须先置 inactive');
+  assert.ok(deactivateAt < attachAt, '必须先置 inactive 再挂 EditBox（否则引擎 onEnable 会自建 TEXT_LABEL）');
+  assert.ok(attachAt < assignAt, 'EditBox 挂上之后必须立刻赋 textLabel');
+  assert.ok(assignAt < activateAt, '必须等两个 Label 赋好之后再激活节点');
+  assert.match(body, /TEXT_LABEL/, '必须防御性清理引擎自建的 TEXT_LABEL / PLACEHOLDER_LABEL');
+  assert.match(body, /PLACEHOLDER_LABEL/, '必须防御性清理引擎自建的 PLACEHOLDER_LABEL');
+});
+
+test('动作控件用圆角方框战术片，图标与文字分层，不再用实心圆盘', () => {
+  const source = stripComments(fs.readFileSync(HUD_PATH, 'utf8'));
+  const plate = source.match(/private drawActionControl\([\s\S]*?\n  \}/);
+  assert.ok(plate, '应存在 drawActionControl');
+  assert.match(plate[0], /safeRoundRect/, '动作控件底板应为圆角方框（与面板同一形状语言）');
+  assert.doesNotMatch(plate[0], /safeCircle/, '动作控件底板不应再是实心圆盘（真机上上百条扫描线且不可见）');
+  assert.match(source, /private drawActionGlyph\(/, '图标应拆成独立绘制方法');
+  assert.match(source, /Glyph`/, '每个动作控件应有独立的图标子节点');
+});
+
+test('摇杆底座只保留四件套，不再叠四段弧线', () => {
+  const source = stripComments(fs.readFileSync(HUD_PATH, 'utf8'));
+  const deadzone = source.match(/private drawStickDeadzone\([\s\S]*?\n  \}/);
+  assert.ok(deadzone, '应存在 drawStickDeadzone');
+  const arcCalls = [...deadzone[0].matchAll(/this\.safeArc\(/g)].length;
+  assert.equal(arcCalls, 0, `摇杆底座不应再有弧线装饰（真机截图里它们混成了杂物），实际 ${arcCalls} 处`);
+  assert.match(deadzone[0], /safeCircle/, '摇杆底座仍需底盘与圆环');
+});

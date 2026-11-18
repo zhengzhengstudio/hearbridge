@@ -1,8 +1,19 @@
+import {
+  normalizeKeyBindings,
+  normalizeTouchOffsets,
+  type KeyBindings,
+  type TouchLayoutOffsets,
+} from './KeyBindings';
+
 export interface InputSettings {
   sensitivity: number;
   invertY: boolean;
   leftHanded: boolean;
   controlScale: number;
+  /** 可改键位：桌面 / 外接键盘的动作 → 按键映射。 */
+  keyBindings: KeyBindings;
+  /** 可改键位：触屏摇杆与动作按钮的自定义位置（归一化坐标，空对象＝跟随默认布局）。 */
+  touchOffsets: TouchLayoutOffsets;
 }
 
 export interface InputSettingsStorage {
@@ -10,6 +21,7 @@ export interface InputSettingsStorage {
   setItem(key: string, value: string): void;
 }
 
+// v2 保留 v1 键：老存档里的灵敏度 / 左右手设置不能因为加字段被丢掉。
 const STORAGE_KEY = 'spacefight.input.v1';
 
 export const DEFAULT_INPUT_SETTINGS: InputSettings = {
@@ -17,6 +29,8 @@ export const DEFAULT_INPUT_SETTINGS: InputSettings = {
   invertY: false,
   leftHanded: false,
   controlScale: 1,
+  keyBindings: normalizeKeyBindings({}),
+  touchOffsets: {},
 };
 
 function finiteNumber(value: unknown, fallback: number): number {
@@ -34,6 +48,8 @@ export function normalizeInputSettings(settings?: Partial<InputSettings> | null)
     invertY: source.invertY === true,
     leftHanded: source.leftHanded === true,
     controlScale: clamp(finiteNumber(source.controlScale, 1), 0.75, 1.35),
+    keyBindings: normalizeKeyBindings(source.keyBindings ?? {}),
+    touchOffsets: normalizeTouchOffsets(source.touchOffsets ?? {}),
   };
 }
 

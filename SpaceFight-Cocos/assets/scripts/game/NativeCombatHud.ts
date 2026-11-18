@@ -3,14 +3,19 @@ import {
   Canvas,
   Color,
   EditBox,
+  EventKeyboard,
+  EventTouch,
   Graphics,
   HorizontalTextAlignment,
+  Input,
+  input as cocosInput,
   Label,
   Layers,
   Node,
   resources,
   Sprite,
   SpriteFrame,
+  sys,
   Texture2D,
   UIOpacity,
   UITransform,
@@ -20,7 +25,7 @@ import {
   view,
 } from 'cc';
 import { nativeTrace } from '../platform/NativeDiagnostics';
-import { attachGraphics, graphicsOf } from '../platform/NativeGraphicsShim';
+import { attachGraphics, graphicsLayerReady, graphicsOf } from '../platform/NativeGraphicsShim';
 import type { CargoItem } from '../core/LootAndCargoSystem';
 import type { CombatSnapshot } from '../core/CombatSimulation';
 import {
@@ -41,16 +46,46 @@ import type { CombatLoadout, ResolvedCombatLoadout } from '../core/WeaponCatalog
 import { PLAYER_SHIP_IDS, resolvePlayerShip } from '../core/ShipCatalog';
 import { BUILD_INFO } from '../core/BuildInfo';
 import { buyStoreItem, loadEconomy, storePrice, type StoreItemId } from '../core/PlayerEconomy';
+import type { StationSystem, StationSave, ContractDef, TradeGoodId, FacilityId, Result } from '../core/StationSystem';
+import { CONTRACTS, TRADE_GOODS, FACILITIES } from '../core/StationSystem';
 import { AUDIO_ENGINE_KEY, AUDIO_SFX_KEY, audioSettingEnabled, toggleAudioSetting } from './GameAudio';
 import {
   movementControlCircle,
   returnControlCircle,
   touchActionLayout,
   type BrowserPointerRole,
+  type ControlCircle,
   type TouchSafeInsets,
 } from '../input/BrowserInputBridge';
 import type { NativeInputFeedback, NativeTouchLayout } from '../input/CocosInputBridge';
-import type { InputSettings } from '../input/InputSettings';
+import {
+  DEFAULT_INPUT_SETTINGS,
+  normalizeInputSettings,
+  type InputSettings,
+} from '../input/InputSettings';
+import { cocosKeyCodeToDesktopCode } from '../input/CocosInputBridge';
+import {
+  bindActionKey,
+  displayBinding,
+  GAME_ACTIONS,
+  GAME_ACTION_LABELS,
+  resetKeyBindings,
+  setTouchControlPosition,
+  type GameAction,
+  type TouchControlId,
+} from '../input/KeyBindings';
+import {
+  copyRunLogText,
+  formatRunLog,
+  formatTimestamp,
+  nativeRunLogs,
+  readRunLogs,
+  runLogSummary,
+  RUN_LOG_LIMIT,
+  type NativeRunLog,
+  type RunLogEntry,
+  type RunLogStorage,
+} from '../platform/RunLog';
 import { requestNativeUpdateCheck } from '../platform/PlatformBootstrap';
 import {
   touchStickFeedback,
@@ -81,23 +116,54 @@ export interface CoopHudBridge {
   close(): void;
   copyCode?(): void;
 }
+/** 站内玩法 HUD 桥接：外层用 StationSystem 实现，HUD 只拿快照与派发操作。 */
+export interface StationHudBridge {
+  snapshot(): StationSave;
+  tickets(): number;
+  acceptContract(id: string): Result;
+  claimContract(id: string): Result;
+  buy(good: TradeGoodId, qty: number): Result;
+  sell(good: TradeGoodId, qty: number): Result;
+  interactFacility(id: FacilityId): Result;
+  completeRefit(accuracy: number): Result;
+  contractDefs(): readonly ContractDef[];
+  tradeGoods(): readonly { id: TradeGoodId; basePrice: number; volatility: number; titleKey: string }[];
+  facilityDefs(): readonly { id: FacilityId; titleKey: string; descKey: string; ticketReward: number }[];
+  market(): Readonly<Record<TradeGoodId, { buy: number; sell: number }>>;
+}
+
 export interface NativeHudActions {
   onReturnHome?: () => void;
   onStationService?: (service: StationServiceId) => void;
   /** 设置里的「开始新手教学」：由 CombatBootstrap 切到 tutorial 预设并重置战局。 */
   onStartTutorial?: () => void;
   coop?: CoopHudBridge;
+  station?: StationHudBridge;
 }
 
 type NativeHomeView = 'operations' | 'hangar' | 'cargo' | 'market' | 'settings' | 'coop';
-type NativeOverlay = 'home' | 'loadout' | 'outpost' | 'defeat' | 'pause';
+type NativeOverlay = 'home' | 'loadout' | 'outpost' | 'defeat' | 'pause' | 'keybind' | 'runlog' | 'station';
+/** 站内玩法四个页签：任务板 / 交易 / 设施 / 校准改装。 */
+type StationTab = 'contracts' | 'trade' | 'facilities' | 'refit';
 type PanelButtonKind = 'standard' | 'primary' | 'nav' | 'slot' | 'danger';
 
 interface ActionVisual {
   node: Node;
   graphics: Graphics;
+  /** 图标层（独立子节点，偏上摆放），底板与图标分开才能让文字有位置。 */
+  glyph: Graphics | null;
   radius: number;
 }
+
+// 触屏布局编辑区里显示的控件；顺序与默认布局一致。
+const TOUCH_DOT_IDS: readonly TouchControlId[] = [
+  'movement', 'primaryFire', 'secondaryFire', 'boost',
+  'swapWeapons', 'deviceAbility', 'cameraToggle', 'pause',
+];
+const TOUCH_DOT_LABELS: Readonly<Record<string, string>> = {
+  movement: '摇杆', primaryFire: '主炮', secondaryFire: '副炮', boost: '加速',
+  swapWeapons: '切枪', deviceAbility: '技能', cameraToggle: '视角', pause: '暂停',
+};
 
 const LOADOUT_OPTIONS = {
   ship: [...PLAYER_SHIP_IDS],
@@ -169,6 +235,8 @@ export class NativeCombatHud implements NativeInputFeedback {
   private lastTraceSize = '';
   /** 首次按帧同步的执行轨迹：只在第一次 syncCombat 打点，崩在原生层时可定位到具体绘制。 */
   private syncTraceDone = false;
+  /** 主面板矢量绘制打点节流：layoutHomePanel 会被 resize 反复调用，只记首次首尾。 */
+  private homeLayoutTraceDone = false;
   /** 返航过场中：期间收起开火/切武器/加速/摇杆，避免「返航中还能开火」的状态矛盾。 */
   private returning = false;
   /** 返航压暗的第二层（靠近屏幕外沿），用于做两级羽化。 */
@@ -185,6 +253,10 @@ export class NativeCombatHud implements NativeInputFeedback {
   private hitMarker: Graphics | null = null;
   private combatFeedLabel: Label | null = null;
   private navigationLabel: Label | null = null;
+  /** 顶部信息区（主要目标 / 航区 / 目标）统一底板，让三行读数成为一个整体而不是散字。 */
+  private objectivePlate: Graphics | null = null;
+  /** 矢量绘制层降级徽标：只在白纹理帧不可用时出现（Label 是真机唯一稳渲染的元素）。 */
+  private graphicsBadge: Label | null = null;
   /** 连击计数（顶部中央，战斗多样性 / 手感反馈） */
   private comboLabel: Label | null = null;
   /** 局内强化条（底部中央，捡到精英/Boss 掉落后短期生效） */
@@ -222,6 +294,8 @@ export class NativeCombatHud implements NativeInputFeedback {
   private homeBackdrop: Graphics | null = null;
   private homeKeyArt: Sprite | null = null;
   private outpostArtFrame: SpriteFrame | null = null;
+  /** 停靠结算面板专用：站内机库内景图，替代空间站外景图，让"建筑内"可见。 */
+  private outpostInteriorFrame: SpriteFrame | null = null;
   private combatZoneArtFrame: SpriteFrame | null = null;
   private hangarArtFrame: SpriteFrame | null = null;
   private marketArtFrame: SpriteFrame | null = null;
@@ -307,6 +381,7 @@ export class NativeCombatHud implements NativeInputFeedback {
   private outpostResupplyButton: Node | null = null;
   private outpostRefitButton: Node | null = null;
   private outpostHomeButton: Node | null = null;
+  private outpostStationButton: Node | null = null;
   private outpostVitalsLabel: Label | null = null;
   private outpostTicketsLabel: Label | null = null;
   /** 主页「行动」视图的远征档案读数。 */
@@ -322,6 +397,48 @@ export class NativeCombatHud implements NativeInputFeedback {
   private coopState: CoopHudState = 'idle';
   private coopDetail = '';
   private coopCode = '';
+
+  // ---- 设置：可改键位 ----
+  private keybindPanel: Node | null = null;
+  private keybindBackdrop: Graphics | null = null;
+  private keybindHintLabel: Label | null = null;
+  private readonly keybindButtons = new Map<GameAction, Node>();
+  private keybindDragArea: Node | null = null;
+  private keybindDragFrame: Graphics | null = null;
+  private readonly keybindDragDots = new Map<TouchControlId, Node>();
+  private keybindDragWidth = 320;
+  private keybindDragHeight = 180;
+  private pendingKeyAction: GameAction | null = null;
+  private keybindOpen = false;
+  private keyCaptureAttached = false;
+
+  // ---- 设置：最近三次运行日志 ----
+  private runlogPanel: Node | null = null;
+  private runlogBackdrop: Graphics | null = null;
+  private readonly runlogCards: Node[] = [];
+  private runlogDetailLabel: Label | null = null;
+  private runlogHintLabel: Label | null = null;
+  private runlogEntries: RunLogEntry[] = [];
+  private runlogNatives: (NativeRunLog | null)[] = [];
+  private selectedRunLog = 0;
+  private runlogOpen = false;
+
+  // ---- 站内玩法（建筑内）：任务板 / 交易 / 设施 / 校准改装 ----
+  private stationPanel: Node | null = null;
+  private stationBackdrop: Graphics | null = null;
+  private stationTabButtons = new Map<StationTab, Node>();
+  private stationTitleLabel: Label | null = null;
+  private stationBodyLabel: Label | null = null;
+  private stationHintLabel: Label | null = null;
+  private stationSlotButtons: Node[] = [];
+  /** 渲染当前页签时重建：每个可见 slot 对应的点击动作与描边色。 */
+  private stationSlots: { action: () => void; accent: Color }[] = [];
+  private stationBackButton: Node | null = null;
+  private stationTab: StationTab = 'contracts';
+  private stationOpen = false;
+  private stationSelected = 0;
+  /** 校准小游戏：0~100 准度，连点/拖动累积，松手结算。 */
+  private stationCalibration = 0;
 
   constructor(
     scene: Node,
@@ -340,7 +457,11 @@ export class NativeCombatHud implements NativeInputFeedback {
   ) {
     nativeTrace('hud: constructor');
     this.touchEnabled = touchEnabled;
-    this.inputSettings = { sensitivity: 1, invertY: false, leftHanded: false, controlScale: 1, ...initialInputSettings };
+    // 归一化一次：老存档没有键位/位置字段，展开后不能让它们停在 undefined。
+    this.inputSettings = normalizeInputSettings({
+      ...DEFAULT_INPUT_SETTINGS,
+      ...initialInputSettings,
+    });
     this.root.layer = Layers.Enum.UI_2D;
     this.root.setParent(scene);
     const transform = this.root.addComponent(UITransform);
@@ -371,6 +492,9 @@ export class NativeCombatHud implements NativeInputFeedback {
       ['pause', () => this.createPausePanel()],
       ['training', () => this.createTrainingPanel()],
       ['boot', () => this.createBootPanel()],
+      ['keybind settings', () => this.createKeybindPanel()],
+      ['run logs', () => this.createRunlogPanel()],
+      ['station interior', () => this.createStationPanel()],
       ['launcher key art', () => this.loadLauncherKeyArt()],
       ['return overlay', () => this.createReturnOverlay()],
     ];
@@ -386,9 +510,11 @@ export class NativeCombatHud implements NativeInputFeedback {
     for (const panel of [
       this.homePanel, this.loadoutPanel, this.outpostPanel,
       this.defeatPanel, this.pausePanel, this.trainingPanel,
+      this.keybindPanel, this.runlogPanel, this.stationPanel,
     ]) {
       if (panel) panel.active = false;
     }
+    this.installKeyCaptureListener();
     // 启动阶段先把战斗控件全部收起：否则摇杆 / 技能钮会叠在初始化主页上，
     // 这些 Graphics 还会在尚未布局完成时进入首帧渲染。
     this.setCombatChromeVisible(false);
@@ -401,8 +527,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     safeInsets: TouchSafeInsets,
     leftHanded = false,
     controlScale = 1,
-  ): void {
-    // 视图尚未就绪时可能传入 0 / NaN；用默认设计尺寸兜底，避免生成零面积路径。
+  ): void {    // 视图尚未就绪时可能传入 0 / NaN；用默认设计尺寸兜底，避免生成零面积路径。
     this.width = Number.isFinite(width) && width > 0 ? width : 1280;
     this.height = Number.isFinite(height) && height > 0 ? height : 720;
     this.safeInsets = safeInsets;
@@ -424,6 +549,10 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.layoutPausePanel();
     this.layoutTrainingPanel();
     this.layoutBootPanel();
+    this.layoutKeybindPanel();
+    this.layoutRunlogPanel();
+    this.layoutStationPanel();
+    this.refreshGraphicsLayerBadge();
     if (!this.touchEnabled) return;
     if (this.actionVisuals.size === 0) this.createTouchControls();
     this.layoutTouchControls();
@@ -487,25 +616,37 @@ export class NativeCombatHud implements NativeInputFeedback {
       this.safeInsets,
       this.controlScale,
     );
+    // 可改键位：玩家在设置里拖动过的位置覆盖默认坐标。绘制与命中判定都走这里，
+    // 所以「看得见的圈」和「点得到的区域」永远一致。
+    const offsets = this.inputSettings.touchOffsets || {};
+    const place = (control: ControlCircle): ControlCircle => {
+      const custom = offsets[control.role as TouchControlId];
+      if (!custom) return control;
+      return {
+        ...control,
+        x: custom.x * this.width,
+        y: custom.y * this.height,
+      };
+    };
     // 返航过场：命中判定只认暂停/视角/返航按钮。此前只把节点 active=false，
     // 但 CocosInputBridge 仍按 touchLayout().actions 判定，隐藏的开火/加速照样能点到。
     const actions = this.returning
       ? all.filter((control) => control.role === 'pause' || control.role === 'cameraToggle')
       : all;
-    const result = [...actions];
+    const result = actions.map(place);
     // 可返航/可停靠时补上返航进度圆（去重，避免重复 role）。
     if ((this.canReturn || this.canDock) && !result.some((control) => control.role === 'returnRequested')) {
-      result.push(returnControlCircle(this.width, this.height, this.safeInsets, this.controlScale));
+      result.push(place(returnControlCircle(this.width, this.height, this.safeInsets, this.controlScale)));
     }
     return {
       actions: result,
-      movement: movementControlCircle(
+      movement: place(movementControlCircle(
         this.width,
         this.height,
         this.leftHanded,
         this.safeInsets,
         this.controlScale,
-      ),
+      )),
     };
   }
 
@@ -757,7 +898,11 @@ export class NativeCombatHud implements NativeInputFeedback {
     nativeTrace('hud: showPreflight');
     this.preflight = true;
     if (this.bootPanel) this.bootPanel.active = false;
+    // 0.13.30：HBP-AL00 的偶发 SIGSEGV 发生在主面板激活后的首个渲染帧，
+    // 报告原先停在「combat presentation ready」完全没有后续轨迹。这里把打开前后拆开打点。
+    nativeTrace('hud: showPreflight before setHomeOpen');
     this.setHomeOpen(true);
+    nativeTrace('hud: showPreflight after setHomeOpen');
   }
 
   /** 由 CombatBootstrap 在结算后调用：把「本趟 +N 星港券」显示进前哨面板。 */
@@ -836,14 +981,20 @@ export class NativeCombatHud implements NativeInputFeedback {
 
   blocksFlightInput(): boolean {
     return this.loadoutOpen || this.homeOpen || this.outpostOpen || this.defeatOpen
-      || this.pauseOpen || this.shouldShowTraining();
+      || this.pauseOpen || this.keybindOpen || this.runlogOpen || this.shouldShowTraining();
   }
 
   allowsPauseToggle(): boolean {
-    return !this.loadoutOpen && !this.homeOpen && !this.outpostOpen && !this.defeatOpen;
+    return !this.loadoutOpen && !this.homeOpen && !this.outpostOpen && !this.defeatOpen
+      && !this.keybindOpen && !this.runlogOpen;
   }
 
   destroy(): void {
+    // 键位捕获是全局事件，销毁时必须注销，否则场景重载后会重复绑定。
+    if (this.keyCaptureAttached) {
+      cocosInput.off(Input.EventType.KEY_DOWN, this.onKeyCapture, this);
+      this.keyCaptureAttached = false;
+    }
     // 异步贴图回调可能晚于 destroy 返回：置标记并清空引用，避免写已销毁节点。
     this.destroyed = true;
     this.bootKeyArt = null;
@@ -851,6 +1002,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.loadoutHangarArt = null;
     this.outpostKeyArt = null;
     this.outpostArtFrame = null;
+    this.outpostInteriorFrame = null;
     this.combatZoneArtFrame = null;
     this.hangarArtFrame = null;
     this.marketArtFrame = null;
@@ -869,6 +1021,9 @@ export class NativeCombatHud implements NativeInputFeedback {
   private createStatus(): void {
     this.statusLabel = this.createLabel('FlightStatus', 15, HUD_WHITE);
     this.statusLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    // 顶部信息区底板：必须在这三行文字**之前**创建 —— Cocos 按 sibling 顺序绘制，
+    // 先创建的在下，底板才压得住文字（反过来会把文字盖掉）。
+    this.objectivePlate = attachGraphics(this.createNode('ObjectivePlate'));
     this.objectiveLabel = this.createLabel('ObjectiveStatus', 17, HUD_CYAN);
     this.sectorLabel = this.createLabel('SectorStatus', 14, HUD_WHITE);
     this.sectorLabel.horizontalAlign = HorizontalTextAlignment.CENTER;
@@ -927,20 +1082,20 @@ export class NativeCombatHud implements NativeInputFeedback {
     ));
     this.objectiveLabel?.node.setPosition(this.canvasPosition(
       this.width / 2,
-      this.safeInsets.top + 48,
+      this.safeInsets.top + 44,
     ));
     this.objectiveLabel?.getComponent(UITransform)?.setContentSize(
       Math.min(320, usableWidth * 0.48),
-      34,
+      30,
     );
     // 航区/波次：紧贴目标条下方居中，玩家一眼可见当前位置与进度
     this.sectorLabel?.node.setPosition(this.canvasPosition(
       this.width / 2,
-      this.safeInsets.top + 70,
+      this.safeInsets.top + 72,
     ));
     this.sectorLabel?.getComponent(UITransform)?.setContentSize(
       Math.min(320, usableWidth * 0.48),
-      22,
+      20,
     );
     // 目标锁定读数下移到航区行下方，避免「无目标」压在「当前区域…」上。
     this.targetLabel?.node.setPosition(this.canvasPosition(
@@ -949,18 +1104,55 @@ export class NativeCombatHud implements NativeInputFeedback {
     ));
     this.targetLabel?.getComponent(UITransform)?.setContentSize(
       Math.min(360, usableWidth * 0.58),
-      28,
+      24,
     );
-    this.targetHealthBar?.node.setPosition(this.canvasPosition(this.width / 2, this.safeInsets.top + 120, 2));
+    // 目标血条紧贴在目标名下方，两者之间留出净空，不再与「当前区域…」那行挤在一起。
+    this.targetHealthBar?.node.setPosition(this.canvasPosition(this.width / 2, this.safeInsets.top + 118, 2));
+    // 顶部信息区统一底板：三行读数合成一块，而不是三串浮在星空上的散字。
+    if (this.objectivePlate) {
+      const plateWidth = Math.min(340, usableWidth * 0.5);
+      this.objectivePlate.node.setPosition(this.canvasPosition(
+        this.width / 2,
+        this.safeInsets.top + 70,
+        1,
+      ));
+      this.safeClear(this.objectivePlate);
+      this.objectivePlate.fillColor = new Color(3, 11, 16, 150);
+      this.safeRoundRect(
+        this.objectivePlate,
+        -(plateWidth / 2),
+        -48,
+        plateWidth,
+        96,
+        10,
+      );
+      this.safeFill(this.objectivePlate);
+      this.objectivePlate.strokeColor = new Color(79, 214, 224, 70);
+      this.objectivePlate.lineWidth = 1;
+      this.safeRoundRect(
+        this.objectivePlate,
+        -(plateWidth / 2),
+        -48,
+        plateWidth,
+        96,
+        10,
+      );
+      this.safeStroke(this.objectivePlate);
+    }
     this.hitMarker?.node.setPosition(this.canvasPosition(this.width / 2, this.height / 2, 4));
     this.combatFeedLabel?.node.setPosition(this.canvasPosition(this.width / 2, (this.height / 2) + 48, 5));
     this.combatFeedLabel?.getComponent(UITransform)?.setContentSize(Math.min(420, usableWidth - 32), 34);
-    this.navigationLabel?.node.setPosition(this.canvasPosition(this.width / 2, this.height - this.safeInsets.bottom - 76, 4));
+    // 导航读数（前哨距离 / 可停靠提示）改挂左下信息列：
+    // 底部中央是「停靠 / 返航」动作片的地盘，两者同位会整行叠字（真机截图实锤）。
+    const navX = this.leftHanded ? this.width - this.safeInsets.right - 140 : this.safeInsets.left + 12 + 140;
+    this.navigationLabel?.node.setPosition(this.canvasPosition(navX, this.height - this.safeInsets.bottom - 88, 4));
+    this.navigationLabel?.getComponent(UITransform)?.setContentSize(280, 24);
+    if (this.navigationLabel) this.navigationLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
     this.comboLabel?.node.setPosition(this.canvasPosition(this.width / 2, this.safeInsets.top + 144, 6));
     this.comboLabel?.getComponent(UITransform)?.setContentSize(Math.min(340, usableWidth - 40), 30);
-    this.upgradeLabel?.node.setPosition(this.canvasPosition(this.width / 2, this.height - this.safeInsets.bottom - 108, 5));
+    // 强化读数再往上挪一格，避开返航动作片的顶部。
+    this.upgradeLabel?.node.setPosition(this.canvasPosition(this.width / 2, this.height - this.safeInsets.bottom - 124, 5));
     this.upgradeLabel?.getComponent(UITransform)?.setContentSize(Math.min(440, usableWidth - 32), 28);
-    this.navigationLabel?.getComponent(UITransform)?.setContentSize(Math.min(360, usableWidth - 40), 28);
     // 窄屏(<600)：货舱读数下移一行并缩宽、保持右对齐，避免 375 宽竖屏与 statusLabel 重叠。
     const narrow = usableWidth < 600;
     const cargoWidth = narrow ? Math.min(200, usableWidth - 24) : 236;
@@ -982,8 +1174,33 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.abilityLabel?.getComponent(UITransform)?.setContentSize(280, 24);
   }
 
-  private createReticle(): void {
-    const node = this.createNode('AimReticle');
+  /**
+   * 矢量绘制层降级提示。
+   *
+   * Label 是真机上唯一能稳定渲染的元素（此前按钮边框 / 摇杆 / 准星整片隐形，
+   * 界面却毫无提示，只能靠猜）。拿不到白纹理帧时就在左上角挂一枚琥珀色徽标，
+   * 下次截图一眼就能分清是「图形层坏了」还是「布局错了」。
+   */
+  private refreshGraphicsLayerBadge(): void {
+    if (graphicsLayerReady()) {
+      if (this.graphicsBadge) this.graphicsBadge.node.active = false;
+      return;
+    }
+    if (!this.graphicsBadge) {
+      this.graphicsBadge = this.createLabel('NativeGraphicsBadge', 13, HUD_ACTIVE);
+      this.graphicsBadge.horizontalAlign = HorizontalTextAlignment.LEFT;
+    }
+    this.graphicsBadge.node.active = true;
+    this.graphicsBadge.string = 'HUD 图形层降级：白纹理不可用';
+    this.graphicsBadge.node.setPosition(this.canvasPosition(
+      this.safeInsets.left + 12 + 110,
+      this.safeInsets.top + 82,
+      9,
+    ));
+    this.graphicsBadge.getComponent(UITransform)?.setContentSize(220, 20);
+  }
+
+  private createReticle(): void {    const node = this.createNode('AimReticle');
     this.reticleGraphics = attachGraphics(node);
     this.drawReticle(HUD_CYAN);
   }
@@ -1343,7 +1560,10 @@ export class NativeCombatHud implements NativeInputFeedback {
   private createTrainingPanel(): void {
     this.trainingPanel = this.createNode('NativeTrainingPanel');
     this.trainingPanel.addComponent(UIOpacity);
-    this.trainingBackdrop = attachGraphics(this.trainingPanel);
+    // 暗底必须挂独立子节点且先于文字创建：原生 Graphics 替身精灵走 node.addChild
+    // 追加到末尾（=上层）。若直接 attach 到 panel，暗底精灵会排在 Label 之后把
+    // "飞行校准/步骤/提示"整片盖住——这正是"校准的字没了"的根因。
+    this.trainingBackdrop = attachGraphics(this.createNode('NativeTrainingShade', this.trainingPanel));
     this.trainingTitleLabel = this.createLabel('NativeTrainingTitle', 26, HUD_WHITE, this.trainingPanel);
     this.trainingStepLabel = this.createLabel('NativeTrainingStep', 12, HUD_CYAN, this.trainingPanel);
     this.trainingHintLabel = this.createLabel('NativeTrainingHint', 15, HUD_WHITE, this.trainingPanel);
@@ -1411,6 +1631,11 @@ export class NativeCombatHud implements NativeInputFeedback {
     const snapshot = this.latestSnapshot;
     if (!snapshot || snapshot.paused || snapshot.mission.status === 'failed') return false;
     return snapshot.mission.status === 'active';
+  }
+
+  /** 首飞校准是否正处于打开状态（供 CombatBootstrap 把玩家设为无敌，避免教学被打死）。 */
+  public get isCalibrating(): boolean {
+    return this.trainingOpen;
   }
 
   private layoutTrainingPanel(): void {
@@ -1586,6 +1811,12 @@ export class NativeCombatHud implements NativeInputFeedback {
         this.actions?.onStartTutorial?.();
         this.onDeploy?.();
       }, this.homePanel, 'primary'),
+      // 第 9 / 10 项：可改键位、最近三次运行日志。入口留在设置里，
+      // 详细内容走独立子面板，避免把十几个键位塞进主设置列表挤成一条线。
+      this.createPanelButton('NativeSettingsKeybind', this.text('settings.keybind'),
+        () => this.openSettingsDetail('keybind'), this.homePanel, 'slot'),
+      this.createPanelButton('NativeSettingsRunlog', this.text('settings.runlog'),
+        () => this.openSettingsDetail('runlog'), this.homePanel, 'slot'),
     );
     this.updateHomeSelection();
     this.setHomeView('operations');
@@ -1646,6 +1877,9 @@ export class NativeCombatHud implements NativeInputFeedback {
       () => this.actions?.onStationService?.('refit'), this.outpostPanel);
     this.outpostHomeButton = this.createPanelButton('NativeOutpostHome', this.text('outpost.home'),
       () => this.actions?.onReturnHome?.(), this.outpostPanel);
+    // 「站内玩法」：进入独立的总台面板（任务 / 交易 / 设施 / 校准改装）。
+    this.outpostStationButton = this.createPanelButton('NativeOutpostStation',
+      this.st('站内玩法', 'Station Interior'), () => this.showStation(), this.outpostPanel, 'primary');
     // 「舱内物资」：不新建面板，切换货物读数行显示五类物资台账，避免挤压 2×2 服务网格。
     this.outpostInteriorButton = this.createPanelButton('NativeOutpostInterior', this.text('outpost.interior'),
       () => this.toggleInterior(), this.outpostPanel);
@@ -1726,8 +1960,17 @@ export class NativeCombatHud implements NativeInputFeedback {
     });
     this.loadKeyArtTexture('ui/station/orbital-outpost-exterior', '[SpaceFight outpost]', (frame) => {
       this.outpostArtFrame = frame;
-      if (this.outpostKeyArt?.node?.isValid) this.outpostKeyArt.spriteFrame = frame;
+      // 主页 fallback 仍用外景图；结算面板单独用下面的机库内景图。
       this.updateHomeKeyArt();
+      // 内景图加载失败时的兜底：结算面板先用外景图顶上。
+      if (this.outpostKeyArt?.node?.isValid && !this.outpostInteriorFrame) {
+        this.outpostKeyArt.spriteFrame = frame;
+      }
+    });
+    // 停靠结算面板用「站内机库内景」，让返航进站看到的是建筑内部而不是外景。
+    this.loadKeyArtTexture('ui/hangar/spacefight-hangar-bay-v2', '[SpaceFight outpost interior]', (frame) => {
+      this.outpostInteriorFrame = frame;
+      if (this.outpostKeyArt?.node?.isValid) this.outpostKeyArt.spriteFrame = frame;
     });
     this.loadKeyArtTexture('ui/station/orbital-combat-zone-clean', '[SpaceFight operations]', (frame) => {
       this.combatZoneArtFrame = frame;
@@ -1794,13 +2037,17 @@ export class NativeCombatHud implements NativeInputFeedback {
 
   private updateHomeKeyArt(): void {
     if (this.destroyed || !this.homeKeyArt?.node?.isValid) return;
+    // 2026-11-17：orbital-outpost-exterior.png 是带烧录文案的宣发图（SPACEFIGHT/
+    // 纯单机太空射击/玩法…）。它做主页背景时，半透明面板与详情面板会透出这些字，
+    // 横屏下尤其明显。主页各视图一律改用无文字的 combatZoneArtFrame，彻底杜绝透字。
+    const cleanFrame = this.combatZoneArtFrame || this.outpostArtFrame;
     const frame = this.homeView === 'operations'
-      ? this.combatZoneArtFrame || this.outpostArtFrame
+      ? cleanFrame
       : this.homeView === 'hangar'
-        ? this.hangarArtFrame || this.outpostArtFrame
+        ? this.hangarArtFrame || cleanFrame
         : this.homeView === 'market'
-          ? this.marketArtFrame || this.outpostArtFrame
-        : this.outpostArtFrame;
+          ? this.marketArtFrame || cleanFrame
+        : cleanFrame;
     if (frame && this.homeKeyArt.spriteFrame !== frame) {
       this.homeKeyArt.spriteFrame = frame;
       const opacity = this.homeKeyArt.node.getComponent(UIOpacity);
@@ -1921,6 +2168,1003 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.setButtonText(tutorial || null, this.text('home.tutorialStart'));
   }
 
+  // ==================== 设置：可改键位 / 最近三次运行日志 ====================
+
+  private installKeyCaptureListener(): void {
+    if (this.keyCaptureAttached) return;
+    try {
+      cocosInput.on(Input.EventType.KEY_DOWN, this.onKeyCapture, this);
+      this.keyCaptureAttached = true;
+    } catch (error: unknown) {
+      console.warn('[SpaceFight HUD] key capture unavailable', error);
+    }
+  }
+
+  /** 只有「等待改键」时才消费键盘事件；home 打开时飞行输入本来就已被屏蔽。 */
+  private readonly onKeyCapture = (event: EventKeyboard): void => {
+    if (!this.pendingKeyAction) return;
+    const code = cocosKeyCodeToDesktopCode(event.keyCode);
+    if (code) this.applyKeyCapture(code);
+  };
+
+  private openSettingsDetail(kind: 'keybind' | 'runlog'): void {
+    this.pendingKeyAction = null;
+    if (kind === 'keybind') {
+      this.updateKeybindLabels();
+      this.refreshKeybindDragDots();
+    } else {
+      this.loadRunLogs();
+    }
+    this.activateOnly(kind);
+    this.setCombatChromeVisible(false);
+    if (kind === 'keybind') this.layoutKeybindPanel();
+    else this.layoutRunlogPanel();
+    const panel = kind === 'keybind' ? this.keybindPanel : this.runlogPanel;
+    const opacity = panel?.getComponent(UIOpacity);
+    if (opacity) {
+      opacity.opacity = 0;
+      tween(opacity).to(0.18, { opacity: 255 }).start();
+    }
+  }
+
+  private closeSettingsDetail(): void {
+    this.pendingKeyAction = null;
+    this.updateKeybindLabels();
+    this.activateOnly('home');
+    this.setCombatChromeVisible(false);
+    this.setHomeView('settings');
+  }
+
+  private createKeybindPanel(): void {
+    const panel = this.createNode('NativeKeybindPanel');
+    panel.addComponent(UIOpacity);
+    this.keybindPanel = panel;
+    this.keybindBackdrop = attachGraphics(this.createNode('NativeKeybindShade', panel));
+    const eyebrow = this.createLabel('NativeKeybindEyebrow', 12, HUD_CYAN, panel);
+    eyebrow.string = '设置 / 操控';
+    eyebrow.horizontalAlign = HorizontalTextAlignment.LEFT;
+    const title = this.createLabel('NativeKeybindTitle', 28, HUD_WHITE, panel);
+    title.string = '自定义键位';
+    title.horizontalAlign = HorizontalTextAlignment.LEFT;
+    this.keybindHintLabel = this.createLabel('NativeKeybindHint', 12, HUD_WHITE, panel);
+    this.keybindHintLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+
+    for (const action of GAME_ACTIONS) {
+      this.keybindButtons.set(action, this.createPanelButton(
+        `Keybind.${action}`, '', () => this.beginKeyCapture(action), panel, 'slot',
+      ));
+    }
+
+    this.keybindDragArea = this.createNode('NativeKeybindDragArea', panel);
+    this.keybindDragFrame = attachGraphics(this.createNode('NativeKeybindDragFrame', this.keybindDragArea));
+    const caption = this.createLabel('NativeKeybindDragCaption', 11, HUD_CYAN, panel);
+    caption.string = '触屏按键位置 · 拖动圆点后松手保存';
+    caption.horizontalAlign = HorizontalTextAlignment.LEFT;
+    for (const id of TOUCH_DOT_IDS) this.createKeybindDragDot(id, this.keybindDragArea);
+
+    this.createPanelButton('KeybindResetKeys', '恢复默认键位', () => this.resetKeybindings(), panel);
+    this.createPanelButton('KeybindResetLayout', '重置按键位置', () => this.resetTouchLayout(), panel);
+    this.createPanelButton('KeybindBack', '返回设置', () => this.closeSettingsDetail(), panel, 'primary');
+    this.updateKeybindLabels();
+    panel.active = false;
+  }
+
+  private createKeybindDragDot(id: TouchControlId, parent: Node): void {
+    const node = this.createNode(`KeybindDot.${id}`, parent);
+    node.getComponent(UITransform)?.setContentSize(30, 30);
+    const graphics = attachGraphics(node);
+    this.drawKeybindDot(graphics, false);
+    const label = this.createLabel('Label', 9, HUD_WHITE, node);
+    label.string = TOUCH_DOT_LABELS[id] || id;
+    label.node.setPosition(0, -18, 0);
+    label.getComponent(UITransform)?.setContentSize(60, 16);
+    let dragging = false;
+    const finish = (): void => {
+      if (!dragging) return;
+      dragging = false;
+      this.drawKeybindDot(graphics, false);
+      // 只在松手时提交：拖动过程中重建整个输入系统会把触点打断。
+      this.commitInputSettings();
+    };
+    node.on(Node.EventType.TOUCH_START, () => {
+      dragging = true;
+      this.drawKeybindDot(graphics, true);
+    });
+    node.on(Node.EventType.TOUCH_MOVE, (event: EventTouch) => {
+      if (!dragging) return;
+      const area = this.keybindDragArea?.getComponent(UITransform);
+      if (!area) return;
+      const ui = event.getUILocation();
+      const local = area.convertToNodeSpaceAR(new Vec3(ui.x, ui.y, 0));
+      // 布局坐标以左上角为原点、y 向下；UI 坐标以中心为原点、y 向上。
+      const x = local.x / this.keybindDragWidth + 0.5;
+      const y = 0.5 - local.y / this.keybindDragHeight;
+      this.inputSettings.touchOffsets = setTouchControlPosition(
+        this.inputSettings.touchOffsets, id, x, y,
+      );
+      this.refreshKeybindDragDots();
+    });
+    node.on(Node.EventType.TOUCH_END, finish);
+    node.on(Node.EventType.TOUCH_CANCEL, finish);
+    this.keybindDragDots.set(id, node);
+  }
+
+  private drawKeybindDot(graphics: Graphics, active: boolean): void {
+    this.safeClear(graphics);
+    const radius = active ? 12 : 10;
+    graphics.fillColor = active ? new Color(240, 168, 60, 232) : new Color(9, 30, 40, 238);
+    this.safeCircle(graphics, 0, 0, radius);
+    this.safeFill(graphics);
+    graphics.strokeColor = active ? HUD_ACTIVE : HUD_CYAN;
+    graphics.lineWidth = 1.6;
+    this.safeCircle(graphics, 0, 0, radius);
+    this.safeStroke(graphics);
+  }
+
+  private drawKeybindDragFrame(): void {
+    const graphics = this.keybindDragFrame;
+    if (!graphics) return;
+    const width = this.keybindDragWidth;
+    const height = this.keybindDragHeight;
+    this.safeClear(graphics);
+    graphics.fillColor = new Color(3, 12, 17, 226);
+    this.safeRoundRect(graphics, -width / 2, -height / 2, width, height, 8);
+    this.safeFill(graphics);
+    graphics.strokeColor = new Color(HUD_CYAN.r, HUD_CYAN.g, HUD_CYAN.b, 110);
+    graphics.lineWidth = 1;
+    for (let index = 1; index < 4; index += 1) {
+      const x = -width / 2 + (width * index) / 4;
+      this.safeMoveTo(graphics, x, -height / 2);
+      this.safeLineTo(graphics, x, height / 2);
+    }
+    for (let index = 1; index < 3; index += 1) {
+      const y = -height / 2 + (height * index) / 3;
+      this.safeMoveTo(graphics, -width / 2, y);
+      this.safeLineTo(graphics, width / 2, y);
+    }
+    this.safeStroke(graphics);
+    graphics.strokeColor = new Color(HUD_CYAN.r, HUD_CYAN.g, HUD_CYAN.b, 190);
+    graphics.lineWidth = 1.4;
+    this.safeRoundRect(graphics, -width / 2, -height / 2, width, height, 8);
+    this.safeStroke(graphics);
+  }
+
+  private currentTouchPosition(id: TouchControlId): { x: number; y: number } {
+    const custom = this.inputSettings.touchOffsets?.[id];
+    if (custom) return custom;
+    const layout = touchActionLayout(
+      this.width, this.height, this.leftHanded, this.safeInsets, this.controlScale,
+    );
+    const control = layout.find((item) => item.role === id);
+    if (control) return { x: control.x / this.width, y: control.y / this.height };
+    const stick = movementControlCircle(
+      this.width, this.height, this.leftHanded, this.safeInsets, this.controlScale,
+    );
+    if (id === 'movement') return { x: stick.x / this.width, y: stick.y / this.height };
+    return { x: 0.5, y: 0.5 };
+  }
+
+  private refreshKeybindDragDots(): void {
+    for (const [id, node] of this.keybindDragDots) {
+      const point = this.currentTouchPosition(id);
+      node.setPosition(
+        (point.x - 0.5) * this.keybindDragWidth,
+        (0.5 - point.y) * this.keybindDragHeight,
+        2,
+      );
+    }
+  }
+
+  private updateKeybindLabels(): void {
+    for (const action of GAME_ACTIONS) {
+      const waiting = this.pendingKeyAction === action;
+      const name = GAME_ACTION_LABELS[action];
+      const binding = displayBinding(this.inputSettings.keyBindings, action);
+      this.setButtonText(this.keybindButtons.get(action) || null,
+        waiting ? `${name}\n按下新键…` : `${name}   ${binding}`);
+    }
+    if (this.keybindHintLabel) {
+      this.keybindHintLabel.string = this.pendingKeyAction
+        ? '请按下要绑定的按键，按退出键取消'
+        : '点击左侧条目后按新键即可改键位；右侧圆点可拖动，松手后自动保存';
+    }
+  }
+
+  private beginKeyCapture(action: GameAction): void {
+    this.pendingKeyAction = action;
+    this.updateKeybindLabels();
+  }
+
+  private applyKeyCapture(code: string): void {
+    const action = this.pendingKeyAction;
+    if (!action) return;
+    this.pendingKeyAction = null;
+    // 退出键保留为「取消」，避免玩家把暂停键改掉后卡在等待状态。
+    if (code !== 'Escape') {
+      this.inputSettings.keyBindings = bindActionKey(this.inputSettings.keyBindings, action, code);
+      this.updateKeybindLabels();
+      // 提交会 detach/attach 全局键盘监听；放在同一个 KEY_DOWN 派发里做会和
+      // Cocos 的事件分发撞车，延到微任务再重建输入系统。
+      void Promise.resolve().then(() => {
+        if (this.destroyed) return;
+        this.commitInputSettings();
+        this.updateKeybindLabels();
+      });
+      return;
+    }
+    this.updateKeybindLabels();
+  }
+
+  private resetKeybindings(): void {
+    this.pendingKeyAction = null;
+    this.inputSettings.keyBindings = resetKeyBindings();
+    this.commitInputSettings();
+    this.updateKeybindLabels();
+  }
+
+  private resetTouchLayout(): void {
+    this.inputSettings.touchOffsets = {};
+    this.commitInputSettings();
+    this.refreshKeybindDragDots();
+  }
+
+  private createRunlogPanel(): void {
+    const panel = this.createNode('NativeRunlogPanel');
+    panel.addComponent(UIOpacity);
+    this.runlogPanel = panel;
+    this.runlogBackdrop = attachGraphics(this.createNode('NativeRunlogShade', panel));
+    const eyebrow = this.createLabel('NativeRunlogEyebrow', 12, HUD_CYAN, panel);
+    eyebrow.string = '设置 / 诊断';
+    eyebrow.horizontalAlign = HorizontalTextAlignment.LEFT;
+    const title = this.createLabel('NativeRunlogTitle', 28, HUD_WHITE, panel);
+    title.string = '最近三次运行';
+    title.horizontalAlign = HorizontalTextAlignment.LEFT;
+    this.runlogHintLabel = this.createLabel('NativeRunlogHint', 12, HUD_WHITE, panel);
+    this.runlogHintLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    for (let index = 0; index < RUN_LOG_LIMIT; index += 1) {
+      const card = this.createPanelButton(
+        `RunlogCard.${index}`, '', () => this.showRunlogDetail(index), panel, 'slot',
+      );
+      const label = card.getChildByName('Label')?.getComponent(Label);
+      if (label) label.verticalAlign = VerticalTextAlignment.TOP;
+      this.runlogCards.push(card);
+    }
+    this.runlogDetailLabel = this.createLabel('RunlogDetail', 12, HUD_WHITE, panel);
+    this.runlogDetailLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    this.runlogDetailLabel.verticalAlign = VerticalTextAlignment.TOP;
+    this.createPanelButton('RunlogCopy', '复制完整日志', () => this.copySelectedRunLog(), panel, 'primary');
+    this.createPanelButton('RunlogRefresh', '重新读取', () => this.loadRunLogs(), panel);
+    this.createPanelButton('RunlogBack', '返回设置', () => this.closeSettingsDetail(), panel);
+    panel.active = false;
+  }
+
+  private runLogStorage(): RunLogStorage | null {
+    try {
+      const storage = sys.localStorage as unknown as RunLogStorage;
+      return storage && typeof storage.getItem === 'function' ? storage : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private loadRunLogs(): void {
+    const storage = this.runLogStorage();
+    this.runlogEntries = storage ? readRunLogs(storage) : [];
+    // 安卓 AppActivity 在下次启动才归档上一轮轨迹：native[0] 对应的是「上一次」，
+    // 而 JS 第 0 条是「本次」。整体后移一位，卡片才不会把上次的崩溃挂到本次头上。
+    const natives = nativeRunLogs();
+    this.runlogNatives = [null, ...natives.slice(0, RUN_LOG_LIMIT - 1)];
+    while (this.runlogNatives.length < RUN_LOG_LIMIT) this.runlogNatives.push(null);
+    this.selectedRunLog = 0;
+    this.showRunlogDetail(0);
+    if (this.runlogHintLabel) {
+      this.runlogHintLabel.string = natives.length > 0
+        ? '已读取系统退出记录，异常退出会附带崩溃报告'
+        : '本机运行记录；安卓端会同时显示系统退出原因';
+    }
+  }
+
+  private nativeRunLogText(native: NativeRunLog): string {
+    return [
+      `系统记录 · ${native.time}`,
+      `结论：${native.result || '无'}`,
+      `退出原因：${native.reason || '无'}`,
+      native.version ? `版本：${native.version}` : '',
+      native.trace ? `\n---- 启动轨迹 ----\n${native.trace}` : '',
+      native.crash ? `\n---- 崩溃报告 ----\n${native.crash}` : '',
+    ].filter((line) => line !== '').join('\n');
+  }
+
+  private selectedRunLogText(): string {
+    const entry = this.runlogEntries[this.selectedRunLog];
+    const native = this.runlogNatives[this.selectedRunLog] || undefined;
+    if (entry) return formatRunLog(entry, native);
+    if (native) return this.nativeRunLogText(native);
+    return '这一轮还没有运行记录。\n下次启动后会自动归档上一次运行。';
+  }
+
+  private updateRunlogCards(): void {
+    for (let index = 0; index < RUN_LOG_LIMIT; index += 1) {
+      const card = this.runlogCards[index];
+      if (!card) continue;
+      const entry = this.runlogEntries[index];
+      const native = this.runlogNatives[index] || undefined;
+      card.active = !!entry || !!native;
+      const head = `第 ${index + 1} 次 · ${entry ? formatTimestamp(entry.startedAt) : native?.time || '暂无记录'}`;
+      const body = entry ? runLogSummary(entry) : native?.result || '暂无记录';
+      const reason = native?.reason ? `\n系统：${native.reason}` : '';
+      this.setButtonText(card, `${head}\n${body}${reason}`);
+      const size = card.getComponent(UITransform)?.contentSize;
+      this.resizePanelButton(card, size?.width || 260, size?.height || 72, 11,
+        index === this.selectedRunLog ? HUD_ACTIVE : HUD_CYAN);
+    }
+  }
+
+  private showRunlogDetail(index: number): void {
+    this.selectedRunLog = index;
+    const full = this.selectedRunLogText();
+    if (this.runlogDetailLabel) {
+      this.runlogDetailLabel.string = full.length > 1800
+        ? `${full.slice(0, 1800)}\n…（点「复制完整日志」可取回全文）`
+        : full;
+    }
+    this.updateRunlogCards();
+  }
+
+  private copySelectedRunLog(): void {
+    const copied = copyRunLogText(this.selectedRunLogText());
+    if (this.runlogHintLabel) {
+      this.runlogHintLabel.string = copied
+        ? '已复制完整日志，可直接粘贴到反馈里'
+        : '当前平台不支持自动复制，请截图保存下方内容';
+    }
+  }
+
+  // ==================== 站内玩法（建筑内）：任务 / 交易 / 设施 / 校准改装 ====================
+
+  /** 从进站面板打开站内玩法总台，默认落在任务板。 */
+  private showStation(): void {
+    this.stationTab = 'contracts';
+    this.stationSelected = 0;
+    this.stationCalibration = 0;
+    this.setStationOpen(true);
+  }
+
+  private setStationOpen(open: boolean): void {
+    if (open) this.activateOnly('station');
+    this.stationOpen = open;
+    if (this.stationPanel) {
+      this.stationPanel.active = open;
+      if (open) {
+        const opacity = this.stationPanel.getComponent(UIOpacity);
+        if (opacity) {
+          opacity.opacity = 0;
+          tween(opacity).to(0.18, { opacity: 255 }).start();
+        }
+        this.renderStation();
+      }
+    }
+    this.setCombatChromeVisible(!open);
+  }
+
+  private switchStationTab(tab: StationTab): void {
+    if (this.stationTab === tab) return;
+    this.stationTab = tab;
+    this.stationSelected = 0;
+    this.stationCalibration = 0;
+    this.renderStation();
+  }
+
+  /** 回写页签高亮 + 重绘当前页签内容。所有数据都从外层注入的 bridge 读。 */
+  private renderStation(): void {
+    const bridge = this.actions?.station;
+    for (const [tab, node] of this.stationTabButtons) {
+      const size = node.getComponent(UITransform)?.contentSize;
+      this.resizePanelButton(node, size?.width || 150, size?.height || 54, 13,
+        tab === this.stationTab ? HUD_ACTIVE : HUD_CYAN);
+    }
+    if (!bridge) {
+      if (this.stationHintLabel) this.stationHintLabel.string = this.st('站内系统尚未就绪', 'Station systems unavailable');
+      for (const slot of this.stationSlotButtons) slot.active = false;
+      return;
+    }
+    switch (this.stationTab) {
+      case 'contracts': this.renderStationContracts(bridge); break;
+      case 'trade': this.renderStationTrade(bridge); break;
+      case 'facilities': this.renderStationFacilities(bridge); break;
+      case 'refit': this.renderStationRefit(bridge); break;
+    }
+    // 页签切换会改变可见 slot 数量（如任务 3 个 → 交易 12 个），必须在渲染后重新定位，
+    // 否则新显示的 slot 从未走过 layout，会全部叠在原点。
+    this.layoutStationSlots();
+  }
+
+  /** 统一往 slot 里塞文字与动作；超出可见数量的隐藏。 */
+  private fillStationSlot(index: number, label: string, action: () => void, accent: Color = HUD_CYAN): void {
+    const node = this.stationSlotButtons[index];
+    if (!node) return;
+    node.active = true;
+    this.setButtonText(node, label);
+    this.stationSlots[index] = { action, accent };
+    const size = node.getComponent(UITransform)?.contentSize;
+    this.resizePanelButton(node, size?.width || 180, size?.height || 74, 11, accent);
+  }
+
+  private clearStationSlots(): void {
+    this.stationSlots = [];
+    for (const node of this.stationSlotButtons) node.active = false;
+  }
+
+  private stationFacilityTitle(id: FacilityId): string {
+    if (id === 'repair-bay') return this.st('维修台', 'Repair Bay');
+    if (id === 'reactor') return this.st('反应堆', 'Reactor Core');
+    if (id === 'mess') return this.st('船员舱', 'Crew Mess');
+    if (id === 'bridge') return this.st('舰桥', 'Bridge');
+    return this.st('货运站', 'Shipment Bay');
+  }
+
+  private stationGoodTitle(id: TradeGoodId): string {
+    const names: Record<TradeGoodId, [string, string]> = {
+      ore: ['矿石', 'Ore'], alloy: ['合金', 'Alloy'], circuit: ['电路', 'Circuit'],
+      medkit: ['医疗包', 'Medkit'], fuel: ['燃料', 'Fuel'], data: ['数据核', 'Data Core'],
+    };
+    const pair = names[id];
+    return this.st(pair[0], pair[1]);
+  }
+
+  private stationContractTitle(def: ContractDef): string {
+    if (def.kind === 'escort') return this.st('护航合约', 'Escort Contract');
+    if (def.kind === 'purge') return this.st('清剿合约', 'Purge Contract');
+    return this.st('运送合约', 'Delivery Contract');
+  }
+
+  // ---------- 任务板 ----------
+
+  private renderStationContracts(bridge: StationHudBridge): void {
+    this.clearStationSlots();
+    const save = bridge.snapshot();
+    const defs = bridge.contractDefs();
+    if (this.stationHintLabel) {
+      this.stationHintLabel.string = this.st(
+        '出航前接取，返航自动推进，达标后 here 领券',
+        'Accept before launch, progress on return, claim when ready',
+      ).replace(' here ', ' ');
+    }
+    if (this.stationBodyLabel) this.stationBodyLabel.string = '';
+    let index = 0;
+    for (const def of defs) {
+      const progress = save.contracts.find((c) => c.id === def.id);
+      let statusZh = '可接取';
+      let statusEn = 'Available';
+      let accent = HUD_CYAN;
+      if (progress) {
+        if (progress.status === 'active') {
+          statusZh = `进行中 ${progress.progress}/${def.goal}`;
+          statusEn = `Active ${progress.progress}/${def.goal}`;
+        } else if (progress.status === 'ready') {
+          statusZh = `可领取 · +${def.reward} 券`;
+          statusEn = `Claim +${def.reward}`;
+          accent = HUD_ACTIVE;
+        } else {
+          statusZh = '已领取';
+          statusEn = 'Claimed';
+        }
+      }
+      const label = `${this.stationContractTitle(def)}\n${this.st(statusZh, statusEn)}`;
+      const contractId = def.id;
+      const canClaim = progress?.status === 'ready';
+      const canAccept = !progress && !save.claimed.includes(def.id);
+      this.fillStationSlot(index++, label, () => {
+        if (canClaim) {
+          const r = bridge.claimContract(contractId);
+          this.stationToast(r.ok
+            ? this.st(`领取成功 +${r.value ?? 0} 券`, `Claimed +${r.value ?? 0} tickets`)
+            : this.st('领取失败', 'Claim failed'));
+        } else if (canAccept) {
+          bridge.acceptContract(contractId);
+          this.stationToast(this.st('已接取，出航推进', 'Accepted — progress on return'));
+        } else {
+          this.stationToast(this.st('这张合约已在处理中', 'Contract already in progress'));
+        }
+        this.renderStation();
+      }, accent);
+    }
+  }
+
+  // ---------- 交易终端 ----------
+
+  private renderStationTrade(bridge: StationHudBridge): void {
+    this.clearStationSlots();
+    const save = bridge.snapshot();
+    const market = bridge.market();
+    const goods = bridge.tradeGoods();
+    if (this.stationHintLabel) {
+      this.stationHintLabel.string = this.st(
+        '买价高于卖价，每次返航行情刷新 · 现有星港券会随买卖增减',
+        'Buy high / sell low spread · prices refresh each return · tickets update live',
+      );
+    }
+    if (this.stationBodyLabel) {
+      this.stationBodyLabel.string = this.st(`星港券余额 ${bridge.tickets()}`, `Tickets ${bridge.tickets()}`);
+    }
+    let index = 0;
+    for (const good of goods) {
+      const quote = market[good.id];
+      const held = save.holdings[good.id] ?? 0;
+      const goodId = good.id;
+      this.fillStationSlot(index++, `${this.stationGoodTitle(good.id)} · 买${quote.buy}\n持 ${held}`,
+        () => {
+          const r = bridge.buy(goodId, 1);
+          this.stationToast(r.ok
+            ? this.st(`买入 ${this.stationGoodTitle(goodId)} −${r.value ?? 0}`, `Bought ${this.stationGoodTitle(goodId)} −${r.value ?? 0}`)
+            : this.st('券不足', 'Not enough tickets'));
+          this.renderStation();
+        });
+      this.fillStationSlot(index++, `${this.stationGoodTitle(good.id)} · 卖${quote.sell}\n+${quote.sell}`,
+        () => {
+          const r = bridge.sell(goodId, 1);
+          this.stationToast(r.ok
+            ? this.st(`卖出 +${r.value ?? 0}`, `Sold +${r.value ?? 0}`)
+            : this.st('没有可卖库存', 'No stock to sell'));
+          this.renderStation();
+        }, HUD_ACTIVE);
+    }
+  }
+
+  // ---------- 设施互动 ----------
+
+  private renderStationFacilities(bridge: StationHudBridge): void {
+    this.clearStationSlots();
+    if (this.stationHintLabel) {
+      this.stationHintLabel.string = this.st(
+        '走近站内设施互动，部分设施隔几趟返航才会再给一次补助',
+        'Interact with station facilities; some pay out only every few returns',
+      );
+    }
+    if (this.stationBodyLabel) this.stationBodyLabel.string = '';
+    const facs = bridge.facilityDefs();
+    facs.forEach((fac, index) => {
+      const visited = bridge.snapshot().visited.includes(fac.id);
+      const reward = fac.ticketReward > 0
+        ? this.st(` · +${fac.ticketReward}券`, ` · +${fac.ticketReward}`)
+        : '';
+      const label = `${this.stationFacilityTitle(fac.id)}\n${visited ? this.st('再次访问', 'Revisit') : this.st('首次访问', 'First visit')}${reward}`;
+      const facId = fac.id;
+      this.fillStationSlot(index, label, () => {
+        const r = bridge.interactFacility(facId);
+        const v = r.value ?? 0;
+        this.stationToast(v > 0
+          ? this.st(`互动完成 +${v} 券`, `Interaction +${v} tickets`)
+          : this.st('互动完成', 'Interaction complete'));
+        this.renderStation();
+      });
+    });
+  }
+
+  // ---------- 校准改装小游戏 ----------
+
+  private renderStationRefit(bridge: StationHudBridge): void {
+    this.clearStationSlots();
+    const save = bridge.snapshot();
+    if (this.stationHintLabel) {
+      this.stationHintLabel.string = this.st(
+        '点充能累积准度，停在 40~100 区间再锁定；爆表要重来。锁定成功提升永久改装（花 60 券）',
+        'Charge to build accuracy, lock between 40~100; overshoot resets. Success upgrades refit (60 tickets)',
+      );
+    }
+    if (this.stationBodyLabel) {
+      const filled = Math.min(20, Math.round(this.stationCalibration / 5));
+      const bar = '█'.repeat(filled) + '░'.repeat(20 - filled);
+      this.stationBodyLabel.string = this.st(
+        `准度 [${bar}] ${Math.round(this.stationCalibration)}%\n最佳 ${save.refitBest}% · 已改装 ${save.refitCount} 次`,
+        `Accuracy [${bar}] ${Math.round(this.stationCalibration)}%\nBest ${save.refitBest}% · Refits ${save.refitCount}`,
+      );
+    }
+    this.fillStationSlot(0, this.st('充能 +', 'Charge +'), () => {
+      this.stationCalibration = Math.min(120, this.stationCalibration + 16 + Math.floor(Math.random() * 18));
+      this.renderStation();
+    });
+    this.fillStationSlot(1, this.st('锁定', 'Lock'), () => {
+      const r = bridge.completeRefit(this.stationCalibration);
+      if (r.ok) {
+        this.stationToast(this.st(`校准成功，准度 ${r.value ?? 0}%`, `Calibrated at ${r.value ?? 0}%`));
+      } else if (r.reason === 'calibration-failed') {
+        this.stationToast(this.st('准度不足或爆表，重新充能', 'Out of range — charge again'));
+      } else {
+        this.stationToast(this.st('星港券不足（需 60）', 'Not enough tickets (need 60)'));
+      }
+      this.stationCalibration = 0;
+      this.renderStation();
+    }, HUD_ACTIVE);
+    this.fillStationSlot(2, this.st('重置', 'Reset'), () => {
+      this.stationCalibration = 0;
+      this.renderStation();
+    });
+  }
+
+  /** 页签内容区顶部的瞬时提示（复用 hint 行，2.4s 后还原当前页签说明）。 */
+  private stationToast(message: string): void {
+    if (!this.stationHintLabel) return;
+    this.stationHintLabel.string = message;
+    const label = this.stationHintLabel;
+    const tab = this.stationTab;
+    const bridge = this.actions?.station;
+    setTimeout(() => {
+      if (!this.stationOpen || this.stationTab !== tab || !bridge) return;
+      // 延时重绘该页签的常规说明，避免与 toast 抢同一行。
+      this.renderStationHint(bridge);
+      void label;
+    }, 2400);
+  }
+
+  /** 只刷新 hint 行（toast 到期还原用），不重建按钮。 */
+  private renderStationHint(bridge: StationHudBridge): void {
+    if (!this.stationHintLabel) return;
+    switch (this.stationTab) {
+      case 'contracts':
+        this.stationHintLabel.string = this.st('出航前接取，返航自动推进，达标后领券', 'Accept before launch, progress on return, claim when ready');
+        break;
+      case 'trade':
+        this.stationHintLabel.string = this.st('买价高于卖价，每次返航行情刷新 · 星港券随买卖增减', 'Buy/sell spread · prices refresh each return · tickets update live');
+        break;
+      case 'facilities':
+        this.stationHintLabel.string = this.st('走近站内设施互动，部分设施隔几趟返航才会再给一次补助', 'Interact with facilities; some pay out every few returns');
+        break;
+      case 'refit':
+        this.stationHintLabel.string = this.st('充能累积准度，停在 40~100 再锁定；爆表重来', 'Charge accuracy, lock at 40~100; overshoot resets');
+        break;
+    }
+  }
+
+  /** slot 点击统一入口：由创建按钮时的闭包调用当前动作。 */
+  private onStationSlot(index: number): void {
+    this.stationSlots[index]?.action();
+  }
+
+  private createStationPanel(): void {
+    const panel = this.createNode('NativeStationPanel');
+    panel.addComponent(UIOpacity);
+    this.stationPanel = panel;
+    this.stationBackdrop = attachGraphics(this.createNode('NativeStationShade', panel));
+
+    const eyebrow = this.createLabel('NativeStationEyebrow', 12, HUD_CYAN, panel);
+    eyebrow.string = this.st('轨道前哨 · 站内', 'Orbital Outpost · Interior');
+    eyebrow.horizontalAlign = HorizontalTextAlignment.LEFT;
+
+    const title = this.createLabel('NativeStationTitle', 26, HUD_WHITE, panel);
+    title.string = this.st('站内设施', 'Station Interior');
+    title.horizontalAlign = HorizontalTextAlignment.LEFT;
+    this.stationTitleLabel = title;
+
+    // 四个页签
+    const tabs: readonly [StationTab, string, string][] = [
+      ['contracts', '任务板', 'Contracts'],
+      ['trade', '交易终端', 'Trade'],
+      ['facilities', '站内设施', 'Facilities'],
+      ['refit', '校准改装', 'Refit'],
+    ];
+    for (const [tab, zh, en] of tabs) {
+      const btn = this.createPanelButton(
+        `StationTab.${tab}`, this.st(zh, en), () => this.switchStationTab(tab), panel,
+      );
+      btn.getComponent(UITransform)?.setContentSize(150, 54);
+      this.stationTabButtons.set(tab, btn);
+    }
+
+    this.stationHintLabel = this.createLabel('NativeStationHint', 12, HUD_WHITE, panel);
+    this.stationHintLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    this.stationHintLabel.verticalAlign = VerticalTextAlignment.TOP;
+
+    this.stationBodyLabel = this.createLabel('NativeStationBody', 15, HUD_CYAN, panel);
+    this.stationBodyLabel.horizontalAlign = HorizontalTextAlignment.CENTER;
+    this.stationBodyLabel.verticalAlign = VerticalTextAlignment.CENTER;
+
+    // 12 个通用 slot（交易页买/卖各 6），创建时绑定「当前动作表」的闭包。
+    for (let index = 0; index < 12; index += 1) {
+      const slotIndex = index;
+      const slot = this.createPanelButton(
+        `StationSlot.${index}`, '', () => this.onStationSlot(slotIndex), panel, 'slot',
+      );
+      slot.getComponent(UITransform)?.setContentSize(180, 74);
+      this.stationSlotButtons.push(slot);
+    }
+
+    this.stationBackButton = this.createPanelButton(
+      'StationBack', this.st('返回前哨', 'Back to Outpost'), () => {
+        this.setStationOpen(false);
+        this.setOutpostOpen(true);
+      }, panel,
+    );
+    panel.active = false;
+  }
+
+  private layoutStationPanel(): void {
+    const panel = this.stationPanel;
+    if (!panel) return;
+    panel.getComponent(UITransform)?.setContentSize(this.width, this.height);
+    const compact = this.width < 900 || this.height < 520;
+    const cardWidth = Math.max(300, Math.min(this.width - 36, 1040));
+    const cardHeight = Math.max(300, Math.min(this.height - 28, 680));
+
+    // 全屏不透光底，防止背后常驻文字层 / 3D 场景透出。
+    if (this.stationBackdrop) {
+      this.safeClear(this.stationBackdrop);
+      this.stationBackdrop.fillColor = new Color(3, 10, 15, 255);
+      this.safeRect(this.stationBackdrop, -this.width / 2, -this.height / 2, this.width, this.height);
+      this.safeFill(this.stationBackdrop);
+    }
+    this.drawGlassPanel(this.stationBackdrop, cardWidth, cardHeight, HUD_CYAN, true);
+
+    const left = -cardWidth / 2;
+    const top = cardHeight / 2;
+    const bottom = -cardHeight / 2;
+    this.placeChild(panel, 'NativeStationEyebrow', left + 28, top - 24, cardWidth - 56, 18);
+    this.placeChild(panel, 'NativeStationTitle', left + 28, top - 54, cardWidth - 56, 34);
+
+    const tabWidth = Math.min(180, (cardWidth - 64) / 4);
+    const tabGap = 10;
+    const tabTotal = tabWidth * 4 + tabGap * 3;
+    const tabY = top - 96;
+    const tabs: readonly StationTab[] = ['contracts', 'trade', 'facilities', 'refit'];
+    tabs.forEach((tab, index) => {
+      const btn = this.stationTabButtons.get(tab);
+      if (!btn) return;
+      const x = left + (cardWidth - tabTotal) / 2 + tabWidth / 2 + index * (tabWidth + tabGap);
+      btn.setPosition(x, tabY, 4);
+      this.resizePanelButton(btn, tabWidth, compact ? 46 : 52, compact ? 11 : 13,
+        tab === this.stationTab ? HUD_ACTIVE : HUD_CYAN);
+    });
+
+    this.placeChild(panel, 'NativeStationHint', left + 28, top - 130, cardWidth - 56, compact ? 40 : 30);
+
+    const contentTop = top - (compact ? 158 : 150);
+    const contentBottom = bottom + 70;
+    const contentHeight = Math.max(120, contentTop - contentBottom);
+
+    // 页签内容区：校准页把准度条放在上半部；其余页把 body 留空。
+    if (this.stationBodyLabel) {
+      const node = this.stationBodyLabel.node;
+      if (this.stationTab === 'refit') {
+        node.active = true;
+        node.setPosition(0, contentTop - 34, 4);
+        node.getComponent(UITransform)?.setContentSize(cardWidth - 56, compact ? 76 : 64);
+        this.stationBodyLabel.fontSize = compact ? 12 : 15;
+        this.stationBodyLabel.lineHeight = compact ? 17 : 21;
+      } else {
+        node.active = this.stationBodyLabel.string.length > 0;
+        node.setPosition(0, contentTop - 26, 4);
+        node.getComponent(UITransform)?.setContentSize(cardWidth - 56, 34);
+        this.stationBodyLabel.fontSize = 14;
+        this.stationBodyLabel.lineHeight = 19;
+      }
+    }
+
+    this.layoutStationSlots();
+
+    if (this.stationBackButton) {
+      this.stationBackButton.setPosition(0, bottom + 34, 4);
+      this.resizePanelButton(this.stationBackButton, Math.min(180, (cardWidth - 56) / 2), 48, 13);
+    }
+    // resize 后若面板正开着，重绘一次内容与 accent（renderStation 内部会再定位 slot）。
+    const bridge = this.actions?.station;
+    if (bridge && this.stationOpen) this.renderStation();
+  }
+
+  /** 只排布当前可见 slot 的网格位置/尺寸。页签切换改变可见数量后必须调用。 */
+  private layoutStationSlots(): void {
+    const compact = this.width < 900 || this.height < 520;
+    const cardWidth = Math.max(300, Math.min(this.width - 36, 1040));
+    const cardHeight = Math.max(300, Math.min(this.height - 28, 680));
+    const top = cardHeight / 2;
+    const bottom = -cardHeight / 2;
+    const contentTop = top - (compact ? 158 : 150);
+    const contentBottom = bottom + 70;
+    const contentHeight = Math.max(120, contentTop - contentBottom);
+
+    const visibleCount = Math.max(1, this.stationSlots.length);
+    const tradeLayout = this.stationTab === 'trade';
+    const cols = compact ? (tradeLayout ? 3 : 2) : (tradeLayout ? 6 : 3);
+    const rows = Math.ceil(Math.min(visibleCount, 12) / cols);
+    const gridTop = this.stationTab === 'refit' ? contentTop - 92 : contentTop - 12;
+    const slotGapX = 8;
+    const slotGapY = 8;
+    const slotW = (cardWidth - 56 - slotGapX * (cols - 1)) / cols;
+    const slotH = Math.max(48, Math.min(74, (contentHeight - (gridTop - contentBottom) - slotGapY * (rows - 1)) / Math.max(1, rows)));
+    for (let index = 0; index < this.stationSlotButtons.length; index += 1) {
+      const slot = this.stationSlotButtons[index];
+      if (!slot.active) continue;
+      const row = Math.floor(index / cols);
+      const col = index % cols;
+      const rowWidth = slotW * cols + slotGapX * (cols - 1);
+      const x = -rowWidth / 2 + slotW / 2 + col * (slotW + slotGapX);
+      const y = gridTop - slotH / 2 - row * (slotH + slotGapY);
+      slot.setPosition(x, y, 4);
+      this.resizePanelButton(slot, slotW, slotH, compact ? 10 : 11,
+        this.stationSlots[index]?.accent || HUD_CYAN);
+    }
+  }
+
+  /** 深色玻璃底 + 细描边：新面板与既有的切角视觉语言一致，不用实心色块。 */
+  private drawGlassPanel(
+    graphics: Graphics | null,
+    width: number,
+    height: number,
+    accent: Color,
+    keepBase = false,
+  ): void {
+    if (!graphics) return;
+    // keepBase=true 时保留调用方预先铺好的全屏不透光底（防透字）。
+    if (!keepBase) this.safeClear(graphics);
+    graphics.fillColor = new Color(5, 16, 22, 242);
+    this.safeRoundRect(graphics, -width / 2, -height / 2, width, height, 14);
+    this.safeFill(graphics);
+    graphics.strokeColor = new Color(accent.r, accent.g, accent.b, 170);
+    graphics.lineWidth = 1.25;
+    this.safeRoundRect(graphics, -width / 2, -height / 2, width, height, 14);
+    this.safeStroke(graphics);
+    graphics.fillColor = new Color(accent.r, accent.g, accent.b, 200);
+    this.safeRect(graphics, -width / 2 + 20, height / 2 - 24, 46, 3);
+    this.safeFill(graphics);
+  }
+
+  private placeChild(parent: Node, name: string, x: number, y: number, width: number, height: number): void {
+    const node = parent.getChildByName(name);
+    if (!node) return;
+    node.setPosition(x, y, 4);
+    node.getComponent(UITransform)?.setContentSize(width, height);
+  }
+
+  private layoutKeybindPanel(): void {
+    const panel = this.keybindPanel;
+    if (!panel) return;
+    panel.getComponent(UITransform)?.setContentSize(this.width, this.height);
+    const compact = this.width < 900 || this.height < 560;
+    const cardWidth = Math.max(280, Math.min(this.width - 36, 980));
+    const cardHeight = Math.max(280, Math.min(this.height - 32, 640));
+    this.keybindDragWidth = Math.min(compact ? cardWidth - 48 : cardWidth * 0.44, 400);
+    this.keybindDragHeight = this.keybindDragWidth * 0.56;
+    // 2026-11-17：先铺一层全屏不透光暗底，盖住背后的 3D 场景与常驻文字层，
+    // 否则卡片外透明区域会透出 FLIGHT CALIBRATION 等残留字样（横屏尤其明显）。
+    if (this.keybindBackdrop) {
+      this.safeClear(this.keybindBackdrop);
+      this.keybindBackdrop.fillColor = new Color(3, 10, 15, 255);
+      this.safeRect(this.keybindBackdrop, -this.width / 2, -this.height / 2, this.width, this.height);
+      this.safeFill(this.keybindBackdrop);
+    }
+    this.drawGlassPanel(this.keybindBackdrop, cardWidth, cardHeight, HUD_CYAN, true);
+    const left = -cardWidth / 2;
+    const top = cardHeight / 2;
+    const bottom = -cardHeight / 2;
+    this.placeChild(panel, 'NativeKeybindEyebrow', left + 28, top - 26, cardWidth - 56, 18);
+    this.placeChild(panel, 'NativeKeybindTitle', left + 28, top - 56, cardWidth - 56, 38);
+    this.placeChild(panel, 'NativeKeybindHint', left + 28, top - 84, cardWidth - 56, 22);
+
+    const footerY = bottom + 34;
+    const footerWidth = Math.min(150, (cardWidth - 80) / 3);
+    const resetKeys = panel.getChildByName('KeybindResetKeys');
+    const resetLayout = panel.getChildByName('KeybindResetLayout');
+    const back = panel.getChildByName('KeybindBack');
+    resetKeys?.setPosition(-footerWidth - 10, footerY, 4);
+    resetLayout?.setPosition(0, footerY, 4);
+    back?.setPosition(footerWidth + 10, footerY, 4);
+    for (const button of [resetKeys, resetLayout, back]) {
+      if (button) this.resizePanelButton(button, footerWidth, 40, 11, HUD_CYAN);
+    }
+
+    const contentTop = top - 104;
+    const contentBottom = bottom + 64;
+    const contentHeight = Math.max(140, contentTop - contentBottom);
+    let keysCenterX = 0;
+    let keysCenterY = 0;
+    let keysWidth = 0;
+    let keysHeight = 0;
+    let areaX = 0;
+    let areaY = 0;
+    if (compact) {
+      keysWidth = cardWidth - 48;
+      keysHeight = Math.max(120, contentHeight * 0.58);
+      keysCenterX = 0;
+      keysCenterY = contentTop - keysHeight / 2;
+      areaX = 0;
+      areaY = contentBottom + (contentHeight - keysHeight) / 2 + 6;
+    } else {
+      keysWidth = cardWidth * 0.5 - 40;
+      keysHeight = contentHeight;
+      keysCenterX = left + 24 + keysWidth / 2;
+      keysCenterY = (contentTop + contentBottom) / 2;
+      areaX = cardWidth * 0.24;
+      areaY = (contentTop + contentBottom) / 2 - 10;
+    }
+    const gap = 6;
+    const rows = Math.ceil(GAME_ACTIONS.length / 2);
+    const buttonWidth = (keysWidth - gap) / 2;
+    const buttonHeight = Math.max(28, Math.min(44, (keysHeight - ((rows - 1) * gap)) / rows));
+    GAME_ACTIONS.forEach((action, index) => {
+      const button = this.keybindButtons.get(action);
+      if (!button) return;
+      const row = Math.floor(index / 2);
+      const column = index % 2;
+      const x = keysCenterX + (column === 0 ? -1 : 1) * (buttonWidth + gap) / 2;
+      const y = keysCenterY + keysHeight / 2 - buttonHeight / 2 - row * (buttonHeight + gap);
+      button.setPosition(x, y, 4);
+      this.resizePanelButton(button, buttonWidth, buttonHeight, compact ? 10 : 12,
+        this.pendingKeyAction === action ? HUD_ACTIVE : HUD_CYAN);
+    });
+    const area = this.keybindDragArea;
+    if (area) {
+      area.setPosition(areaX, areaY, 4);
+      area.getComponent(UITransform)?.setContentSize(this.keybindDragWidth, this.keybindDragHeight);
+      this.drawKeybindDragFrame();
+      this.refreshKeybindDragDots();
+    }
+    this.placeChild(panel, 'NativeKeybindDragCaption', areaX - this.keybindDragWidth / 2,
+      areaY + this.keybindDragHeight / 2 + 16, this.keybindDragWidth, 18);
+  }
+
+  private layoutRunlogPanel(): void {
+    const panel = this.runlogPanel;
+    if (!panel) return;
+    panel.getComponent(UITransform)?.setContentSize(this.width, this.height);
+    const compact = this.width < 820 || this.height < 520;
+    const cardWidth = Math.max(280, Math.min(this.width - 36, 960));
+    const cardHeight = Math.max(280, Math.min(this.height - 32, 620));
+    // 同键位面板：全屏不透光底，防止背后常驻文字层透出。
+    if (this.runlogBackdrop) {
+      this.safeClear(this.runlogBackdrop);
+      this.runlogBackdrop.fillColor = new Color(3, 10, 15, 255);
+      this.safeRect(this.runlogBackdrop, -this.width / 2, -this.height / 2, this.width, this.height);
+      this.safeFill(this.runlogBackdrop);
+    }
+    this.drawGlassPanel(this.runlogBackdrop, cardWidth, cardHeight, HUD_CYAN, true);
+    const left = -cardWidth / 2;
+    const top = cardHeight / 2;
+    const bottom = -cardHeight / 2;
+    this.placeChild(panel, 'NativeRunlogEyebrow', left + 28, top - 26, cardWidth - 56, 18);
+    this.placeChild(panel, 'NativeRunlogTitle', left + 28, top - 56, cardWidth - 56, 38);
+    this.placeChild(panel, 'NativeRunlogHint', left + 28, top - 84, cardWidth - 56, 22);
+
+    const contentTop = top - 104;
+    const contentBottom = bottom + 64;
+    const contentHeight = Math.max(140, contentTop - contentBottom);
+    const listWidth = compact ? cardWidth - 48 : Math.min(320, cardWidth * 0.38);
+    const detailWidth = compact ? cardWidth - 48 : cardWidth - listWidth - 80;
+    const logCardHeight = Math.max(58, Math.min(86, (contentHeight - 20) / 3));
+    this.runlogCards.forEach((card, index) => {
+      const x = compact ? 0 : left + 28 + listWidth / 2;
+      card.setPosition(x, contentTop - logCardHeight / 2 - index * (logCardHeight + 8), 4);
+      this.resizePanelButton(card, listWidth, logCardHeight, compact ? 10 : 11,
+        index === this.selectedRunLog ? HUD_ACTIVE : HUD_CYAN);
+    });
+    if (this.runlogDetailLabel) {
+      const node = this.runlogDetailLabel.node;
+      if (compact) {
+        const available = Math.max(80, contentHeight - 3 * (logCardHeight + 8) - 12);
+        node.setPosition(0, contentBottom + available / 2, 4);
+        node.getComponent(UITransform)?.setContentSize(detailWidth, available);
+        this.runlogDetailLabel.fontSize = 10;
+        this.runlogDetailLabel.lineHeight = 14;
+      } else {
+        node.setPosition(left + 28 + listWidth + 24 + detailWidth / 2,
+          (contentTop + contentBottom) / 2, 4);
+        node.getComponent(UITransform)?.setContentSize(detailWidth, contentHeight);
+        this.runlogDetailLabel.fontSize = 12;
+        this.runlogDetailLabel.lineHeight = 17;
+      }
+    }
+
+    const footerY = bottom + 34;
+    const footerWidth = Math.min(150, (cardWidth - 80) / 3);
+    const copy = panel.getChildByName('RunlogCopy');
+    const refresh = panel.getChildByName('RunlogRefresh');
+    const back = panel.getChildByName('RunlogBack');
+    copy?.setPosition(-footerWidth - 10, footerY, 4);
+    refresh?.setPosition(0, footerY, 4);
+    back?.setPosition(footerWidth + 10, footerY, 4);
+    for (const button of [copy, refresh, back]) {
+      if (button) this.resizePanelButton(button, footerWidth, 40, 11, HUD_CYAN);
+    }
+  }
+
   private selectMission(preset: MissionPreset): void {
     this.missionPreset = preset;
     this.onSelectMission?.(preset);
@@ -2011,12 +3255,18 @@ export class NativeCombatHud implements NativeInputFeedback {
       ['outpost', this.outpostPanel],
       ['defeat', this.defeatPanel],
       ['pause', this.pausePanel],
+      ['keybind', this.keybindPanel],
+      ['runlog', this.runlogPanel],
+      ['station', this.stationPanel],
     ];
     this.homeOpen = active === 'home';
     this.loadoutOpen = active === 'loadout';
     this.outpostOpen = active === 'outpost';
     this.defeatOpen = active === 'defeat';
     this.pauseOpen = active === 'pause';
+    this.keybindOpen = active === 'keybind';
+    this.runlogOpen = active === 'runlog';
+    this.stationOpen = active === 'station';
     for (const [id, panel] of overlays) {
       if (panel) panel.active = id === active;
     }
@@ -2035,6 +3285,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       if (label) label.node.active = visible;
     }
     if (this.reticleGraphics) this.reticleGraphics.node.active = visible;
+    if (this.objectivePlate) this.objectivePlate.node.active = visible;
     for (const graphics of [this.hullStatusBar, this.shieldStatusBar, this.energyStatusBar, this.targetHealthBar, this.hitMarker]) {
       if (graphics) graphics.node.active = visible;
     }
@@ -2057,6 +3308,12 @@ export class NativeCombatHud implements NativeInputFeedback {
   private layoutHomePanel(): void {
     const panel = this.homePanel;
     if (!panel) return;
+    // 0.13.30：主面板 backdrop 是崩溃前最后一段集中走 Sprite-shim 的绘制。
+    // 首尾各打一条（仅首次），下次崩溃能判断是「进入绘制前」还是「绘制过程中」出事。
+    // 置位放在 END，确保同一次首绘能打出 BEGIN + END 两条。
+    if (!this.homeLayoutTraceDone) {
+      nativeTrace('hud: home layout backdrop draw BEGIN');
+    }
     panel.getComponent(UITransform)?.setContentSize(this.width, this.height);
     this.homeKeyArt?.node.getComponent(UITransform)?.setContentSize(this.width, this.height);
     const compact = this.height < 470 || this.width < 900;
@@ -2181,14 +3438,20 @@ export class NativeCombatHud implements NativeInputFeedback {
       button.setPosition(boardCenterX, missionTop - (height / 2) - index * (height + 8), 4);
       this.resizePanelButton(button, rightWidth - 28, height, ultraCompact ? 9 : compact ? 10 : 12);
     });
+    // 设置项从 8 个增到 10 个：单列会把每行压到 30px 以下，改成两列网格。
+    const settingsGap = ultraCompact ? 3 : compact ? 5 : 8;
+    const settingsTop = topEdge - (ultraCompact ? 88 : compact ? 142 : 190);
+    const available = settingsTop - missionBottom;
+    const settingsRows = Math.ceil(this.settingsButtons.length / 2);
+    const settingsHeight = Math.max(30, Math.min(ultraCompact ? 38 : compact ? 46 : 58,
+      (available - ((settingsRows - 1) * settingsGap)) / settingsRows));
+    const settingsWidth = (rightWidth - 28 - settingsGap) / 2;
     this.settingsButtons.forEach((button, index) => {
-      const gap = ultraCompact ? 3 : compact ? 5 : 8;
-      const settingsTop = topEdge - (ultraCompact ? 88 : compact ? 142 : 190);
-      const available = settingsTop - missionBottom;
-      const buttonHeight = Math.max(31, Math.min(ultraCompact ? 36 : compact ? 42 : 52,
-        (available - ((this.settingsButtons.length - 1) * gap)) / this.settingsButtons.length));
-      button.setPosition(boardCenterX, settingsTop - (buttonHeight / 2) - index * (buttonHeight + gap), 4);
-      this.resizePanelButton(button, rightWidth - 28, buttonHeight, ultraCompact ? 9 : compact ? 10 : 12);
+      const row = Math.floor(index / 2);
+      const column = index % 2;
+      const x = boardCenterX + (column === 0 ? -1 : 1) * (settingsWidth + settingsGap) / 2;
+      button.setPosition(x, settingsTop - (settingsHeight / 2) - row * (settingsHeight + settingsGap), 4);
+      this.resizePanelButton(button, settingsWidth, settingsHeight, ultraCompact ? 9 : compact ? 10 : 12);
     });
     this.homeControllerLabel?.node.setPosition(boardCenterX, bottomEdge + 24, 4);
     this.homeControllerLabel?.getComponent(UITransform)?.setContentSize(rightWidth - 24, 34);
@@ -2224,6 +3487,10 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.coopStatusLabel?.getComponent(UITransform)?.setContentSize(coopWidth, 44);
     this.coopCodeLabel?.node.setPosition(boardCenterX, missionBottom + 8, 4);
     this.coopCodeLabel?.getComponent(UITransform)?.setContentSize(coopWidth, 52);
+    if (!this.homeLayoutTraceDone) {
+      this.homeLayoutTraceDone = true;
+      nativeTrace('hud: home layout backdrop draw END');
+    }
   }
 
   private layoutOutpostPanel(): void {
@@ -2300,13 +3567,16 @@ export class NativeCombatHud implements NativeInputFeedback {
       button?.setPosition(x, y, 4);
       this.resizePanelButton(button, serviceWidth, serviceHeight, ultraCompact ? 10 : 12);
     });
-    // 「舱内物资」与「进入装配台」并排占同一行，离港按钮仍独占整行。
+    // 「舱内物资」「站内玩法」「进入装配台」三等分占同一行，离港按钮仍独占整行。
     const lowerY = bottom + actionHeight * 1.5 + gap + 10;
-    const halfWidth = (contentWidth - 8) / 2;
-    this.outpostInteriorButton?.setPosition(centerX - halfWidth / 2 - 4, lowerY, 4);
-    this.outpostLoadoutButton?.setPosition(centerX + halfWidth / 2 + 4, lowerY, 4);
-    this.resizePanelButton(this.outpostInteriorButton, halfWidth, actionHeight, ultraCompact ? 10 : 13);
-    this.resizePanelButton(this.outpostLoadoutButton, halfWidth, actionHeight, ultraCompact ? 11 : 14);
+    const thirdWidth = (contentWidth - 12) / 3;
+    const thirdStep = thirdWidth + 6;
+    this.outpostInteriorButton?.setPosition(centerX - thirdStep, lowerY, 4);
+    this.outpostStationButton?.setPosition(centerX, lowerY, 4);
+    this.outpostLoadoutButton?.setPosition(centerX + thirdStep, lowerY, 4);
+    this.resizePanelButton(this.outpostInteriorButton, thirdWidth, actionHeight, ultraCompact ? 9 : 11);
+    this.resizePanelButton(this.outpostStationButton, thirdWidth, actionHeight, ultraCompact ? 9 : 12, HUD_ACTIVE);
+    this.resizePanelButton(this.outpostLoadoutButton, thirdWidth, actionHeight, ultraCompact ? 9 : 11);
     this.outpostUndockButton?.setPosition(centerX, bottom + actionHeight / 2 + 8, 4);
     this.resizePanelButton(this.outpostUndockButton, contentWidth, actionHeight, ultraCompact ? 12 : 15, HUD_ACTIVE);
   }
@@ -2867,6 +4137,9 @@ export class NativeCombatHud implements NativeInputFeedback {
     label.horizontalAlign = kind === 'slot' || kind === 'nav'
       ? HorizontalTextAlignment.LEFT
       : HorizontalTextAlignment.CENTER;
+    // 2026-11-17：长文案（如 ESCORT · CLEAR AND PROTECT）在横屏窄卡片里会溢出到
+    // 屏幕外被裁。SHRINK 让超长文字自动缩字号适配 contentSize，正常文字不受影响。
+    label.overflow = Label.Overflow.SHRINK;
     label.getComponent(UITransform)?.setContentSize(width - (kind === 'nav' ? 14 : 20), height - 8);
   }
 
@@ -3036,7 +4309,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     const stick = this.createNode('FixedMoveStick');
     const base = attachGraphics(stick);
     this.drawStickDeadzone(base, layout.movement.radius);
-    this.actionVisuals.set('movement', { node: stick, graphics: base, radius: layout.movement.radius });
+    this.actionVisuals.set('movement', { node: stick, graphics: base, glyph: null, radius: layout.movement.radius });
 
     const directionNode = this.createNode('FixedMoveStickDirection', stick);
     this.stickDirection = attachGraphics(directionNode);
@@ -3059,11 +4332,17 @@ export class NativeCombatHud implements NativeInputFeedback {
       const node = this.createNode(this.actionNodeName(control.role));
       const graphics = attachGraphics(node);
       this.drawActionControl(graphics, control.role, control.radius, false);
-      const label = this.createLabel(`${this.actionNodeName(control.role)}Label`, 16, HUD_WHITE, node);
+      // 图标单独一层并偏上：下半区留给文字，避免图标与文字叠在一起看不清。
+      const glyphNode = this.createNode(`${this.actionNodeName(control.role)}Glyph`, node);
+      const glyph = attachGraphics(glyphNode);
+      glyphNode.setPosition(0, control.radius * 0.3);
+      this.drawActionGlyph(glyph, control.role, control.radius, false);
+      const label = this.createLabel(`${this.actionNodeName(control.role)}Label`, 15, HUD_WHITE, node);
       label.string = this.text(labels[control.role]);
-      label.getComponent(UITransform)?.setContentSize(control.radius * 2, 32);
+      label.getComponent(UITransform)?.setContentSize(control.radius * 2 - 6, 22);
+      label.node.setPosition(0, -control.radius * 0.56);
       this.styleTouchActionLabel(label);
-      this.actionVisuals.set(control.role, { node, graphics, radius: control.radius });
+      this.actionVisuals.set(control.role, { node, graphics, glyph, radius: control.radius });
     }
   }
 
@@ -3083,11 +4362,17 @@ export class NativeCombatHud implements NativeInputFeedback {
       const control = returnControlCircle(this.width, this.height, this.safeInsets, this.controlScale);
       const node = this.createNode('ReturnAction');
       const graphics = attachGraphics(node);
-      const label = this.createLabel('ReturnActionLabel', 16, HUD_WHITE, node);
+      this.drawActionControl(graphics, 'returnRequested', control.radius, false);
+      const glyphNode = this.createNode('ReturnActionGlyph', node);
+      const glyph = attachGraphics(glyphNode);
+      glyphNode.setPosition(0, control.radius * 0.3);
+      this.drawActionGlyph(glyph, 'returnRequested', control.radius, false);
+      const label = this.createLabel('ReturnActionLabel', 15, HUD_WHITE, node);
       label.string = this.text(this.canDock ? 'touch.dock' : 'touch.return');
-      label.getComponent(UITransform)?.setContentSize(control.radius * 2, 32);
+      label.getComponent(UITransform)?.setContentSize(control.radius * 2 - 6, 22);
+      label.node.setPosition(0, -control.radius * 0.56);
       this.styleTouchActionLabel(label);
-      visual = { node, graphics, radius: control.radius };
+      visual = { node, graphics, glyph, radius: control.radius };
       this.actionVisuals.set('returnRequested', visual);
     }
     const available = this.canReturn || this.canDock;
@@ -3202,9 +4487,15 @@ export class NativeCombatHud implements NativeInputFeedback {
       if (!visual) continue;
       visual.radius = control.radius;
       this.drawActionControl(visual.graphics, control.role, visual.radius, false);
+      if (visual.glyph) {
+        this.drawActionGlyph(visual.glyph, control.role, visual.radius, false);
+        visual.node.getChildByName(`${this.actionNodeName(control.role)}Glyph`)
+          ?.setPosition(0, control.radius * 0.3);
+      }
       visual.node.setPosition(this.canvasPosition(control.x, control.y, 1));
       const label = visual.node.getChildByName(`${this.actionNodeName(control.role)}Label`)?.getComponent(Label);
-      label?.getComponent(UITransform)?.setContentSize(control.radius * 2, 28);
+      label?.getComponent(UITransform)?.setContentSize(control.radius * 2 - 6, 22);
+      label?.node.setPosition(0, -control.radius * 0.56);
     }
   }
 
@@ -3227,6 +4518,11 @@ export class NativeCombatHud implements NativeInputFeedback {
     // 默认置空，避免未赋值的 Label 节点渲染出 Cocos 默认的 "Label" 占位文字
     // （此前战斗/菜单里偶发漂浮的裸 "label" 即来源于此）。
     label.string = '';
+    // 所有 HUD 文字统一加深色描边：太空背景亮度不可控（星云、橙色碎片、白色舰体都可能
+    // 压在文字后面），单靠字色无法保证可读性。描边是不依赖背景亮度的兜底。
+    label.outlineColor = new Color(2, 8, 12, 225);
+    label.outlineWidth = 3;
+    label.enableOutline = true;
     label.fontSize = fontSize;
     label.lineHeight = fontSize + 4;
     label.color = color;
@@ -3243,6 +4539,12 @@ export class NativeCombatHud implements NativeInputFeedback {
    */
   private createCoopJoinInput(parent: Node): EditBox | null {
     const node = this.createNode('NativeCoopJoinInput', parent);
+    // 🔴 关键时序：Cocos 的 EditBox 在 onEnable 时若 textLabel / placeholderLabel 还没挂好，
+    // 会自建 TEXT_LABEL / PLACEHOLDER_LABEL 子节点并挂上默认 Label——而 Cocos Label 的默认
+    // 文本就是小写 'label'（label.ts: `protected _string = 'label'`）。
+    // 这会在主页上留下一个永远漂浮的裸 "label"。先把节点置 inactive，等两个 Label 挂好
+    // 再激活，引擎就不会自建孤儿节点。
+    node.active = false;
     attachGraphics(node); // 背景在 layout 阶段按 coopWidth 绘制
     const textLabel = this.createLabel('TextLabel', 16, HUD_WHITE, node);
     const placeholderLabel = this.createLabel('PlaceholderLabel', 16, new Color(150, 150, 150, 255), node);
@@ -3252,21 +4554,84 @@ export class NativeCombatHud implements NativeInputFeedback {
     editBox.placeholder = this.text('coop.placeholder');
     editBox.maxLength = 8;
     editBox.fontSize = 16;
+    // 防御性清理：万一某些引擎版本仍然自建了同名节点（行为差异），一并移除，
+    // 免得再冒出漂浮的裸 "label"。
+    for (const orphan of ['TEXT_LABEL', 'PLACEHOLDER_LABEL']) {
+      const stray = node.getChildByName(orphan);
+      if (stray) stray.destroy();
+    }
+    node.active = true;
     return editBox;
   }
 
+  /** 摇杆拇指：亮盘 + 暗描边，任何背景下都能看清手指落在哪。 */
   private drawDisc(graphics: Graphics, radius: number, accent: Color): void {
     this.safeClear(graphics);
-    graphics.fillColor = HUD_DARK;
+    graphics.fillColor = new Color(226, 245, 255, 235);
     this.safeCircle(graphics, 0, 0, radius);
     this.safeFill(graphics);
-    graphics.strokeColor = accent;
+    graphics.strokeColor = new Color(4, 18, 26, 225);
     graphics.lineWidth = 2;
-    this.safeCircle(graphics, 0, 0, radius - 2);
+    this.safeCircle(graphics, 0, 0, radius - 1);
+    this.safeStroke(graphics);
+    graphics.strokeColor = accent;
+    graphics.lineWidth = 1;
+    this.safeCircle(graphics, 0, 0, Math.max(1, radius - 5));
     this.safeStroke(graphics);
   }
 
+  /**
+   * 动作控件底板：圆角方框战术片（暗底 + 亮边 + 按下内环）。
+   *
+   * 形状语言与主页 / 面板统一（都是圆角矩形），只有摇杆保持圆形（语义要求）。
+   * 底板 + 亮边是玩家判断「这里能点」的唯一依据——此前真机整片不可见，
+   * 结果就是「没有边框、不知道按哪」。圆角方框还比实心圆省一半以上精灵
+   * （实心圆要走上百条扫描线，真机上既拖帧又容易糊成一片）。
+   */
   private drawActionControl(
+    graphics: Graphics,
+    role: BrowserPointerRole,
+    radius: number,
+    active: boolean,
+  ): void {
+    const primary = role === 'primaryFire';
+    // 低饱和描边色：青/橙只做点缀，绝不铺满按钮。深色玻璃底 + 细边 + 顶部高光，
+    // 替换此前 active/primary 整块填橙青的大色块（真机截图"蓝色底突兀/低级"的根因）。
+    const accent = primary ? new Color(232, 174, 85, 220) : new Color(95, 200, 208, 205);
+    const half = radius;
+    const corner = Math.min(radius * 0.32, 16);
+    this.safeClear(graphics);
+    // 玻璃底：primary 略带暖调，其余深墨绿半透明，透出太空背景。
+    graphics.fillColor = primary
+      ? new Color(28, 20, 12, 198)
+      : new Color(7, 22, 29, 198);
+    this.safeRoundRect(graphics, -half, -half, half * 2, half * 2, corner);
+    this.safeFill(graphics);
+    // 细描边：1.5px，pressed/primary 稍微加粗，但仍只是线，不是色块。
+    graphics.strokeColor = accent;
+    graphics.lineWidth = primary ? 2.2 : 1.5;
+    this.safeRoundRect(graphics, -half + 1.5, -half + 1.5, (half - 1.5) * 2, (half - 1.5) * 2, corner);
+    this.safeStroke(graphics);
+    // 顶部一道高光：模拟玻璃反光，拉开层次、去"低级"平涂感。
+    graphics.strokeColor = new Color(226, 245, 255, 52);
+    graphics.lineWidth = 1;
+    const glossY = -half + corner * 0.7;
+    this.safeMoveTo(graphics, -half + corner + 2, glossY);
+    this.safeLineTo(graphics, half - corner - 2, glossY);
+    this.safeStroke(graphics);
+    if (active) {
+      // 按下只加一圈内亮边，不再整块变色。
+      graphics.strokeColor = new Color(255, 240, 200, 220);
+      graphics.lineWidth = 2;
+      this.safeRoundRect(graphics, -half + 6, -half + 6, (half - 6) * 2, (half - 6) * 2, Math.max(2, corner - 4));
+      this.safeStroke(graphics);
+    }
+  }
+
+  /**
+   * 动作控件图标：画在独立子节点上（偏上），下半区留给文字，避免图标与文字叠字。
+   */
+  private drawActionGlyph(
     graphics: Graphics,
     role: BrowserPointerRole,
     radius: number,
@@ -3275,22 +4640,17 @@ export class NativeCombatHud implements NativeInputFeedback {
     const primary = role === 'primaryFire';
     const boost = role === 'boost';
     const accent = active || primary ? HUD_ACTIVE : HUD_CYAN;
+    const r = radius * 0.6;
     this.safeClear(graphics);
-    graphics.fillColor = active
-      ? new Color(accent.r, accent.g, accent.b, 92)
-      : new Color(3, 13, 20, primary ? 112 : 76);
-    this.safeCircle(graphics, 0, 0, radius);
-    this.safeFill(graphics);
     graphics.strokeColor = accent;
-    graphics.lineWidth = primary ? 2.5 : 1.5;
-    this.safeCircle(graphics, 0, 0, radius - 2);
-    this.safeStroke(graphics);
+    graphics.fillColor = accent;
+    graphics.lineWidth = 2;
     if (primary) {
-      graphics.strokeColor = new Color(255, 224, 170, active ? 255 : 150);
-      graphics.lineWidth = 1;
-      this.safeCircle(graphics, 0, 0, radius * 0.68);
+      graphics.strokeColor = new Color(255, 224, 170, active ? 255 : 170);
+      graphics.lineWidth = 1.5;
+      this.safeCircle(graphics, 0, 0, r * 0.92);
       this.safeStroke(graphics);
-      const arm = radius * 0.3;
+      const arm = r * 0.42;
       this.safeMoveTo(graphics, -arm, 0);
       this.safeLineTo(graphics, arm, 0);
       this.safeMoveTo(graphics, 0, -arm);
@@ -3298,101 +4658,97 @@ export class NativeCombatHud implements NativeInputFeedback {
       this.safeStroke(graphics);
     } else if (boost) {
       graphics.lineWidth = 3;
-      this.safeArc(graphics, 0, 0, radius - 6, -2.7, -0.45, false);
+      this.safeArc(graphics, 0, 0, r * 1.15, -2.7, -0.45, false);
       this.safeStroke(graphics);
-      this.safeMoveTo(graphics, -radius * 0.2, -radius * 0.24);
-      this.safeLineTo(graphics, radius * 0.22, 0);
-      this.safeLineTo(graphics, -radius * 0.2, radius * 0.24);
+      this.safeMoveTo(graphics, -r * 0.3, -r * 0.36);
+      this.safeLineTo(graphics, r * 0.33, 0);
+      this.safeLineTo(graphics, -r * 0.3, r * 0.36);
       this.safeStroke(graphics);
     } else if (role === 'secondaryFire') {
-      this.safeMoveTo(graphics, -radius * 0.28, -radius * 0.18);
-      this.safeLineTo(graphics, radius * 0.24, 0);
-      this.safeLineTo(graphics, -radius * 0.28, radius * 0.18);
+      this.safeMoveTo(graphics, -r * 0.42, -r * 0.28);
+      this.safeLineTo(graphics, r * 0.36, 0);
+      this.safeLineTo(graphics, -r * 0.42, r * 0.28);
       this.safeClose(graphics);
       this.safeStroke(graphics);
     } else if (role === 'cameraToggle') {
-      this.safeRect(graphics, -radius * 0.25, -radius * 0.16, radius * 0.5, radius * 0.32);
+      this.safeRect(graphics, -r * 0.38, -r * 0.24, r * 0.76, r * 0.48);
       this.safeStroke(graphics);
-      this.safeCircle(graphics, 0, 0, radius * 0.1);
+      this.safeCircle(graphics, 0, 0, r * 0.16);
       this.safeStroke(graphics);
     } else if (role === 'pause') {
-      this.safeRect(graphics, -radius * 0.16, -radius * 0.25, radius * 0.1, radius * 0.5);
-      this.safeRect(graphics, radius * 0.06, -radius * 0.25, radius * 0.1, radius * 0.5);
+      graphics.fillColor = accent;
+      this.safeRect(graphics, -r * 0.24, -r * 0.38, r * 0.16, r * 0.76);
+      this.safeRect(graphics, r * 0.08, -r * 0.38, r * 0.16, r * 0.76);
       this.safeFill(graphics);
     } else if (role === 'returnRequested') {
-      this.safeArc(graphics, 0, 0, radius * 0.3, -0.7, Math.PI * 1.6, false);
+      this.safeArc(graphics, 0, 0, r * 0.5, -0.7, Math.PI * 1.6, false);
       this.safeStroke(graphics);
-      this.safeMoveTo(graphics, -radius * 0.32, radius * 0.06);
-      this.safeLineTo(graphics, -radius * 0.38, radius * 0.3);
-      this.safeLineTo(graphics, -radius * 0.12, radius * 0.24);
+      this.safeMoveTo(graphics, -r * 0.48, r * 0.1);
+      this.safeLineTo(graphics, -r * 0.58, r * 0.46);
+      this.safeLineTo(graphics, -r * 0.18, r * 0.36);
       this.safeStroke(graphics);
     } else if (role === 'swapWeapons') {
-      // 上下双箭头，示意"主副武器互换"
-      this.safeMoveTo(graphics, -radius * 0.26, -radius * 0.04);
-      this.safeLineTo(graphics, radius * 0.26, -radius * 0.04);
-      this.safeMoveTo(graphics, radius * 0.26, -radius * 0.04);
-      this.safeLineTo(graphics, radius * 0.08, -radius * 0.26);
-      this.safeMoveTo(graphics, radius * 0.26, -radius * 0.04);
-      this.safeLineTo(graphics, radius * 0.08, radius * 0.18);
+      this.safeMoveTo(graphics, -r * 0.4, -r * 0.06);
+      this.safeLineTo(graphics, r * 0.4, -r * 0.06);
+      this.safeMoveTo(graphics, r * 0.4, -r * 0.06);
+      this.safeLineTo(graphics, r * 0.12, -r * 0.38);
+      this.safeMoveTo(graphics, r * 0.4, -r * 0.06);
+      this.safeLineTo(graphics, r * 0.12, r * 0.26);
       this.safeStroke(graphics);
-      this.safeMoveTo(graphics, -radius * 0.26, radius * 0.04);
-      this.safeLineTo(graphics, radius * 0.26, radius * 0.04);
-      this.safeMoveTo(graphics, -radius * 0.26, radius * 0.04);
-      this.safeLineTo(graphics, -radius * 0.08, radius * 0.26);
-      this.safeMoveTo(graphics, -radius * 0.26, radius * 0.04);
-      this.safeLineTo(graphics, -radius * 0.08, -radius * 0.18);
+      this.safeMoveTo(graphics, -r * 0.4, r * 0.06);
+      this.safeLineTo(graphics, r * 0.4, r * 0.06);
+      this.safeMoveTo(graphics, -r * 0.4, r * 0.06);
+      this.safeLineTo(graphics, -r * 0.12, r * 0.38);
+      this.safeMoveTo(graphics, -r * 0.4, r * 0.06);
+      this.safeLineTo(graphics, -r * 0.12, -r * 0.26);
       this.safeStroke(graphics);
     } else if (role === 'deviceAbility') {
-      // 战术设备技能：菱形核心 + 四向刻线，与主炮圆形 / 武器互换箭头明显区分。
       graphics.strokeColor = HUD_ACTIVE;
       graphics.lineWidth = 2;
-      const edge = radius * 0.42;
+      const edge = r * 0.6;
       this.safeMoveTo(graphics, 0, -edge);
       this.safeLineTo(graphics, edge, 0);
       this.safeLineTo(graphics, 0, edge);
       this.safeLineTo(graphics, -edge, 0);
       this.safeClose(graphics);
       this.safeStroke(graphics);
-      this.safeCircle(graphics, 0, 0, radius * 0.12);
-      this.safeStroke(graphics);
-      this.safeMoveTo(graphics, 0, -radius * 0.72);
-      this.safeLineTo(graphics, 0, -radius * 0.56);
-      this.safeMoveTo(graphics, radius * 0.72, 0);
-      this.safeLineTo(graphics, radius * 0.56, 0);
-      this.safeMoveTo(graphics, 0, radius * 0.72);
-      this.safeLineTo(graphics, 0, radius * 0.56);
-      this.safeMoveTo(graphics, -radius * 0.72, 0);
-      this.safeLineTo(graphics, -radius * 0.56, 0);
+      this.safeCircle(graphics, 0, 0, r * 0.16);
       this.safeStroke(graphics);
     } else {
-      const tick = radius * 0.18;
+      const tick = r * 0.28;
       this.safeMoveTo(graphics, -tick, 0);
       this.safeLineTo(graphics, tick, 0);
       this.safeStroke(graphics);
     }
   }
 
+  /**
+   * 摇杆底座：暗底盘 + 亮外环 + 内死区细环 + 四向刻度。
+   *
+   * 只保留这四件套，删掉原先那圈四段弧线——真机截图里它和满屏杂物混在一起，
+   * 玩家反而看不出摇杆在哪、当前推向哪。
+   */
   private drawStickDeadzone(graphics: Graphics, radius: number): void {
     this.safeClear(graphics);
-    graphics.fillColor = new Color(3, 13, 20, 88);
+    // 底盘：半透明深色，让摇杆区域在任何太空背景上都能被一眼认出
+    graphics.fillColor = new Color(4, 18, 26, 150);
     this.safeCircle(graphics, 0, 0, radius);
     this.safeFill(graphics);
-    graphics.strokeColor = new Color(150, 193, 188, 150);
-    graphics.lineWidth = 1;
+    // 外环：摇杆的主视觉锚点
+    graphics.strokeColor = new Color(120, 214, 224, 235);
+    graphics.lineWidth = 2;
     this.safeCircle(graphics, 0, 0, radius - 1);
     this.safeStroke(graphics);
-    graphics.strokeColor = new Color(226, 245, 255, 74);
-    this.safeCircle(graphics, 0, 0, Math.max(2, radius * 0.04));
+    // 内死区细环
+    graphics.strokeColor = new Color(226, 245, 255, 92);
+    graphics.lineWidth = 1;
+    this.safeCircle(graphics, 0, 0, Math.max(4, radius * 0.3));
     this.safeStroke(graphics);
-    graphics.strokeColor = new Color(59, 211, 255, 92);
+    // 四向刻度：提示推杆方向
+    graphics.strokeColor = new Color(59, 211, 255, 175);
     graphics.lineWidth = 2;
-    this.safeArc(graphics, 0, 0, radius * 0.68, 0.16, 1.38, false);
-    this.safeArc(graphics, 0, 0, radius * 0.68, 1.76, 2.98, false);
-    this.safeArc(graphics, 0, 0, radius * 0.68, 3.30, 4.52, false);
-    this.safeArc(graphics, 0, 0, radius * 0.68, 4.90, 6.12, false);
-    this.safeStroke(graphics);
-    const tickStart = radius * 0.83;
-    const tickEnd = radius * 0.94;
+    const tickStart = radius * 0.8;
+    const tickEnd = radius * 0.96;
     for (let index = 0; index < 4; index += 1) {
       const angle = index * Math.PI / 2;
       this.safeMoveTo(graphics, Math.cos(angle) * tickStart, Math.sin(angle) * tickStart);
@@ -3494,6 +4850,9 @@ export class NativeCombatHud implements NativeInputFeedback {
     }
     if (this.coopStatusLabel) this.coopStatusLabel.node.active = viewVisible;
     if (this.coopCodeLabel) this.coopCodeLabel.node.active = viewVisible;
+    // 🔴 房间码输入框此前从未被隐藏，导致「输入房间码」在行动视图里永久常驻、
+    // 还压在任务列表上（yy 截图里的常驻杂物之一）。
+    if (this.coopJoinInput) this.coopJoinInput.node.active = viewVisible;
     this.updateCoopLabels();
   }
 
@@ -3536,6 +4895,11 @@ export class NativeCombatHud implements NativeInputFeedback {
 
   private text(key: CombatMessageKey, params: Readonly<Record<string, string | number>> = {}): string {
     return combatText(this.locale, key, params);
+  }
+
+  /** 站内玩法新文案：中文语种用中文，其余用英文，避免改动 8 语言映射的类型系统。 */
+  private st(zh: string, en: string): string {
+    return this.locale === 'zh-CN' || this.locale === 'zh-TW' ? zh : en;
   }
 
   /**

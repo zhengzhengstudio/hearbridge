@@ -21,8 +21,8 @@ android {
         applicationId APPLICATION_ID
         minSdkVersion PROP_MIN_SDK_VERSION
         targetSdkVersion PROP_TARGET_SDK_VERSION
-        versionCode 85
-        versionName "0.13.21"
+        versionCode 97
+        versionName "0.13.33"
         externalNativeBuild {
             cmake {
                 targets "cocos"

@@ -253,10 +253,21 @@
     launchLabel.textContent = '进入战斗';
   }
 
+  // 引擎启动看门狗分两级：
+  //   18 秒：只是「加载偏慢」，提示玩家别急，绝不能在这时判死——慢设备上引擎常常
+  //         正好在这前后起来，早判失败会让玩家看到「未完成加载」却其实马上能玩。
+  //  120 秒：确实起不来，才判失败并给出重载入口。
+  function markEngineSlow() {
+    if (engineReady) return;
+    document.body.dataset.engineSlow = 'true';
+    launchStatus.textContent = '战斗核心加载较慢，请稍候…';
+  }
+
   function markEngineFailed() {
     if (engineReady) return;
     loadTimedOut = true;
     document.body.dataset.engineReady = 'error';
+    document.body.dataset.engineSlow = 'false';
     launch.disabled = false;
     const tutorialStart = document.getElementById('TutorialStart');
     if (tutorialStart) tutorialStart.disabled = false;
@@ -266,7 +277,8 @@
 
   window.addEventListener('spacefight:engine-ready', markEngineReady);
   window.addEventListener('spacefight:engine-error', markEngineFailed);
-  window.setTimeout(markEngineFailed, 18000);
+  window.setTimeout(markEngineSlow, 18000);
+  window.setTimeout(markEngineFailed, 120000);
 
   function setText(id, value) {
     const element = document.getElementById(id);
@@ -393,7 +405,9 @@
     else if (ua.includes('mate xt') || ua.includes('tri-fold')) {
       form = aspect < 1.22 ? 'tri-fold-dual' : aspect < 1.75 ? 'tri-fold-triple' : 'tri-fold-single';
     } else if ((ua.includes('pura x') || ua.includes('wide-fold')) && aspect < 1.3) form = 'wide-fold';
-    else if (ua.includes('ipad') || (ua.includes('macintosh') && navigator.maxTouchPoints > 1)) form = 'tablet';
+    // 桌面端不按「触点数量」判形态：带触控的笔记本/触屏一体机会被误判成平板，
+    // 桌面版布局跟着走偏。指针类型一律用 (pointer: coarse/fine) 判定。
+    else if (ua.includes('ipad')) form = 'tablet';
     else if (ua.includes('iphone') || ua.includes('ipod')) form = 'iphone';
     else if (aspect >= 2.4) form = 'fold-closed';
     else if (shortEdge >= 700 && aspect >= 1.2 && aspect <= 1.55) form = 'fold-open';
@@ -503,6 +517,22 @@
     setLoadoutOpen(false);
     setSettingsOpen(true);
     syncSettingsUi();
+
+  // 输入调试读数：游戏侧（InputRouter）在 body[data-input-debug="true"] 时派发
+  // spacefight:input-debug；壳里没有接收端就等于网页版看不到任何输入反馈。
+  const inputDebugEl = document.getElementById('InputDebug');
+  if (inputDebugEl && /(^|[?&])input-debug=1/.test(window.location.search)) {
+    document.body.dataset.inputDebug = 'true';
+    inputDebugEl.hidden = false;
+  }
+  window.addEventListener('spacefight:input-debug', (event) => {
+    if (!inputDebugEl) return;
+    inputDebugEl.hidden = false;
+    const state = event.detail || {};
+    inputDebugEl.textContent = Object.entries(state)
+      .map(([key, value]) => key + ': ' + (typeof value === 'number' ? value.toFixed(2) : value))
+      .join('  ');
+  });
   });
   settingsCloseButton?.addEventListener('click', () => { setSettingsOpen(false); });
   document.querySelectorAll('[data-settings-graphics]').forEach((button) => {
@@ -514,6 +544,22 @@
       settings[button.dataset.settingsToggle] = !settings[button.dataset.settingsToggle];
       writeSettings(settings);
       syncSettingsUi();
+
+  // 输入调试读数：游戏侧（InputRouter）在 body[data-input-debug="true"] 时派发
+  // spacefight:input-debug；壳里没有接收端就等于网页版看不到任何输入反馈。
+  const inputDebugEl = document.getElementById('InputDebug');
+  if (inputDebugEl && /(^|[?&])input-debug=1/.test(window.location.search)) {
+    document.body.dataset.inputDebug = 'true';
+    inputDebugEl.hidden = false;
+  }
+  window.addEventListener('spacefight:input-debug', (event) => {
+    if (!inputDebugEl) return;
+    inputDebugEl.hidden = false;
+    const state = event.detail || {};
+    inputDebugEl.textContent = Object.entries(state)
+      .map(([key, value]) => key + ': ' + (typeof value === 'number' ? value.toFixed(2) : value))
+      .join('  ');
+  });
     });
   });
   for (const [id, key] of [['SettingsSensitivity', 'sensitivity'], ['SettingsControlScale', 'controlScale']]) {
@@ -522,6 +568,22 @@
       settings[key] = Number(event.target.value);
       writeSettings(settings);
       syncSettingsUi();
+
+  // 输入调试读数：游戏侧（InputRouter）在 body[data-input-debug="true"] 时派发
+  // spacefight:input-debug；壳里没有接收端就等于网页版看不到任何输入反馈。
+  const inputDebugEl = document.getElementById('InputDebug');
+  if (inputDebugEl && /(^|[?&])input-debug=1/.test(window.location.search)) {
+    document.body.dataset.inputDebug = 'true';
+    inputDebugEl.hidden = false;
+  }
+  window.addEventListener('spacefight:input-debug', (event) => {
+    if (!inputDebugEl) return;
+    inputDebugEl.hidden = false;
+    const state = event.detail || {};
+    inputDebugEl.textContent = Object.entries(state)
+      .map(([key, value]) => key + ': ' + (typeof value === 'number' ? value.toFixed(2) : value))
+      .join('  ');
+  });
     });
   }
   tutorialStartButton?.addEventListener('click', () => {
@@ -606,6 +668,8 @@
   }
 
   window.addEventListener('spacefight:outpost-entered', (event) => {
+    // 停靠状态：前哨面板开着时玩家在港内，飞行输入不该生效。
+    document.body.dataset.docked = 'true';
     fillOutpost(event.detail || {});
     setOutpostOpen(true);
   });
@@ -616,10 +680,35 @@
     outpostSettlement.textContent = `本趟结算  +${state.amount || 0} 星港券　·　货值 ${state.cargoValue || 0}　·　击落 ${state.kills || 0}`;
   });
   document.getElementById('OutpostClose')?.addEventListener('click', () => { setOutpostOpen(false); });
-  document.getElementById('OutpostUndock')?.addEventListener('click', () => {
+  // 前哨面板 → 装配台：和原生 HUD 的「进入装配台」一致，装配完再回前哨。
+  document.getElementById('OutpostLoadout')?.addEventListener('click', () => {
     setOutpostOpen(false);
+    setLoadoutOpen(true);
+  });
+  document.getElementById('OutpostUndock')?.addEventListener('click', async () => {
+    setOutpostOpen(false);
+    // 离港 = 解除停靠：先落状态，再重新进入飞行画面（与 enterCombat 同一套流程）。
+    document.body.dataset.docked = 'false';
     window.dispatchEvent(new CustomEvent('spacefight:outpost-exit'));
+    await requestFlightSurface();
+    window.dispatchEvent(new CustomEvent('spacefight:fullscreen-enter'));
   });
   syncSettingsUi();
+
+  // 输入调试读数：游戏侧（InputRouter）在 body[data-input-debug="true"] 时派发
+  // spacefight:input-debug；壳里没有接收端就等于网页版看不到任何输入反馈。
+  const inputDebugEl = document.getElementById('InputDebug');
+  if (inputDebugEl && /(^|[?&])input-debug=1/.test(window.location.search)) {
+    document.body.dataset.inputDebug = 'true';
+    inputDebugEl.hidden = false;
+  }
+  window.addEventListener('spacefight:input-debug', (event) => {
+    if (!inputDebugEl) return;
+    inputDebugEl.hidden = false;
+    const state = event.detail || {};
+    inputDebugEl.textContent = Object.entries(state)
+      .map(([key, value]) => key + ': ' + (typeof value === 'number' ? value.toFixed(2) : value))
+      .join('  ');
+  });
 
 })();

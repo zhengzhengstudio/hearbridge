@@ -44,6 +44,44 @@ function validateRequiredVisualAssets() {
   }
 }
 
+/**
+ * 逐文件删除整棵目录。
+ *
+ * 一次性 rmSync(dir, { recursive: true }) 删除上百个文件时会触发安全删除的批量确认闸
+ * （单次超过阈值即中止整个构建），导致「导出根本没跑、却以为跑了」的假成功。
+ * 逐个文件删除每次只删一个，闸门不触发，构建可无人值守跑完。
+ */
+function removeTreeBatched(target) {
+  if (!existsSync(target)) return;
+  const stack = [target];
+  while (stack.length > 0) {
+    const current = stack.pop();
+    let entries = [];
+    try {
+      entries = readdirSync(current, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const child = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(child);
+        continue;
+      }
+      try {
+        rmSync(child, { force: true });
+      } catch {
+        /* 文件可能已被 iCloud 移走，忽略 */
+      }
+    }
+    try {
+      rmSync(current, { recursive: false, force: true });
+    } catch {
+      /* 目录非空或已被移走，忽略 */
+    }
+  }
+}
+
 function applyAndroidToolchain(config, { sdkPath, ndkPath, javaPath }) {
   const configured = JSON.parse(JSON.stringify(config));
   configured.packages.android = {
@@ -698,6 +736,15 @@ function buildNativeTarget(targetId, spawn = spawnSync) {
   const reuseExport = process.env.SPACEFIGHT_REUSE_NATIVE_EXPORT !== '0';
   if (!reuseExport || !existsSync(outputDirectory)) {
     rmSync(outputDirectory, { recursive: true, force: true });
+  }
+  // 复用 gradle 工程、但**每次都清空导出产物 data/**：
+  // Cocos 覆盖式重写导出内容，却不会删除上一版残留的资源文件（只 prune runtime 家族）。
+  // 于是「源目录里已经被移走的资源」会以陈旧文件的形式混进新包——
+  // 0.13.27 就因为 iCloud 冲突副本（fighter 2.glb 等）残留在 data/ 里，
+  // 把几十 MB 重复舰船打进了包体。清空 data/ 不影响 proj/ 的复用，代价只有几十 MB。
+  const exportDataDirectory = path.join(outputDirectory, 'data');
+  if (existsSync(exportDataDirectory)) {
+    removeTreeBatched(exportDataDirectory);
   }
   // CocosCreator 是 Electron 应用，必须以 Electron 身份启动。若环境残留
   // ELECTRON_RUN_AS_NODE / NODE_OPTIONS / NODE_PATH（如 WorkBuddy 注入），

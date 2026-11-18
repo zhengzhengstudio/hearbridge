@@ -644,6 +644,8 @@ export class CombatSimulation {
   /** 决策窗口已超过建议时长：只用于 UI 提示，不再自动推进波次。 */
   private decisionUrged = false;
   private damagedThisStep = false;
+  /** 首飞校准期间由外层置 true：玩家完全免伤，避免教学被打死（见 CombatBootstrap 的校准接线）。 */
+  private playerInvulnerable = false;
   /**
    * 本步内累积的玩家伤害，步末由 flushPlayerDamage() 一次性结算。
    * 这样「同一帧多颗子弹齐射」只扣一次血（防瞬秒），
@@ -2237,13 +2239,18 @@ export class CombatSimulation {
     this.pendingEnvironmentDamage += Math.max(0, damage);
   }
 
+  /** 首飞校准期间调用：true 时玩家完全免伤（仍正常累积、步末清空，只是不结算）。 */
+  public setPlayerInvulnerable(invulnerable: boolean): void {
+    this.playerInvulnerable = invulnerable;
+  }
+
   /** 步末统一应用累积伤害，并开启短暂无敌帧。 */
   private flushPlayerDamage(): void {
     const damage = this.pendingPlayerDamage;
     const environmentDamage = this.pendingEnvironmentDamage;
     this.pendingPlayerDamage = 0;
     this.pendingEnvironmentDamage = 0;
-    if (damage <= 0 || this.failed) {
+    if (damage <= 0 || this.failed || this.playerInvulnerable) {
       return;
     }
     // 拆出环境伤害与敌人伤害：环境伤害始终结算，无敌帧/出生保护只豁免敌人部分。

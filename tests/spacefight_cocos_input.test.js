@@ -688,11 +688,13 @@ test('notched landscape safe areas keep visible touch controls aligned with hit 
   const primary = controls.find((control) => control.role === 'primaryFire');
   const boost = controls.find((control) => control.role === 'boost');
   const camera = controls.find((control) => control.role === 'cameraToggle');
-  const scale = Math.max(0.65, Math.min(1, width / 960, height / 540));
-  assert.ok(Math.abs(primary.x - (width - safeInsets.right - (76 * scale))) < 0.001);
-  assert.ok(Math.abs(primary.y - (height - safeInsets.bottom - (76 * scale))) < 0.001);
+  // 缩放系数必须与实现共用同一份公式（touchControlScale），否则两边会各算各的。
+  const scale = input.touchControlScale(width, height);
+  const actionInset = 88 * scale;
+  assert.ok(Math.abs(primary.x - (width - safeInsets.right - actionInset)) < 0.001);
+  assert.ok(Math.abs(primary.y - (height - safeInsets.bottom - actionInset)) < 0.001);
   assert.equal(boost.x, primary.x);
-  assert.ok(Math.abs(camera.x - (width - safeInsets.right - (76 * scale))) < 0.001);
+  assert.ok(Math.abs(camera.x - (width - safeInsets.right - actionInset)) < 0.001);
 });
 
 test('native safe rectangle converts bottom-origin bounds into screen edge insets', () => {

@@ -29,6 +29,7 @@ import cn.zhengzhengstudio.spacefight.R;
 import android.animation.ObjectAnimator;
 import android.app.AlertDialog;
 import android.app.ActivityManager;
+import android.app.ApplicationExitInfo;
 import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -118,6 +119,15 @@ public class AppActivity extends CocosActivity {
     private static final String CRASH_SESSION_FILE = "spacefight-session.txt";
     private static final String CRASH_REPORT_FILE = "spacefight-last-crash.txt";
     private static final String CRASH_TRACE_FILE = "spacefight-trace.txt";
+    // 系统退出原因判定：记录已报告过的崩溃时间戳，避免同一场崩溃每次启动重复弹窗。
+    private static final String CRASH_SEEN_FILE = "spacefight-crash-seen.txt";
+    private static final String CRASH_MIRROR_FILE = "spacefight-last-crash-mirror.txt";
+    // 设置面板「最近三次运行日志」：每次启动把上一轮轨迹轮转进 1/2/3 号文件。
+    private static final String RUN_LOG_PREFIX = "spacefight-runlog-";
+    private static final int RUN_LOG_COUNT = 3;
+    private static final int RUN_LOG_TEXT_LIMIT = 8000;
+    // 只认最近 24h 内、且尚未报告过的系统崩溃记录；再旧的记录不会再弹窗。
+    private static final long CRASH_WINDOW_MILLIS = 24L * 60L * 60L * 1000L;
     private static Thread.UncaughtExceptionHandler originalCrashHandler;
     private static boolean crashHandlerInstalled = false;
     private static boolean crashDialogVisible = false;
@@ -175,6 +185,20 @@ public class AppActivity extends CocosActivity {
                     ? new JSONObject()
                     : new JSONObject(payload);
             if ("deviceSnapshot".equals(method)) return activity.deviceSnapshot().toString();
+            if ("runLogs".equals(method)) return activity.spaceFightRunLogsJson();
+            if ("copyText".equals(method)) {
+                final String text = request.optString("text", "");
+                activity.runOnUiThread(() -> {
+                    try {
+                        ClipboardManager manager = (ClipboardManager) activity
+                            .getSystemService(Context.CLIPBOARD_SERVICE);
+                        if (manager != null) {
+                            manager.setPrimaryClip(ClipData.newPlainText("SpaceFight 运行日志", text));
+                        }
+                    } catch (Exception ignored) {}
+                });
+                return "null";
+            }
             if ("readText".equals(method)) {
                 String value = activity.getSharedPreferences("spacefight", MODE_PRIVATE)
                         .getString(request.optString("key"), null);
@@ -517,6 +541,7 @@ public class AppActivity extends CocosActivity {
                     String report = buildSpaceFightCrashReport(
                         "Java 未捕获异常 · " + thread.getName(), buffer.toString());
                     writeSpaceFightText(new File(getFilesDir(), CRASH_REPORT_FILE), report);
+                    mirrorSpaceFightCrashReport(report);
                 } catch (Throwable ignored) {
                     // 崩溃处理本身不允许再抛异常
                 }
@@ -533,13 +558,17 @@ public class AppActivity extends CocosActivity {
         File pending = new File(getFilesDir(), CRASH_REPORT_FILE);
         String previousState = readSpaceFightText(session).trim();
         String report = readSpaceFightText(pending);
+        // 0.13.29 修复保留：绝不把「上次在前台」直接当成崩溃信号——系统强杀 / 后台回收 /
+        // 手动划掉都会留下 foreground 残留，那样会每次启动误报。
+        // 0.13.30 补回真实崩溃可见性：仅当「上次确为前台异常终止」且「系统退出记录明确判定
+        // 为原生崩溃 / 信号终止 / Java 崩溃」时才补一份报告。用户划掉、低内存回收、正常退出
+        // 在系统记录里有各自的 reason，全部排除，不会误报。
         if (report.isEmpty() && "foreground".equals(previousState)) {
-            // 上次运行在前台被直接终止：原生崩溃不会走 onDestroy，也不会触发 Java 异常处理器。
-            report = buildSpaceFightCrashReport(
-                "前台异常退出（疑似原生层崩溃）",
-                "上次运行时进程在前台被直接终止，未经过正常退出流程。\n"
-                    + "常见原因：Cocos 原生渲染 / 脚本绑定层抛出未捕获异常（如 SIGABRT）。");
+            report = collectSystemCrashReport();
         }
+        // 最近三次运行日志：把上一轮启动轨迹、系统退出原因与崩溃报告一起归档。
+        // 放在 pending.delete() 之前，报告原文才不会丢。
+        rotateSpaceFightRunLog(report, previousState);
         pending.delete();
         writeSpaceFightText(session, "foreground");
         if (!report.isEmpty()) {
@@ -547,6 +576,205 @@ public class AppActivity extends CocosActivity {
             getWindow().getDecorView().postDelayed(
                 () -> showSpaceFightCrashDialog(finalReport, true), 1200L);
         }
+    }
+
+    /**
+     * Android 11+ 用系统 ApplicationExitInfo 精确还原上一次进程退出的原因。
+     * 只认 REASON_CRASH_NATIVE / REASON_SIGNALED / REASON_CRASH；其余（用户请求、
+     * 低内存回收、正常退出、包更新等）一律返回空串，杜绝 0.13.28 那种误报。
+     * 命中后把 tombstone 与完整报告镜像到外部存储，非 root 真机也能取回日志。
+     */
+    private String collectSystemCrashReport() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return "";
+        try {
+            ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            if (am == null) return "";
+            List<ApplicationExitInfo> exits =
+                am.getHistoricalProcessExitReasons(getPackageName(), 0, 8);
+            long seen = readSpaceFightLong(new File(getFilesDir(), CRASH_SEEN_FILE));
+            long now = System.currentTimeMillis();
+            ApplicationExitInfo hit = null;
+            for (ApplicationExitInfo info : exits) {
+                int reason = info.getReason();
+                boolean realCrash =
+                    reason == ApplicationExitInfo.REASON_CRASH_NATIVE
+                    || reason == ApplicationExitInfo.REASON_SIGNALED
+                    || reason == ApplicationExitInfo.REASON_CRASH;
+                if (!realCrash) continue;
+                long stamp = info.getTimestamp();
+                if (stamp <= seen || now - stamp > CRASH_WINDOW_MILLIS) continue;
+                if (hit == null || stamp > hit.getTimestamp()) hit = info;
+            }
+            if (hit == null) return "";
+            writeSpaceFightText(new File(getFilesDir(), CRASH_SEEN_FILE),
+                Long.toString(hit.getTimestamp()));
+
+            StringBuilder detail = new StringBuilder();
+            detail.append("系统退出原因: ").append(exitReasonLabel(hit.getReason()))
+                .append(" (code=").append(hit.getReason()).append(")\n");
+            detail.append("退出时间: ").append(spaceFightTimestamp(hit.getTimestamp())).append('\n');
+            detail.append("信号/状态: ").append(hit.getStatus()).append('\n');
+            String description = hit.getDescription();
+            if (description != null && !description.isEmpty()) {
+                detail.append("系统描述: ").append(description).append('\n');
+            }
+            detail.append("\n上次运行时进程在前台被直接终止，未经过正常退出流程。\n");
+            detail.append("该结论来自系统进程退出记录，非「前台标记」推测。\n");
+            String tombstone = readSpaceFightTombstone(hit);
+            if (!tombstone.isEmpty()) {
+                detail.append("\n---- native tombstone 摘要 ----\n").append(tombstone);
+            }
+            String report = buildSpaceFightCrashReport(
+                "前台异常退出（" + exitReasonLabel(hit.getReason()) + "）", detail.toString());
+            mirrorSpaceFightCrashReport(report);
+            return report;
+        } catch (Throwable ignored) {
+            return "";
+        }
+    }
+
+    // ==================== 最近三次运行日志 ====================
+    // 每次启动把上一轮的轨迹 / 系统退出原因 / 崩溃报告轮转进 1/2/3 号文件，
+    // 设置面板通过 spaceFightInvoke("runLogs") 只读，不依赖 root、不需要 adb。
+
+    private void rotateSpaceFightRunLog(String crashReport, String previousState) {
+        try {
+            for (int index = RUN_LOG_COUNT - 1; index >= 1; index--) {
+                File from = new File(getFilesDir(), RUN_LOG_PREFIX + index + ".json");
+                File to = new File(getFilesDir(), RUN_LOG_PREFIX + (index + 1) + ".json");
+                if (from.exists()) writeSpaceFightText(to, readSpaceFightText(from));
+                else to.delete();
+            }
+            File traceFile = new File(getFilesDir(), CRASH_TRACE_FILE);
+            String trace = readSpaceFightText(traceFile).trim();
+            boolean crashed = crashReport != null && !crashReport.isEmpty();
+            String result = crashed ? "崩溃退出"
+                : "foreground".equals(previousState) ? "上次未正常结束"
+                : "background".equals(previousState) ? "切后台后结束" : "正常结束";
+            JSONObject entry = new JSONObject();
+            entry.put("time", spaceFightTimestamp());
+            entry.put("result", result);
+            entry.put("version", spaceFightVersionLabel());
+            entry.put("reason", lastSpaceFightExitSummary());
+            entry.put("trace", limitSpaceFightText(trace));
+            entry.put("crash", limitSpaceFightText(crashReport));
+            writeSpaceFightText(new File(getFilesDir(), RUN_LOG_PREFIX + "1.json"), entry.toString());
+            // 上一轮轨迹已归档，清空后写本次会话起点，避免新日志串进旧会话。
+            writeSpaceFightText(traceFile, spaceFightTimestamp() + "  run: session started\n");
+        } catch (Exception ignored) {
+            // 日志轮转失败不得影响启动
+        }
+    }
+
+    private String spaceFightRunLogsJson() {
+        JSONArray logs = new JSONArray();
+        for (int index = 1; index <= RUN_LOG_COUNT; index++) {
+            String raw = readSpaceFightText(
+                new File(getFilesDir(), RUN_LOG_PREFIX + index + ".json")).trim();
+            if (raw.isEmpty()) continue;
+            try {
+                logs.put(new JSONObject(raw));
+            } catch (Exception ignored) {
+                try {
+                    JSONObject fallback = new JSONObject();
+                    fallback.put("time", spaceFightTimestamp());
+                    fallback.put("reason", limitSpaceFightText(raw));
+                    logs.put(fallback);
+                } catch (Exception alsoIgnored) {}
+            }
+        }
+        return logs.toString();
+    }
+
+    /** 系统记录的最近一次进程退出原因；比「前台标记」推测可靠得多。 */
+    private String lastSpaceFightExitSummary() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return "系统版本不支持退出原因记录";
+        try {
+            ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            if (am == null) return "系统退出记录不可用";
+            List<ApplicationExitInfo> exits =
+                am.getHistoricalProcessExitReasons(getPackageName(), 0, 1);
+            if (exits.isEmpty()) return "暂无系统退出记录";
+            ApplicationExitInfo info = exits.get(0);
+            StringBuilder text = new StringBuilder();
+            text.append(exitReasonLabel(info.getReason()))
+                .append(" (code=").append(info.getReason()).append(')')
+                .append(" · ").append(spaceFightTimestamp(info.getTimestamp()));
+            String description = info.getDescription();
+            if (description != null && !description.isEmpty()) {
+                text.append(" · ").append(description);
+            }
+            return text.toString();
+        } catch (Throwable ignored) {
+            return "系统退出记录读取失败";
+        }
+    }
+
+    private static String limitSpaceFightText(String value) {
+        if (value == null || value.isEmpty()) return "";
+        return value.length() <= RUN_LOG_TEXT_LIMIT
+            ? value
+            : value.substring(0, RUN_LOG_TEXT_LIMIT) + "\n…（内容已截断）";
+    }
+
+    private static String exitReasonLabel(int reason) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (reason == ApplicationExitInfo.REASON_CRASH_NATIVE) return "原生层崩溃";
+            if (reason == ApplicationExitInfo.REASON_SIGNALED) return "致命信号终止";
+            if (reason == ApplicationExitInfo.REASON_CRASH) return "Java 异常崩溃";
+        }
+        return "异常退出";
+    }
+
+    /** 读取系统保存的 native tombstone（若可用），截断以避免报告过大。 */
+    private static String readSpaceFightTombstone(ApplicationExitInfo info) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return "";
+        InputStream input = null;
+        try {
+            input = info.getTraceInputStream();
+            if (input == null) return "";
+            java.io.ByteArrayOutputStream buffer = new java.io.ByteArrayOutputStream();
+            byte[] chunk = new byte[4096];
+            int read;
+            int total = 0;
+            while (total < 96 * 1024 && (read = input.read(chunk)) >= 0) {
+                int take = Math.min(read, 96 * 1024 - total);
+                buffer.write(chunk, 0, take);
+                total += take;
+            }
+            return new String(buffer.toByteArray(), StandardCharsets.UTF_8).trim();
+        } catch (Throwable ignored) {
+            return "";
+        } finally {
+            if (input != null) {
+                try { input.close(); } catch (Exception ignored) {}
+            }
+        }
+    }
+
+    /** 崩溃报告镜像到外部存储：弹窗被关掉也能经 adb / Termux 取回完整日志。 */
+    private void mirrorSpaceFightCrashReport(String report) {
+        try {
+            File mirrorDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+            if (mirrorDir != null) {
+                writeSpaceFightText(new File(mirrorDir, CRASH_MIRROR_FILE), report);
+            }
+        } catch (Throwable ignored) {
+            // 外部存储不可写时不影响诊断弹窗本身
+        }
+    }
+
+    private static long readSpaceFightLong(File file) {
+        try {
+            return Long.parseLong(readSpaceFightText(file).trim());
+        } catch (Throwable ignored) {
+            return 0L;
+        }
+    }
+
+    private static String spaceFightTimestamp(long millis) {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            .format(new Date(millis));
     }
 
     private String buildSpaceFightCrashReport(String kind, String detail) {
@@ -575,11 +803,15 @@ public class AppActivity extends CocosActivity {
         BufferedReader reader = null;
         try {
             process = Runtime.getRuntime().exec(
-                new String[] { "logcat", "-d", "-v", "brief", "-t", "400" });
+                new String[] { "logcat", "-d", "-v", "brief", "-t", "1200" });
             reader = new BufferedReader(
                 new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-            String[] keys = { "SpaceFight", "cocos", "Fatal", "DEBUG", "libc", "abort",
-                "tombstone", "out_of_range", "SIG", "JS:", "AndroidRuntime" };
+            // 0.13.30：补齐原生崩溃现场关键词，保证 SIGSEGV / tombstone backtrace / fault addr
+            // 能完整进报告，而不是只剩几行系统启动日志。
+            String[] keys = { "SpaceFight", "spacefight", "cocos", "Fatal", "DEBUG", "libc",
+                "abort", "tombstone", "out_of_range", "SIG", "SEGV", "signal", "fault addr",
+                "backtrace", "crash_dump", "libcocos", "Build fingerprint", "Cmdline",
+                "null pointer", "JS:", "AndroidRuntime" };
             StringBuilder kept = new StringBuilder();
             String line;
             int count = 0;
@@ -590,7 +822,7 @@ public class AppActivity extends CocosActivity {
                 }
                 if (matched) {
                     kept.append(line).append('\n');
-                    if (++count >= 60) break;
+                    if (++count >= 140) break;
                 }
             }
             return kept.toString();
@@ -667,8 +899,8 @@ public class AppActivity extends CocosActivity {
         if (isFinishing() || isDestroyed() || crashDialogVisible) return;
         crashDialogVisible = true;
         final Dialog dialog = new Dialog(this);
-        dialog.setCancelable(false);
-        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(true);
 
         LinearLayout panel = new LinearLayout(this);
         panel.setOrientation(LinearLayout.VERTICAL);
@@ -703,9 +935,11 @@ public class AppActivity extends CocosActivity {
         body.setTypeface(Typeface.MONOSPACE);
         body.setTextIsSelectable(true);
         scroll.addView(body);
+        // 2026-11-17：错因区改为 0px + weight=1，吃掉标题与按钮之间的剩余空间。
+        // 旧版固定 min(230dp, height/3) 在横屏（height≈1080）下会连同标题把底部按钮
+        // 顶出 dialog，导致「退出/复制错因」看不见。weight 布局下按钮永远钉在底部。
         LinearLayout.LayoutParams bodyParams = new LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            Math.min(dp(230), getResources().getDisplayMetrics().heightPixels / 3));
+            ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
         bodyParams.topMargin = dp(14);
         panel.addView(scroll, bodyParams);
 
@@ -736,6 +970,10 @@ public class AppActivity extends CocosActivity {
             }, 150L);
         });
 
+        // panel 撑满 dialog，weight=1 的 ScrollView 才能占满「标题~按钮」之间的剩余高度；
+        // 否则 panel 按内容自适应，weight 无空间可分配，按钮仍会被长错因顶出屏幕。
+        panel.setLayoutParams(new ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         dialog.setContentView(panel);
         dialog.show();
         Window window = dialog.getWindow();
@@ -747,7 +985,9 @@ public class AppActivity extends CocosActivity {
             window.setAttributes(attributes);
             int available = Math.max(dp(300),
                 getResources().getDisplayMetrics().widthPixels - dp(32));
-            window.setLayout(Math.min(available, dp(520)), ViewGroup.LayoutParams.WRAP_CONTENT);
+            int maxHeight = Math.min(dp(600),
+                getResources().getDisplayMetrics().heightPixels - dp(48));
+            window.setLayout(Math.min(available, dp(520)), maxHeight);
         }
     }
 

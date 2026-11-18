@@ -97,6 +97,24 @@ export function spendStarportTickets(amount: number, receipt: string): { ok: boo
   };
 }
 
+/**
+ * 通用发券：站内交易/任务/设施奖励使用，区别于带远征公式的 awardStarportTickets。
+ * 同样用 receipt 做幂等，重复调用不会重复入账。
+ */
+export function grantTickets(amount: number, receipt: string): { ok: boolean; profile: PlayerEconomySnapshot } {
+  const profile = loadEconomy();
+  const value = Math.max(0, Math.round(amount));
+  if (!receipt || profile.receipts.includes(receipt)) return { ok: false, profile };
+  return {
+    ok: true,
+    profile: save({
+      ...profile,
+      starportTickets: profile.starportTickets + value,
+      receipts: [...profile.receipts, receipt].slice(-24),
+    }),
+  };
+}
+
 export function storePrice(item: StoreItemId, profile = loadEconomy()): number {
   if (item === 'cargo-expansion') return profile.cargoExpansion >= 2 ? -1 : [180, 320][profile.cargoExpansion];
   if (item === 'tractor-calibration') return profile.tractorCalibration >= 3 ? -1 : [120, 220, 360][profile.tractorCalibration];

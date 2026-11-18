@@ -82,6 +82,17 @@ function normalizedControlScale(value: number): number {
   return Number.isFinite(value) ? Math.max(0.75, Math.min(1.35, value)) : 1;
 }
 
+/**
+ * 触屏控件统一缩放系数。
+ *
+ * 动作优化 0.13.23：抬高窄屏缩放下限（手机竖屏控件此前被压到约 20–32px，极难点中）。
+ * 抽成导出函数，让「布局」与「命中判定」共用同一份公式——两处各写一遍时，
+ * 看得见的圈和判定区就会悄悄对不上（点得到却看不见 / 看得见却点不到）。
+ */
+export function touchControlScale(width: number, height: number): number {
+  return Math.max(0.8, Math.min(1, width / 960, height / 540));
+}
+
 function distanceSquared(x: number, y: number, circle: ControlCircle): number {
   return ((x - circle.x) ** 2) + ((y - circle.y) ** 2);
 }
@@ -94,27 +105,43 @@ export function touchActionLayout(
   controlScale = 1,
 ): readonly ControlCircle[] {
   const safe = normalizeSafeInsets(safeInsets);
-  const scale = Math.max(0.65, Math.min(1, width / 960, height / 540));
+  // 动作优化 0.13.23：抬高窄屏缩放下限（手机竖屏控件此前被压到约 20–32px，极难点中），
+  // 同时放大主战控件半径并加大间距，避免放大后互相重叠。
+  const scale = touchControlScale(width, height);
   const sizedScale = scale * normalizedControlScale(controlScale);
-  const actionInset = 76 * sizedScale;
-  const secondaryInset = 174 * sizedScale;
-  const pauseInset = 136 * sizedScale;
+  const actionInset = 88 * sizedScale;
+  const secondaryInset = 204 * sizedScale;
+  const pauseInset = 158 * sizedScale;
   const actionEdge = leftHanded ? safe.left + actionInset : width - safe.right - actionInset;
   const secondaryEdge = leftHanded ? safe.left + secondaryInset : width - safe.right - secondaryInset;
   const utilityEdge = leftHanded ? safe.left + actionInset : width - safe.right - actionInset;
   const pauseEdge = leftHanded ? safe.left + pauseInset : width - safe.right - pauseInset;
-  return [
-    { role: 'primaryFire', x: actionEdge, y: height - safe.bottom - actionInset, radius: 50 * sizedScale },
-    { role: 'secondaryFire', x: secondaryEdge, y: height - safe.bottom - (82 * sizedScale), radius: 38 * sizedScale },
+  const swapOffset = 116 * sizedScale;
+  const controls: ControlCircle[] = [
+    { role: 'primaryFire', x: actionEdge, y: height - safe.bottom - actionInset, radius: 60 * sizedScale },
+    { role: 'secondaryFire', x: secondaryEdge, y: height - safe.bottom - (94 * sizedScale), radius: 46 * sizedScale },
     // 主副武器互换按钮：放在副武器左侧，避免与右侧主炮 / 加速键重叠
-    { role: 'swapWeapons', x: secondaryEdge - (92 * sizedScale), y: height - safe.bottom - (82 * sizedScale), radius: 34 * sizedScale },
-    { role: 'boost', x: actionEdge, y: height - safe.bottom - (170 * sizedScale), radius: 40 * sizedScale },
+    { role: 'swapWeapons', x: secondaryEdge - swapOffset, y: height - safe.bottom - (94 * sizedScale), radius: 42 * sizedScale },
+    { role: 'boost', x: actionEdge, y: height - safe.bottom - (212 * sizedScale), radius: 50 * sizedScale },
     // 战术设备主动技能：放在副武器左上方，与推进 / 互换 / 副武器键均不重叠，
     // 同时对齐 Web 触屏 HUD 的 #AbilityControl 视觉位置。
-    { role: 'deviceAbility', x: secondaryEdge - (92 * sizedScale), y: height - safe.bottom - (250 * sizedScale), radius: 32 * sizedScale },
-    { role: 'cameraToggle', x: utilityEdge, y: safe.top + (40 * sizedScale), radius: 29 * sizedScale },
-    { role: 'pause', x: pauseEdge, y: safe.top + (40 * sizedScale), radius: 29 * sizedScale },
+    { role: 'deviceAbility', x: secondaryEdge - swapOffset, y: height - safe.bottom - (302 * sizedScale), radius: 42 * sizedScale },
+    { role: 'cameraToggle', x: utilityEdge, y: safe.top + (44 * sizedScale), radius: 32 * sizedScale },
+    { role: 'pause', x: pauseEdge, y: safe.top + (44 * sizedScale), radius: 32 * sizedScale },
   ];
+  // 控件整体不得侵入安全区（刘海 / 圆角 / 手势条）：
+  // 玩家把控件放大后，「技能」这类高位按钮会被顶到安全区之外，既压状态栏文字又难点中。
+  return controls.map((control) => ({
+    ...control,
+    x: Math.min(
+      Math.max(control.x, safe.left + control.radius),
+      width - safe.right - control.radius,
+    ),
+    y: Math.min(
+      Math.max(control.y, safe.top + control.radius),
+      height - safe.bottom - control.radius,
+    ),
+  }));
 }
 
 export function movementControlCircle(
@@ -125,7 +152,8 @@ export function movementControlCircle(
   controlScale = 1,
 ): ControlCircle {
   const safe = normalizeSafeInsets(safeInsets);
-  const scale = Math.max(0.65, Math.min(1, width / 960, height / 540));
+  // 动作优化 0.13.23：与动作控件统一抬高窄屏缩放下限，保证手机竖屏摇杆也好抓。
+  const scale = touchControlScale(width, height);
   const radius = 78 * scale * normalizedControlScale(controlScale);
   const edgeGap = Math.min(24, height * 0.046);
   return {
@@ -145,7 +173,8 @@ export function returnControlCircle(
   controlScale = 1,
 ): ControlCircle {
   const safe = normalizeSafeInsets(safeInsets);
-  const scale = Math.max(0.65, Math.min(1, width / 960, height / 540));
+  // 动作优化 0.13.23：与动作控件统一抬高窄屏缩放下限。
+  const scale = touchControlScale(width, height);
   const sizedScale = scale * normalizedControlScale(controlScale);
   return {
     role: 'returnRequested',

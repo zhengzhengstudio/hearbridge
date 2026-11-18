@@ -78,6 +78,28 @@ const KEY_CODES = new Map<number, string>([
   [KeyCode.ESCAPE, 'Escape'],
 ]);
 
+/**
+ * 可改键位：把 Cocos KeyCode（沿用 DOM keyCode 数值）补齐到整套可绑定键。
+ * 只在原有映射没有该数值时补入，保证既有按键语义一字不改。
+ */
+function fillBindableKeyCodes(): void {
+  const set = (code: number, name: string): void => {
+    if (!KEY_CODES.has(code)) KEY_CODES.set(code, name);
+  };
+  for (let index = 0; index < 26; index += 1) set(65 + index, `Key${String.fromCharCode(65 + index)}`);
+  for (let digit = 0; digit <= 9; digit += 1) set(48 + digit, `Digit${digit}`);
+  const named: readonly [number, string][] = [
+    [8, 'Backspace'], [9, 'Tab'], [13, 'Enter'], [27, 'Escape'], [32, 'Space'],
+    [37, 'ArrowLeft'], [38, 'ArrowUp'], [39, 'ArrowRight'], [40, 'ArrowDown'],
+    [16, 'ShiftLeft'], [17, 'ControlLeft'], [18, 'AltLeft'],
+  ];
+  for (const [code, name] of named) set(code, name);
+  for (let fn = 1; fn <= 12; fn += 1) {
+    if (fn !== 5) set(111 + fn, `F${fn}`);
+  }
+}
+fillBindableKeyCodes();
+
 export function cocosKeyCodeToDesktopCode(keyCode: number): string | undefined {
   return KEY_CODES.get(keyCode);
 }

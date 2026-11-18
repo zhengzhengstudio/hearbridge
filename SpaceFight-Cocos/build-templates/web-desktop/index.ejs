@@ -19,7 +19,7 @@
 </head>
 <body data-engine-ready="false">
   <div id="SafeAreaProbe" aria-hidden="true"></div>
-  <div id="GameDiv" cc_exact_fit_screen="false">
+  <div id="GameDiv" cc_exact_fit_screen="true">
     <div id="Cocos3dGameContainer">
       <canvas id="GameCanvas" width="<%= previewWidth %>" height="<%= previewHeight %>" tabindex="0"></canvas>
     </div>
@@ -31,7 +31,7 @@
         <img src="spacefight-icon.png" alt="SpaceFight">
         <span><b>SPACEFIGHT</b><small>INTERCEPTOR COMMAND</small></span>
       </div>
-      <div class="build-readout"><i></i> 本机战斗核心 <b>0.13.19</b></div>
+      <div class="build-readout"><i></i> 本机战斗核心 <b>0.13.28</b></div>
     </header>
 
     <section class="launch-briefing">
@@ -99,7 +99,7 @@
     <footer class="launch-footer">
       <span>LOCAL SIMULATION</span>
       <span>WEBGL 2 / LANDSCAPE</span>
-      <span>BUILD 83</span>
+      <span>BUILD 92</span>
     </footer>
   </main>
 
@@ -201,7 +201,7 @@
           <p class="outpost-ai">舱内场景与物资图标由 AI 生成</p>
         </section>
       </div>
-      <footer><span id="OutpostVitals"></span><button id="OutpostUndock" type="button">离港出击</button></footer>
+      <footer><span id="OutpostVitals"></span><button id="OutpostLoadout" type="button">进入装配台</button><button id="OutpostUndock" type="button">离港出击</button></footer>
     </div>
   </section>
 
@@ -259,6 +259,9 @@
   <section id="MissionFailed" aria-live="assertive">
     <div><span>CRAFT LOST</span><h2>战机失去响应</h2><p>重新装填当前装备并从本区域再次出击。</p><button id="RestartButton" type="button">重新出击</button></div>
   </section>
+
+
+  <pre id="InputDebug" class="input-debug" hidden></pre>
 
   <script src="spacefight-shell.js"></script>
   <%- include(cocosTemplate, {}) %>

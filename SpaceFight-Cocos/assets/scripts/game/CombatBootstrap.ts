@@ -23,6 +23,13 @@ import {
 import { AIM_CONVERGENCE_DISTANCE, computeAimRay } from '../core/AimConvergence';
 import { installNativeErrorHooks, nativeTrace } from '../platform/NativeDiagnostics';
 import {
+  appendRunLog,
+  finishRunLog,
+  installRunLogErrorHooks,
+  startRunLog,
+  type RunLogStorage,
+} from '../platform/RunLog';
+import {
   CombatSimulation,
   PRIMARY_OUTPOST_POSITION,
   type CombatSnapshot,
@@ -33,7 +40,13 @@ import { neutralFlightCommand } from '../core/FlightCommand';
 import { COMBAT_FEEL, PLAYER_HIT_TUNING } from '../core/FlightTuning';
 import { resolveLoadout } from '../core/WeaponCatalog';
 import type { CombatLoadout } from '../core/WeaponCatalog';
-import { awardStarportTickets, loadEconomy, spendStarportTickets } from '../core/PlayerEconomy';
+import { awardStarportTickets, grantTickets, loadEconomy, spendStarportTickets } from '../core/PlayerEconomy';
+import {
+  StationSystem,
+  CONTRACTS,
+  TRADE_GOODS,
+  FACILITIES,
+} from '../core/StationSystem';
 import { BrowserInputBridge } from '../input/BrowserInputBridge';
 import { CocosInputBridge, NATIVE_SAFE_INSETS } from '../input/CocosInputBridge';
 import { CocosGamepadBridge } from '../input/CocosGamepadBridge';
@@ -88,6 +101,7 @@ import {
   type CoopHudBridge,
   type CoopHudState,
   type NativeHudActions,
+  type StationHudBridge,
   type StationServiceId,
 } from './NativeCombatHud';
 import { GameAudio } from './GameAudio';
@@ -99,6 +113,23 @@ const { ccclass } = _decorator;
 const GRAPHICS_PROMPT_PREFERENCE_KEY = 'spacefight.graphics.prompt.v1';
 const GAMEPAD_CALIBRATION_KEY = 'spacefight.gamepad.v1';
 const CAPABILITY_TIMEOUT_MS = 1200;
+
+/** 运行日志存储：原生与网页都走 sys.localStorage，取不到时静默跳过，绝不影响启动。 */
+function runLogStorage(): RunLogStorage | null {
+  try {
+    const storage = sys.localStorage as unknown as RunLogStorage;
+    return storage && typeof storage.getItem === 'function' && typeof storage.setItem === 'function'
+      ? storage : null;
+  } catch {
+    return null;
+  }
+}
+
+function logStage(message: string, detail?: string): void {
+  const storage = runLogStorage();
+  if (storage) appendRunLog(storage, message, detail);
+}
+
 const UNKNOWN_DEVICE: DeviceSnapshot = {
   memoryGB: null,
   availableMemoryGB: null,
@@ -432,6 +463,11 @@ export class CombatBootstrap extends Component {
   private pendingBrowserCombatEvents: CombatSnapshot['combatEvents'] = [];
   private togglePauseRequested = false;
   private dockedAtOutpost = false;
+  /** 站内玩法系统：任务板 / 交易 / 设施 / 校准改装，存档与经济端口在此注入。 */
+  private readonly stationSystem: StationSystem | null = this.createStationSystem();
+  private readonly stationBridge: StationHudBridge | null = this.stationSystem
+    ? this.createStationBridge(this.stationSystem)
+    : null;
   /**
    * 返航闩锁：轻点一次「返航」即开始返航并持续到完成，不再要求一直按住。
    * 之前必须按住 2.4s 且挨打会重置进度，在碎石/敌机连续擦碰时进度被永久冻结，
@@ -501,11 +537,18 @@ export class CombatBootstrap extends Component {
     onStationService: (service) => this.applyStationService(service),
     onStartTutorial: () => this.startTutorial(),
     coop: this.coopBridge,
+    station: this.stationBridge ?? undefined,
   };
 
   protected onLoad(): void {
+    const storage = runLogStorage();
+    if (storage) {
+      startRunLog(storage, { platform: sys.isNative ? '本机客户端' : '网页版' });
+      installRunLogErrorHooks(storage);
+    }
     console.info('[SpaceFight boot] scene loaded');
     nativeTrace('boot: scene loaded');
+    logStage('场景已载入');
     this.initializePlatformRuntime();
     if (sys.isNative) {
       try {
@@ -526,6 +569,7 @@ export class CombatBootstrap extends Component {
     if (!sys.isNative) this.initializeBrowserRuntime();
     void this.initialize().catch((error: unknown) => {
       console.error('SpaceFight combat initialization failed', error);
+      logStage('初始化失败', error instanceof Error ? error.message : '未知错误');
       this.nativeHud?.showBootError(error instanceof Error ? error.message : 'unknown error');
       dispatchBrowserEvent('spacefight:engine-error');
     });
@@ -643,6 +687,8 @@ export class CombatBootstrap extends Component {
   }
 
   protected onDestroy(): void {
+    const storage = runLogStorage();
+    if (storage) finishRunLog(storage, 'normal', '正常退出');
     graphicsAdviceChannel.clear();
     this.cocosInput?.detach();
     this.cocosInput = null;
@@ -884,6 +930,39 @@ export class CombatBootstrap extends Component {
     this.nativeHud?.setCoopState('error', '请先输入房间码');
   }
 
+  /** 站内玩法系统：用本机存储存档，经济与商城共用同一份星港券。 */
+  private createStationSystem(): StationSystem | null {
+    try {
+      const storage = sys.localStorage;
+      if (!storage || typeof storage.getItem !== 'function' || typeof storage.setItem !== 'function') return null;
+      return new StationSystem(storage, {
+        getTickets: () => loadEconomy().starportTickets,
+        spendTickets: (amount, receipt) => spendStarportTickets(amount, receipt).ok,
+        grantTickets: (amount, receipt) => grantTickets(amount, receipt).ok,
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  /** 把 StationSystem 适配成 HUD 用的只读快照 + 派发接口（HUD 不直接持有实例）。 */
+  private createStationBridge(system: StationSystem): StationHudBridge {
+    return {
+      snapshot: () => system.snapshot(),
+      tickets: () => loadEconomy().starportTickets,
+      acceptContract: (id) => system.acceptContract(id),
+      claimContract: (id) => system.claimContract(id),
+      buy: (good, qty) => system.buy(good, qty),
+      sell: (good, qty) => system.sell(good, qty),
+      interactFacility: (id) => system.interactFacility(id),
+      completeRefit: (accuracy) => system.completeRefit(accuracy),
+      contractDefs: () => CONTRACTS,
+      tradeGoods: () => TRADE_GOODS,
+      facilityDefs: () => FACILITIES,
+      market: () => system.market(),
+    };
+  }
+
   /** 前哨站内服务：返航不再自动回满三量，玩家花星港券决定修哪一项。 */
   private readonly applyStationService = (service: StationServiceId): void => {
     if (!this.dockedAtOutpost) return;
@@ -959,6 +1038,12 @@ export class CombatBootstrap extends Component {
     );
     const gain = balanceAfter.starportTickets - balanceBefore;
     this.nativeHud?.showTicketSettlement(gain);
+    // 站内玩法：一趟远征结束推进合约进度（按击杀 / 货值 / 趟数），并刷新交易行情，
+    // 让低买高卖的价差随返航变化。只在这里（返航结算）调用一次，绝不放进每帧循环。
+    if (this.stationSystem) {
+      this.stationSystem.recordTrip({ kills, cargoValue });
+      this.stationSystem.refreshMarket();
+    }
     dispatchBrowserEvent('spacefight:tickets-awarded', {
       amount: gain, cargoValue, kills, balance: balanceAfter.starportTickets,
     });
@@ -1312,14 +1397,17 @@ export class CombatBootstrap extends Component {
       this.nativeHud.syncCombat(this.snapshot);
       console.info('[SpaceFight boot] native HUD ready');
       nativeTrace('boot: native HUD ready');
+      logStage('战斗界面就绪');
     } catch (error: unknown) {
       console.error('[SpaceFight boot] native HUD unavailable; combat remains playable', error);
+      logStage('战斗界面初始化失败', error instanceof Error ? error.message : '未知错误');
     }
   }
 
   private async initialize(): Promise<void> {
     installNativeErrorHooks();
     nativeTrace('boot: initialize');
+    logStage('战斗系统初始化');
     const scene = this.node.scene;
     if (!scene) {
       throw new Error('Combat scene root is unavailable');
@@ -1488,9 +1576,11 @@ export class CombatBootstrap extends Component {
       this.combatVisuals.attachStarfield(camera);
       console.info('[SpaceFight boot] combat visuals ready');
       nativeTrace('boot: combat visuals ready');
+      logStage('战斗画面与特效就绪');
     } catch (error: unknown) {
       this.combatVisuals = null;
       console.error('[SpaceFight boot] combat visuals unavailable', error);
+      logStage('特效层不可用', error instanceof Error ? error.message : '未知错误');
     }
   }
 
@@ -1519,6 +1609,9 @@ export class CombatBootstrap extends Component {
       }
       this.hudDispatchElapsed = 0;
       this.nativeHud?.syncCombat(this.snapshot);
+      // 首飞校准开启时把玩家设为无敌：教学阶段不该被敌人打死
+      // （校准面板是半透明全屏覆盖，实战仍在跑，否则新手一进场就被抡）。
+      this.simulation.setPlayerInvulnerable(this.nativeHud?.isCalibrating ?? false);
       return;
     }
     if (typeof window === 'undefined') {
