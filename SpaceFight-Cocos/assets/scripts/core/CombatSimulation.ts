@@ -2966,7 +2966,8 @@ export class CombatSimulation {
     return this.snapshot();
   }
 
-  public departOutpost(): CombatSnapshot {
+  public departOutpost(additionalShieldCapacity = 0): CombatSnapshot {
+    this.baseMaxShield += Math.max(0, Math.floor(finiteNumber(additionalShieldCapacity, 0)));
     this.combatEvents = [];
     this.docked = false;
     // 完整重置战局：否则离港首帧沿用上一局 wave/kills，会「立刻通关」并再次自动入港。

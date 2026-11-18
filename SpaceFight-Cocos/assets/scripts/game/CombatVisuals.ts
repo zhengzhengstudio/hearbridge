@@ -122,7 +122,7 @@ export class CombatVisuals {
   }
 
   public recycleAll(): void {
-    for (const node of [...this.activeBillboards]) this.recycleBillboard(node);
+    for (const node of Array.from(this.activeBillboards)) this.recycleBillboard(node);
     for (const piece of this.debris) piece.node.destroy();
     this.debris.length = 0;
   }

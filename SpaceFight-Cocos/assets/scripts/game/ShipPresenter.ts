@@ -635,7 +635,7 @@ export class ShipPresenter {
 
   public async enableHighQuality(graphicsTier: GraphicsTier): Promise<void> {
     if (!selectAssetBundles(graphicsTier).includes('spacefight-high')) return;
-    const kinds = [...new Set(this.shipKinds.values())].filter(
+    const kinds = Array.from(new Set(this.shipKinds.values())).filter(
       (kind): kind is ShipKind => Boolean(MODEL_NORMALIZATION[kind]),
     );
     const loaded = await Promise.all(kinds.map(async (kind) => {

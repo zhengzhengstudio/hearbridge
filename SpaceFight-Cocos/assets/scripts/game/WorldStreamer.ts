@@ -234,8 +234,8 @@ export class WorldStreamer {
         return;
       }
       this.detailedOutpost = prefab;
-      const chunks = [...this.chunkPool, ...this.activeChunks.values()];
-      for (const chunk of chunks) this.installDetailedOutpost(chunk.station);
+      this.chunkPool.forEach((chunk) => this.installDetailedOutpost(chunk.station));
+      this.activeChunks.forEach((chunk) => this.installDetailedOutpost(chunk.station));
     });
   }
 

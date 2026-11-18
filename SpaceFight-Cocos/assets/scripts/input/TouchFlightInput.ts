@@ -65,6 +65,7 @@ export class TouchFlightInput {
   private lookX = 0;
   private lookY = 0;
   private readonly actions = new Map<number, TouchAction>();
+  private readonly pendingTaps = new Set<TouchAction>();
   private movementGeometry: MovementGeometry | null = null;
 
   constructor(viewport: TouchViewport, settings?: Partial<InputSettings>) {
@@ -101,6 +102,8 @@ export class TouchFlightInput {
 
   beginAction(pointerId: number, action: TouchAction): void {
     this.actions.set(pointerId, action);
+    // A complete tap can arrive between two simulation frames on slow devices.
+    if (action !== 'boost') this.pendingTaps.add(action);
   }
 
   movePointer(pointerId: number, x: number, y: number): void {
@@ -135,6 +138,8 @@ export class TouchFlightInput {
     );
     const pitchDirection = this.settings.invertY ? 1 : -1;
     const activeActions = new Set(this.actions.values());
+    this.pendingTaps.forEach((action) => activeActions.add(action));
+    this.pendingTaps.clear();
     const command = normalizeFlightCommand({
       throttle: -shapedMovement.y,
       strafe: shapedMovement.x,
@@ -162,6 +167,7 @@ export class TouchFlightInput {
     this.lookX = 0;
     this.lookY = 0;
     this.actions.clear();
+    this.pendingTaps.clear();
   }
 
   resize(viewport: TouchViewport): void {

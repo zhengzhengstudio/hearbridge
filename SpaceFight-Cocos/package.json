@@ -1,7 +1,7 @@
 {
   "name": "spacefight-cocos",
-  "version": "0.13.33",
-  "build": 97,
+  "version": "0.13.35",
+  "build": 99,
   "private": true,
   "scripts": {
     "build:web:release": "node tools/build-web-release.js",

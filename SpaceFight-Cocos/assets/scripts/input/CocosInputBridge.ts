@@ -328,7 +328,7 @@ export class CocosInputBridge {
     } else if (role && role !== 'look') {
       // 修复：多指同按同一动作时，只有没有其它指针仍持有该 role 才熄灭高亮，
       // 避免任一指抬起就把仍在开火的动作置为 false。
-      const stillHeld = [...this.roles.values()].some((held) => held === role);
+      const stillHeld = Array.from(this.roles.values()).some((held) => held === role);
       if (!stillHeld) this.feedback?.setAction(role, false);
     }
   };

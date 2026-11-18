@@ -92,6 +92,7 @@ export interface StationSave {
   readonly refitBest: number;
   /** 返航趟数计数器，任务交付与设施冷却共用。 */
   readonly trips: number;
+  readonly transactionSequence: number;
 }
 
 export interface StationStorage {
@@ -134,6 +135,7 @@ export function defaultStationSave(): StationSave {
     refitCount: 0,
     refitBest: 0,
     trips: 0,
+    transactionSequence: 0,
   };
 }
 
@@ -173,6 +175,7 @@ export function parseStationSave(raw: string | null): StationSave {
       refitCount: Math.max(0, Math.floor(finite(parsed.refitCount, 0))),
       refitBest: clamp(Math.floor(finite(parsed.refitBest, 0)), 0, 100),
       trips: Math.max(0, Math.floor(finite(parsed.trips, 0))),
+      transactionSequence: Math.max(0, Math.floor(finite(parsed.transactionSequence, 0))),
     };
   } catch (_) {
     return defaultStationSave();
@@ -187,8 +190,6 @@ function priceFor(good: TradeGood, seed: number): number {
 
 export class StationSystem {
   private state: StationSave;
-  /** 单调交易序号：让每次买卖/领券的 receipt 唯一，避免同趟内连续买两次被幂等误挡。 */
-  private txnSeq = 0;
 
   constructor(
     private readonly storage: StationStorage,
@@ -206,10 +207,10 @@ export class StationSystem {
   }
 
   private nextReceipt(kind: string): string {
-    this.txnSeq += 1;
-    // 带命名空间 + 单调序号：同一会话每次调用都唯一，正常连续交易不会被幂等挡住；
-    // 命名空间避免与商城/远征结算共用 receipts 池时串号。
-    return `sf.station.${kind}.${this.state.trips}.${this.txnSeq}`;
+    const transactionSequence = this.state.transactionSequence + 1;
+    this.state = { ...this.state, transactionSequence };
+    this.persist();
+    return `sf.station.v2.${kind}.${transactionSequence}`;
   }
 
   // ---------- 任务板 ----------
@@ -287,8 +288,11 @@ export class StationSystem {
 
   public buy(goodId: TradeGoodId, qty = 1): Result {
     const qtySafe = Math.floor(qty);
-    if (!TRADE_GOODS.some((g) => g.id === goodId) || qtySafe < 1) return { ok: false, reason: 'invalid-order' };
+    if (!TRADE_GOODS.some((g) => g.id === goodId) || !Number.isSafeInteger(qtySafe) || qtySafe < 1) return { ok: false, reason: 'invalid-order' };
     const cost = this.market()[goodId].buy * qtySafe;
+    if (!Number.isSafeInteger(cost) || !Number.isSafeInteger(this.state.holdings[goodId] + qtySafe)) {
+      return { ok: false, reason: 'invalid-order' };
+    }
     if (!this.economy.spendTickets(cost, this.nextReceipt('buy'))) return { ok: false, reason: 'insufficient' };
     this.state = {
       ...this.state,
@@ -300,9 +304,10 @@ export class StationSystem {
 
   public sell(goodId: TradeGoodId, qty = 1): Result {
     const qtySafe = Math.floor(qty);
-    if (!TRADE_GOODS.some((g) => g.id === goodId) || qtySafe < 1) return { ok: false, reason: 'invalid-order' };
+    if (!TRADE_GOODS.some((g) => g.id === goodId) || !Number.isSafeInteger(qtySafe) || qtySafe < 1) return { ok: false, reason: 'invalid-order' };
     if (this.state.holdings[goodId] < qtySafe) return { ok: false, reason: 'insufficient-stock' };
     const payout = this.market()[goodId].sell * qtySafe;
+    if (!Number.isSafeInteger(payout)) return { ok: false, reason: 'invalid-order' };
     if (!this.economy.grantTickets(payout, this.nextReceipt('sell'))) return { ok: false, reason: 'grant-failed' };
     this.state = {
       ...this.state,
@@ -342,14 +347,16 @@ export class StationSystem {
 
   // ---------- 校准改装小游戏 ----------
 
-  /**
-   * 一次性校准判定：给一个 0~100 的准度，越接近 100 效果越好。
-   * 改装消耗券（与 serviceStation 的 refit 价格错开），按准度提升永久护盾改装次数。
-   * 纯逻辑：上层把一次点击/拖动换算成 accuracy 传进来。
-   */
+  public shieldCapacityBonus(): number {
+    return Math.floor(this.state.refitBest / 5);
+  }
+
   public completeRefit(accuracy: number): Result {
-    const acc = clamp(Math.floor(finite(accuracy, 0)), 0, 100);
-    if (acc < 40) return { ok: false, reason: 'calibration-failed' };
+    if (!Number.isFinite(accuracy) || accuracy < 40 || accuracy > 100) {
+      return { ok: false, reason: 'calibration-failed' };
+    }
+    const acc = Math.floor(accuracy);
+    if (acc <= this.state.refitBest) return { ok: false, reason: 'no-improvement' };
     const price = 60;
     if (!this.economy.spendTickets(price, this.nextReceipt('refit'))) return { ok: false, reason: 'insufficient' };
     this.state = {

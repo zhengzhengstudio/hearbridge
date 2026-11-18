@@ -153,7 +153,7 @@ export class ProjectilePresenter {
   }
 
   public recycleAll(): void {
-    for (const projectileId of [...this.activeProjectiles.keys()]) {
+    for (const projectileId of Array.from(this.activeProjectiles.keys())) {
       this.recycle(projectileId);
     }
   }

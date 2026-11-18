@@ -425,6 +425,7 @@ function browserStorage(): Storage | undefined {
 }
 
 export class CombatBootstrap extends Component {
+  private readonly stationSystem: StationSystem | null = this.createStationSystem();
   private simulation = this.createSimulation();
   private snapshot: CombatSnapshot = this.simulation.step({}, 0);
   private shipPresenter: ShipPresenter | null = null;
@@ -463,8 +464,8 @@ export class CombatBootstrap extends Component {
   private pendingBrowserCombatEvents: CombatSnapshot['combatEvents'] = [];
   private togglePauseRequested = false;
   private dockedAtOutpost = false;
+  private pendingCalibrationShield = 0;
   /** 站内玩法系统：任务板 / 交易 / 设施 / 校准改装，存档与经济端口在此注入。 */
-  private readonly stationSystem: StationSystem | null = this.createStationSystem();
   private readonly stationBridge: StationHudBridge | null = this.stationSystem
     ? this.createStationBridge(this.stationSystem)
     : null;
@@ -955,7 +956,12 @@ export class CombatBootstrap extends Component {
       buy: (good, qty) => system.buy(good, qty),
       sell: (good, qty) => system.sell(good, qty),
       interactFacility: (id) => system.interactFacility(id),
-      completeRefit: (accuracy) => system.completeRefit(accuracy),
+      completeRefit: (accuracy) => {
+        const before = system.shieldCapacityBonus();
+        const result = system.completeRefit(accuracy);
+        if (result.ok) this.pendingCalibrationShield += system.shieldCapacityBonus() - before;
+        return result;
+      },
       contractDefs: () => CONTRACTS,
       tradeGoods: () => TRADE_GOODS,
       facilityDefs: () => FACILITIES,
@@ -1005,6 +1011,7 @@ export class CombatBootstrap extends Component {
   private resetSimulation(loadout = readBrowserLoadout(), preset = readBrowserMissionPreset()): void {
     this.shipPresenter?.setPlayerShipKind(resolveLoadout(loadout).ship);
     this.simulation = this.createSimulation(loadout, preset);
+    this.pendingCalibrationShield = 0;
     this.snapshot = this.simulation.step({}, 0);
     this.previousHealth = this.snapshot.player.health + this.snapshot.player.shield;
     this.inputRouter?.releaseAll();
@@ -1076,7 +1083,7 @@ export class CombatBootstrap extends Component {
     this.nativeHud?.clearTicketSettlement();
     // 从暂停面板回主页再部署时，dockedAtOutpost 为 false 会在下面直接 return；
     // 必须先把仿真暂停解掉，否则新一局开场就是静止战场。
-    if (this.snapshot.paused) this.simulation.setPaused(false);
+    if (this.snapshot.paused) this.snapshot = this.simulation.setPaused(false);
     if (!this.dockedAtOutpost) {
       this.updateCamera(this.snapshot);
       return;
@@ -1085,7 +1092,8 @@ export class CombatBootstrap extends Component {
     // 离港必须解除启动闸门，否则战斗主循环会一直停在暂停分支，
     // 玩家"离港"后游戏仍冻结 —— 表现为进哨站后无法离开太空。
     this.pausedByLaunchGate = false;
-    this.snapshot = this.simulation.departOutpost();
+    this.snapshot = this.simulation.departOutpost(this.pendingCalibrationShield);
+    this.pendingCalibrationShield = 0;
     this.previousHealth = this.snapshot.player.health + this.snapshot.player.shield;
     this.inputRouter?.releaseAll();
     this.projectilePresenter?.recycleAll();
@@ -1109,6 +1117,7 @@ export class CombatBootstrap extends Component {
       : this.currentMissionPreset;
     this.currentMissionPreset = preset;
     this.simulation = this.createSimulation(this.snapshot.loadout, preset);
+    this.pendingCalibrationShield = 0;
     this.snapshot = this.simulation.step({}, 0);
     this.previousHealth = this.snapshot.player.health + this.snapshot.player.shield;
     this.inputRouter?.releaseAll();
@@ -1190,7 +1199,7 @@ export class CombatBootstrap extends Component {
       loadout,
       cargoCapacityBonus: economy.cargoExpansion * 2,
       pickupRadiusBonus: economy.tractorCalibration * 2,
-      shieldCapacityBonus: economy.shieldExpansion * 6,
+      shieldCapacityBonus: economy.shieldExpansion * 6 + (this.stationSystem?.shieldCapacityBonus() ?? 0),
       // 站内维修/补给/改装与商城共用同一份星港券，不再走仿真内置假余额。
       economy: {
         getTickets: () => loadEconomy().starportTickets,
@@ -1220,9 +1229,9 @@ export class CombatBootstrap extends Component {
     // 降档时复位高模 flag 与敌机预算；切档前显式释放 WorldStreamer 自建网格/材质。
     if (tier === 'low') this.shipPresenter?.disableHighQuality();
     if (this.initialized && this.worldRoot) {
-      this.worldStreamer?.dispose();
       const staleWorldChunks = [...this.worldRoot.children];
       this.worldRoot.removeAllChildren();
+      this.worldStreamer?.dispose();
       for (const chunk of staleWorldChunks) {
         chunk.destroy();
       }
@@ -1555,7 +1564,7 @@ export class CombatBootstrap extends Component {
       this.combatFeedbackPresenter = new CombatFeedbackPresenter(
         feedbackRoot,
         this.graphicsProfile.feedbackPoolSize,
-        this.graphicsProfile.feedbackLights,
+        this.graphicsProfile.feedbackLights && !sys.isBrowser,
       );
       console.info('[SpaceFight boot] combat feedback rendering ready');
       nativeTrace('boot: combat feedback rendering ready');
@@ -1586,10 +1595,10 @@ export class CombatBootstrap extends Component {
 
   private initializeOptionalEffects(combatRoot: Node, player: Node): void {
     try {
-      if (this.graphicsTier === 'high') {
+      if (this.graphicsTier === 'high' && !sys.isBrowser) {
         this.createFillLight(combatRoot);
         this.createDamageFeedback(player);
-        if (!sys.isBrowser) this.createSpeedParticles(player);
+        this.createSpeedParticles(player);
       }
     } catch (error: unknown) {
       console.warn('[SpaceFight boot] optional combat effects disabled', error);
