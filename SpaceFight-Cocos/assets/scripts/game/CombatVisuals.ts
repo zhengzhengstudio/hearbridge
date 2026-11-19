@@ -6,8 +6,6 @@ import {
   NodePool,
   primitives,
   resources,
-  Sprite,
-  SpriteFrame,
   Texture2D,
   tween,
   utils,
@@ -33,7 +31,8 @@ const Tween: { stopAllByTarget(target?: object): void } | undefined = (cc as any
  */
 interface Billboard {
   readonly node: Node;
-  readonly sprite: Sprite;
+  readonly material: Material;
+  readonly color: Color;
   /** acquire 代号：旧 tween 回调带旧代号，回收时据此判失效。 */
   readonly generation: number;
 }
@@ -64,10 +63,14 @@ export class CombatVisuals {
   private readonly debris: Debris[] = [];
   private readonly debrisMaterial = unlitMaterial(new Color(255, 168, 72, 255));
   private readonly debrisMesh = utils.createMesh(primitives.box(0.22));
-  private explosionFrame: SpriteFrame | null = null;
-  private muzzleFrame: SpriteFrame | null = null;
-  private sparkFrame: SpriteFrame | null = null;
-  private starfield: Sprite | null = null;
+  private readonly billboardMesh = utils.createMesh(primitives.quad());
+  private readonly billboardSurfaces = new Map<Node, { material: Material; color: Color }>();
+  private explosionFrame: Texture2D | null = null;
+  private muzzleFrame: Texture2D | null = null;
+  private sparkFrame: Texture2D | null = null;
+  private starfield: Node | null = null;
+  private skyMaterial: Material | null = null;
+  private disposed = false;
   private lastEventId = 0;
   private lastTick = 0;
   private cameraNode: Node | null = null;
@@ -75,7 +78,7 @@ export class CombatVisuals {
   private billboardGeneration = 0;
   private readonly billboardTokens = new Map<Node, number>();
 
-  public constructor(private readonly parent: Node) {}
+  public constructor(private readonly parent: Node, private readonly debrisLimit = 24) {}
 
   /** 异步载入贴图；缺失时静默降级，绝不阻塞战斗 */
   public loadTextures(): void {
@@ -92,20 +95,18 @@ export class CombatVisuals {
   public attachStarfield(camera: Node): void {
     this.cameraNode = camera;
     this.loadFrame(STARFIELD_TEXTURE, (frame) => {
-      if (this.starfield) {
-        this.starfield.spriteFrame = frame;
-        return;
-      }
+      if (this.starfield) return;
       const node = new Node('Starfield');
       node.setParent(camera);
-      const sprite = node.addComponent(Sprite);
-      sprite.spriteFrame = frame;
-      sprite.sizeMode = Sprite.SizeMode.CUSTOM;
-      // 距离 900、FOV 62° 时可见高度约 1080；放大到 3600×2400 兼容超宽屏/竖屏/FOV 冲击
-      sprite.width = 3600;
-      sprite.height = 2400;
+      node.layer = camera.layer;
       node.setPosition(0, 0, -900);
-      this.starfield = sprite;
+      node.setScale(3600, 2025, 1);
+      this.skyMaterial = this.texturedMaterial(frame, false);
+      this.skyMaterial.setProperty('mainColor', new Color(164, 176, 192, 255));
+      const renderer = node.addComponent(MeshRenderer);
+      renderer.mesh = this.billboardMesh;
+      renderer.setMaterial(this.skyMaterial, 0);
+      this.starfield = node;
     });
   }
 
@@ -127,6 +128,22 @@ export class CombatVisuals {
     this.debris.length = 0;
   }
 
+  public dispose(): void {
+    this.disposed = true;
+    this.recycleAll();
+    this.billboardPool.clear();
+    if (this.starfield) {
+      this.starfield.active = false;
+      this.starfield.destroy();
+    }
+    for (const surface of this.billboardSurfaces.values()) surface.material.destroy();
+    this.billboardSurfaces.clear();
+    this.skyMaterial?.destroy();
+    this.billboardMesh.destroy();
+    this.debrisMaterial.destroy();
+    this.debrisMesh.destroy();
+  }
+
   private present(event: CombatEvent): void {
     if (event.type === 'destroyed') {
       this.spawnExplosion(event);
@@ -146,25 +163,20 @@ export class CombatVisuals {
     if (this.explosionFrame) {
       const billboard = this.acquireBillboard(this.explosionFrame);
       billboard.node.setWorldPosition(new Vec3(event.position.x, event.position.y, event.position.z));
-      billboard.node.setScale(0.5, 0.5, 0.5);
-      billboard.sprite.color = new Color(255, 255, 255, 255);
+      billboard.node.setScale(1.4, 1.4, 1);
       tween(billboard.node)
-        .to(0.16, { scale: new Vec3(2.6, 2.6, 2.6) })
-        .to(0.26, { scale: new Vec3(3.6, 3.6, 3.6) })
+        .to(0.12, { scale: new Vec3(6.2, 6.2, 1) })
+        .to(0.32, { scale: new Vec3(9, 9, 1) })
         .call(() => this.recycleBillboard(billboard.node, billboard.generation))
         .start();
-      // 淡出靠 sprite.color
-      const sprite = billboard.sprite;
-      tween(sprite)
-        .delay(0.16)
-        .to(0.26, { color: new Color(255, 255, 255, 0) })
-        .start();
+      this.fade(billboard, 0.32, 0.12);
     }
     this.spawnDebris(event.position, 8);
   }
 
   private spawnDebris(position: { x: number; y: number; z: number }, count: number): void {
-    for (let index = 0; index < count; index += 1) {
+    const available = Math.min(count, this.debrisLimit - this.debris.length);
+    for (let index = 0; index < available; index += 1) {
       const node = new Node('CombatDebris');
       node.setParent(this.parent);
       node.setWorldPosition(new Vec3(position.x, position.y, position.z));
@@ -199,7 +211,6 @@ export class CombatVisuals {
         continue;
       }
       const position = piece.node.worldPosition;
-      piece.velocity.y -= 7 * deltaTime;
       piece.node.setWorldPosition(new Vec3(
         position.x + piece.velocity.x * deltaTime,
         position.y + piece.velocity.y * deltaTime,
@@ -216,15 +227,12 @@ export class CombatVisuals {
     if (!this.muzzleFrame) return;
     const billboard = this.acquireBillboard(this.muzzleFrame);
     billboard.node.setWorldPosition(new Vec3(event.position.x, event.position.y, event.position.z));
-    billboard.node.setScale(0.45, 0.45, 0.45);
-    billboard.sprite.color = new Color(255, 255, 255, 255);
+    billboard.node.setScale(0.55, 0.55, 1);
     tween(billboard.node)
-      .to(0.09, { scale: new Vec3(1.5, 1.5, 1.5) })
+      .to(0.09, { scale: new Vec3(2.1, 2.1, 1) })
       .call(() => this.recycleBillboard(billboard.node, billboard.generation))
       .start();
-    tween(billboard.sprite)
-      .to(0.09, { color: new Color(255, 255, 255, 0) })
-      .start();
+    this.fade(billboard, 0.09);
   }
 
   // ---- 命中火花 ----
@@ -232,17 +240,17 @@ export class CombatVisuals {
     if (!this.sparkFrame) return;
     const billboard = this.acquireBillboard(this.sparkFrame);
     billboard.node.setWorldPosition(new Vec3(event.position.x, event.position.y, event.position.z));
-    billboard.node.setScale(0.28, 0.28, 0.28);
-    billboard.sprite.color = event.type === 'shield-break'
-      ? new Color(120, 226, 255, 255)
-      : new Color(255, 240, 210, 255);
+    const shield = event.type === 'shield-break';
+    const duration = shield ? 0.28 : 0.16;
+    const scale = shield ? 4.5 : 2.6;
+    billboard.node.setScale(0.6, 0.6, 1);
+    billboard.color.set(shield ? 112 : 255, shield ? 221 : 212, shield ? 255 : 166, 255);
+    billboard.material.setProperty('mainColor', billboard.color);
     tween(billboard.node)
-      .to(0.16, { scale: new Vec3(0.85, 0.85, 0.85) })
+      .to(duration, { scale: new Vec3(scale, scale, 1) })
       .call(() => this.recycleBillboard(billboard.node, billboard.generation))
       .start();
-    tween(billboard.sprite)
-      .to(0.16, { color: new Color(255, 255, 255, 0) })
-      .start();
+    this.fade(billboard, duration);
   }
 
   /** 公告板始终朝向相机 */
@@ -255,20 +263,27 @@ export class CombatVisuals {
     }
   }
 
-  private acquireBillboard(frame: SpriteFrame): Billboard {
+  private acquireBillboard(frame: Texture2D): Billboard {
     const node = this.billboardPool.get() || new Node('CombatVisuals.Billboard');
     node.setParent(this.parent);
+    let surface = this.billboardSurfaces.get(node);
+    if (!surface) {
+      surface = { material: this.texturedMaterial(frame, true), color: new Color(255, 255, 255, 255) };
+      const renderer = node.addComponent(MeshRenderer);
+      renderer.mesh = this.billboardMesh;
+      renderer.setMaterial(surface.material, 0);
+      this.billboardSurfaces.set(node, surface);
+    }
+    surface.color.set(255, 255, 255, 255);
+    surface.material.setProperty('mainTexture', frame);
+    surface.material.setProperty('mainColor', surface.color);
+    if (this.cameraNode) node.setWorldRotation(this.cameraNode.worldRotation);
     node.active = true;
     this.activeBillboards.add(node);
-    const sprite = node.getComponent(Sprite) || node.addComponent(Sprite);
-    sprite.spriteFrame = frame;
-    sprite.sizeMode = Sprite.SizeMode.CUSTOM;
-    sprite.width = 128;
-    sprite.height = 128;
     // 每次 acquire 递增代号，旧 tween 的 .call() 因代号不匹配而失效。
     const generation = ++this.billboardGeneration;
     this.billboardTokens.set(node, generation);
-    return { node, sprite, generation };
+    return { node, ...surface, generation };
   }
 
   private recycleBillboard(node: Node, generation?: number): void {
@@ -276,20 +291,32 @@ export class CombatVisuals {
     // 旧回调（代号已过期）不得提前回收重新取出的新特效。
     if (generation !== undefined && this.billboardTokens.get(node) !== generation) return;
     this.activeBillboards.delete(node);
+    this.billboardTokens.delete(node);
     // 先停掉节点 / sprite 上仍在跑的 tween 再入池，避免旧 .call() 二次回收。
     if (Tween) Tween.stopAllByTarget(node);
-    const sprite = node.getComponent(Sprite);
-    if (Tween && sprite) Tween.stopAllByTarget(sprite);
+    const surface = this.billboardSurfaces.get(node);
+    if (Tween && surface) Tween.stopAllByTarget(surface.color);
     node.active = false;
     this.billboardPool.put(node);
   }
 
-  private loadFrame(path: string, apply: (frame: SpriteFrame) => void): void {
+  private texturedMaterial(texture: Texture2D, transparent: boolean): Material {
+    const material = new Material();
+    material.initialize({ effectName: 'builtin-unlit', technique: transparent ? 1 : 0, defines: { USE_TEXTURE: true } });
+    material.setProperty('mainTexture', texture);
+    return material;
+  }
+
+  private fade(billboard: Billboard, duration: number, delay = 0): void {
+    tween(billboard.color).delay(delay).to(duration, { a: 0 }, {
+      onUpdate: () => billboard.material.setProperty('mainColor', billboard.color),
+    }).start();
+  }
+
+  private loadFrame(path: string, apply: (frame: Texture2D) => void): void {
     resources.load(path, Texture2D, (error: Error | null, texture?: Texture2D) => {
-      if (error || !texture) return;
-      const frame = new SpriteFrame();
-      frame.texture = texture;
-      apply(frame);
+      if (this.disposed || error || !texture) return;
+      apply(texture);
     });
   }
 }

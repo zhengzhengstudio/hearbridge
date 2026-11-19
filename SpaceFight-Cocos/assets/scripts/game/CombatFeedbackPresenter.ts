@@ -72,7 +72,7 @@ export class CombatFeedbackPresenter {
   }
 
   public recycleAll(): void {
-    for (const node of [...this.active]) this.recycle(node);
+    for (const node of Array.from(this.active)) this.recycle(node);
   }
 
   private present(event: CombatEvent): void {

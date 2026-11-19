@@ -199,15 +199,13 @@ def build_outpost(output_file, detail):
                     (side * 3.8, 1.25 + index * 1.1, -4.3),
                     (2.5, 0.12, 0.16), amber if index == 1 else dark, bevel=0.02)
 
-        # The runtime keeps its functional hangar and interior modules when this
-        # detailed exterior is installed. Remove their baked visual duplicates to
-        # prevent z-fighting and keep the approach opening readable.
-        interior_prefixes = (
-            "Interior", "Hangar", "DoorWarning", "CargoLatch", "DeckPanel"
-        )
-        for obj in list(bpy.context.scene.objects):
-            if obj.type == "MESH" and obj.name.startswith(interior_prefixes):
-                bpy.data.objects.remove(obj, do_unlink=True)
+    # Both tiers share the navigable interior supplied by the runtime.
+    interior_prefixes = (
+        "Interior", "Hangar", "DoorWarning", "CargoLatch", "DeckPanel"
+    )
+    for obj in list(bpy.context.scene.objects):
+        if obj.type == "MESH" and obj.name.startswith(interior_prefixes):
+            bpy.data.objects.remove(obj, do_unlink=True)
 
     consolidate_by_material()
     root = bpy.data.objects.new(
@@ -216,7 +214,7 @@ def build_outpost(output_file, detail):
     root["spacefight_environment_version"] = 2
     root["spacefight_detail_tier"] = detail
     root["supports_visible_interior"] = True
-    root["exterior_shell_only"] = detail == "high"
+    root["exterior_shell_only"] = True
     for obj in list(bpy.context.scene.objects):
         if obj.type == "MESH":
             obj.parent = root

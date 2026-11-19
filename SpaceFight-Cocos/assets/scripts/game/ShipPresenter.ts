@@ -300,6 +300,7 @@ export class ShipPresenter {
   private readonly shipVisuals = new Map<Node, Node>();
   private playerNode: Node | null = null;
   private playerVisual: Node | null = null;
+  private escortNode: Node | null = null;
   /** fallback 机体只尝试补建一次，避免原生端创建失败时每帧重复尝试刷警告。 */
   private fallbackVisualAttempted = false;
   /** 当前玩家机型；由装配台的 ship 槽位驱动，缺省仍是基线截击机。 */
@@ -503,6 +504,7 @@ export class ShipPresenter {
 
     // 超出渲染预算的敌机优先被裁掉：按与玩家的距离从近到远保留，
     // 这样低配机在密集波次下也不会因为节点过多而掉帧。
+    this.syncEscort(snapshot.mission.escortHealth > 0 ? snapshot.mission.escortPosition : null);
     const enemies = snapshot.enemies;
     const budget = Math.max(1, this.maxVisibleEnemies);
     let renderable = enemies;
@@ -765,14 +767,15 @@ export class ShipPresenter {
     root: Node,
     isPlayer = true,
     kind: ShipKind = this.playerShipKind,
+    tint?: Color,
   ): void {
     try {
       const visual = new Node(`${root.name}.FallbackHull`);
       visual.setParent(root);
       const normalization = MODEL_NORMALIZATION[kind];
-      const color = isPlayer ? FALLBACK_PLAYER_COLOR : FALLBACK_ENEMY_COLOR;
+      const color = tint ?? (isPlayer ? FALLBACK_PLAYER_COLOR : FALLBACK_ENEMY_COLOR);
       const material = new Material();
-      material.initialize({ effectName: 'builtin-standard' });
+      material.initialize({ effectName: tint ? 'builtin-unlit' : 'builtin-standard' });
       material.setProperty('mainColor', color);
 
       const length = normalization.colliderHeight;
@@ -807,6 +810,33 @@ export class ShipPresenter {
       console.warn('[SpaceFight ships] fallback hull unavailable; continuing without visual', error);
       if (root === this.playerNode) this.playerVisual = null;
     }
+  }
+
+  private syncEscort(position: CombatSnapshot['mission']['escortPosition']): void {
+    if (!position) {
+      if (this.escortNode) this.escortNode.active = false;
+      return;
+    }
+    if (!this.escortNode) {
+      const escort = new Node('EscortTransport');
+      escort.setParent(this.parent);
+      this.escortNode = escort;
+      const tint = new Color(90, 225, 190, 255);
+      this.createFallbackVisual(escort, false, 'bomber', tint);
+      this.shipVisuals.get(escort)?.setScale(1.8, 1.35, 2.2);
+      void loadPrefab(resources, 'models-low/ships/bomber/bomber').then((prefab) => {
+        if (!escort.isValid) return;
+        const visual = this.replaceVisual(escort, 'bomber', prefab);
+        this.applyTint(visual, tint);
+        visual.setScale(
+          visual.scale.x * 1.8,
+          visual.scale.y * 1.35,
+          visual.scale.z * 2.2,
+        );
+      }).catch((error: unknown) => console.warn('SpaceFight escort model could not be loaded', error));
+    }
+    this.escortNode.active = true;
+    this.escortNode.setPosition(position.x, position.y, position.z);
   }
 
   private ensurePrefab(kind: ShipKind): Promise<LoadedModel> {

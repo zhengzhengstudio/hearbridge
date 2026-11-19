@@ -307,7 +307,7 @@ const MISSION_PRESETS: Readonly<Record<MissionPreset, MissionDefinition>> = {
     objective: {
       type: 'escort',
       surviveSeconds: 60,
-      escortStart: { x: 0, y: 0, z: 20 },
+      escortStart: { x: 10, y: 1, z: -14 },
       escortFollowDistance: 46,
     },
   },
@@ -699,6 +699,8 @@ export class CombatBootstrap extends Component {
     this.nativeHud?.destroy();
     this.nativeHud = null;
     this.gameAudio?.destroy();
+    this.combatVisuals?.dispose();
+    this.combatVisuals = null;
     this.gameAudio = null;
     // WorldStreamer 自建了材质与运行时网格，Cocos 不会随节点销毁自动释放。
     this.worldStreamer?.dispose();
@@ -1580,7 +1582,7 @@ export class CombatBootstrap extends Component {
    */
   private initializeOptionalCombatVisuals(visualsRoot: Node, camera: Node): void {
     try {
-      this.combatVisuals = new CombatVisuals(visualsRoot);
+      this.combatVisuals = new CombatVisuals(visualsRoot, this.graphicsProfile.shadows ? 24 : 8);
       this.combatVisuals.loadTextures();
       this.combatVisuals.attachStarfield(camera);
       console.info('[SpaceFight boot] combat visuals ready');
@@ -1646,6 +1648,13 @@ export class CombatBootstrap extends Component {
       paused: this.snapshot.paused,
       cameraMode: this.snapshot.cameraMode,
       missionStatus: this.snapshot.mission.status,
+      objective: {
+        type: this.snapshot.mission.objectiveType,
+        progress: this.snapshot.mission.progress,
+        target: this.snapshot.mission.progressTarget,
+        remainingHostiles: this.snapshot.enemies.length,
+        escortHealth: this.snapshot.mission.escortHealth,
+      },
       aimDistance: Math.hypot(
         this.snapshot.aimPoint.x - this.snapshot.player.position.x,
         this.snapshot.aimPoint.y - this.snapshot.player.position.y,

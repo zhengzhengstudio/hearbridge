@@ -161,6 +161,12 @@ button:focus-visible {
 
 .build-readout b { color: var(--text); font-weight: 600; }
 
+.mission-choice { display: grid; gap: 5px; max-width: 27rem; margin: 12px 0; }
+.mission-choice label { font-size: 12px; color: #b9cdd1; }
+.mission-choice select { width: 100%; min-height: 42px; padding: 6px 12px; border: 1px solid #4b7980; border-radius: 4px; background: #102129; color: #f1f7f8; font: inherit; color-scheme: dark; }
+.mission-choice select:focus-visible { outline: 2px solid #8cdee2; outline-offset: 2px; }
+.mission-choice p { min-height: 2.5em; margin: 0; color: #c2d2d7; font-size: 13px; line-height: 1.35; }
+
 .launch-briefing {
   align-self: center;
   max-width: 48rem;
@@ -1225,7 +1231,7 @@ body[data-orientation-blocked="true"] #MissionFailed { display: none !important;
 }
 
 @media (max-height: 420px) and (orientation: landscape) {
-  #LaunchGate { grid-template-rows: auto minmax(0, 1fr) auto; }
+  #LaunchGate { grid-template-rows: auto minmax(min-content, 1fr); overflow-y: auto; }
   .launch-bar { min-height: 36px; }
   .launch-briefing { align-self: start; padding: 8px 0 4px; }
   .launch-briefing h1 { font-size: clamp(30px, 11vh, 42px); line-height: .96; }
@@ -1237,7 +1243,9 @@ body[data-orientation-blocked="true"] #MissionFailed { display: none !important;
   #LaunchButton { min-height: 46px; }
   #LoadoutOpen { min-height: 38px; margin-top: 6px; padding-top: 6px; padding-bottom: 6px; }
   #LoadoutOpen b { margin-top: 3px; }
-  .launch-footer { padding-top: 5px; }
+  .launch-footer { display: none; }
+  .mission-choice { gap: 3px; margin: 6px 0; }
+  .mission-choice p { min-height: 0; }
   .loadout-options button.weapon-option { min-height: 34px; }
   .weapon-option img { width: 36px; height: 27px; }
 }

@@ -2653,7 +2653,17 @@ export class NativeCombatHud implements NativeInputFeedback {
         'Accept before launch, progress on return, claim when ready',
       );
     }
-    if (this.stationBodyLabel) this.stationBodyLabel.string = '';
+    // 2026-11-19：任务板卡片下方此前大片空白，显得「站内玩法没内容」。
+    // 用一行总览把合约状态与星港券余额摆出来，玩家一眼看得到进度。
+    if (this.stationBodyLabel) {
+      const active = save.contracts.filter((c) => c.status === 'active').length;
+      const ready = save.contracts.filter((c) => c.status === 'ready').length;
+      const done = save.contracts.filter((c) => c.status === 'claimed').length;
+      this.stationBodyLabel.string = this.st(
+        `已接取 ${active} · 待领取 ${ready} · 已完成 ${done} · 星港券 ${bridge.tickets()}`,
+        `Active ${active} · Ready ${ready} · Done ${done} · Tickets ${bridge.tickets()}`,
+      );
+    }
     let index = 0;
     for (const def of defs) {
       const progress = save.contracts.find((c) => c.id === def.id);
@@ -3024,7 +3034,8 @@ export class NativeCombatHud implements NativeInputFeedback {
     const cols = tradeLayout ? (cardWidth >= 580 ? 6 : 4) : 3;
     const rows = Math.ceil(Math.min(visibleCount, 12) / cols);
     const refitLayout = this.stationTab === 'refit';
-    const bodyHeight = refitLayout ? 72 : tradeLayout ? 23 : 0;
+    const contractsLayout = this.stationTab === 'contracts';
+    const bodyHeight = refitLayout ? 72 : tradeLayout ? 23 : contractsLayout ? 30 : 0;
     if (this.stationBodyLabel) {
       const node = this.stationBodyLabel.node;
       node.active = bodyHeight > 0;
@@ -3356,8 +3367,15 @@ export class NativeCombatHud implements NativeInputFeedback {
   }
 
   private setCombatChromeVisible(visible: boolean): void {
-    // 启动阶段无条件收起，任何调用点都不能把摇杆 / 技能钮提前点亮。
-    this.combatChromeVisible = visible && !this.startupVisible;
+    // 2026-11-19 修正：此前每个调用点各自拼 `!homeOpen && !outpostOpen && ...`，
+    // 新增的 station/keybind/runlog 三个面板漏进了这条判断——站内面板打开后，
+    // 任一 resize() 或关面板收口都会用 `setCombatChromeVisible(true)` 把摇杆/开火/
+    // 返航重新点亮，浮在站内面板上（真机截图实锤）。这里统一收口：任一覆盖面板
+    // 打开就强制隐藏战斗控件，调用点再怎么拼都不会穿透。
+    const anyOverlayOpen = this.homeOpen || this.outpostOpen || this.loadoutOpen
+      || this.defeatOpen || this.pauseOpen || this.keybindOpen || this.runlogOpen
+      || this.stationOpen || this.shouldShowTraining();
+    this.combatChromeVisible = visible && !this.startupVisible && !anyOverlayOpen;
     // 打开面板时连击/强化/武器读数也必须一并收起，否则旧读数浮在面板上。
     for (const label of [this.statusLabel, this.objectiveLabel, this.sectorLabel, this.targetLabel, this.cargoLabel, this.combatFeedLabel, this.navigationLabel, this.weaponLabel, this.abilityLabel, this.comboLabel, this.upgradeLabel]) {
       if (label) label.node.active = visible;
@@ -4991,15 +5009,14 @@ export class NativeCombatHud implements NativeInputFeedback {
         return `${this.text('objective.survive')}  ${this.text('objective.progressTime', { value: remaining })}`;
       }
       case 'collect':
-        return `${this.text('objective.collect')}  ${mission.progress}/${target}  ${this.text('objective.collectHint')}`;
+        return `${this.text('objective.collect')}  ${mission.progress}/${target}  ·  ${this.text('objective.eliminate')} ${snapshot.enemies.length}`;
       case 'hunt':
         return `${this.text('objective.hunt')}  ${mission.progress}/${target}  ${this.text('objective.huntHint')}`;
       case 'defense':
         // 守点：进度 = 守住的秒数，核心被靠近就会掉
         return `${this.text('objective.defense')}  ${Math.round(mission.progress)}/${target}  ${this.text('objective.defenseHint')}`;
       case 'escort':
-        // 护送：进度 = 运输船完好度
-        return `${this.text('objective.escort')}  ${this.text('objective.escortHp', { value: Math.round(mission.progress) })}  ${this.text('objective.escortHint', { value: Math.round(mission.progress) })}`;
+        return `${this.text('objective.escort')} ${Math.round(mission.progress)}% · ${this.text('objective.escortHp', { value: Math.round(mission.escortHealth) })}`;
       case 'eliminate':
       default:
         return `${this.text('objective.eliminate')}  ${mission.progress}/${target}`;

@@ -45,7 +45,7 @@
       "name": "Torus.mesh",
       "userData": {
         "gltfIndex": 0,
-        "triangleCount": 4992
+        "triangleCount": 3156
       },
       "ver": "1.1.1",
       "imported": true,
@@ -63,7 +63,7 @@
       "name": "Cube.001.mesh",
       "userData": {
         "gltfIndex": 1,
-        "triangleCount": 2192
+        "triangleCount": 1220
       },
       "ver": "1.1.1",
       "imported": true,
@@ -99,7 +99,7 @@
       "name": "Torus.001.mesh",
       "userData": {
         "gltfIndex": 3,
-        "triangleCount": 5880
+        "triangleCount": 4800
       },
       "ver": "1.1.1",
       "imported": true,
@@ -117,25 +117,7 @@
       "name": "Cylinder.mesh",
       "userData": {
         "gltfIndex": 4,
-        "triangleCount": 548
-      },
-      "ver": "1.1.1",
-      "imported": true,
-      "files": [
-        ".bin",
-        ".json"
-      ],
-      "subMetas": {}
-    },
-    "09513": {
-      "importer": "gltf-mesh",
-      "uuid": "ec316b7e-c8b1-4379-9c02-11676a25e672@09513",
-      "displayName": "",
-      "id": "09513",
-      "name": "Cube.018.mesh",
-      "userData": {
-        "gltfIndex": 5,
-        "triangleCount": 432
+        "triangleCount": 332
       },
       "ver": "1.1.1",
       "imported": true,
@@ -152,8 +134,8 @@
       "id": "0b568",
       "name": "Cylinder.001.mesh",
       "userData": {
-        "gltfIndex": 6,
-        "triangleCount": 2856
+        "gltfIndex": 5,
+        "triangleCount": 2208
       },
       "ver": "1.1.1",
       "imported": true,
@@ -211,22 +193,6 @@
       ],
       "subMetas": {}
     },
-    "785b0": {
-      "importer": "gltf-material",
-      "uuid": "ec316b7e-c8b1-4379-9c02-11676a25e672@785b0",
-      "displayName": "",
-      "id": "785b0",
-      "name": "Outpost_Interior.material",
-      "userData": {
-        "gltfIndex": 5
-      },
-      "ver": "1.0.14",
-      "imported": true,
-      "files": [
-        ".json"
-      ],
-      "subMetas": {}
-    },
     "4b155": {
       "importer": "gltf-material",
       "uuid": "ec316b7e-c8b1-4379-9c02-11676a25e672@4b155",
@@ -234,7 +200,7 @@
       "id": "4b155",
       "name": "Outpost_Warning.material",
       "userData": {
-        "gltfIndex": 6
+        "gltfIndex": 5
       },
       "ver": "1.0.14",
       "imported": true,
@@ -287,7 +253,6 @@
         "ec316b7e-c8b1-4379-9c02-11676a25e672@f051b",
         "ec316b7e-c8b1-4379-9c02-11676a25e672@52ffd",
         "ec316b7e-c8b1-4379-9c02-11676a25e672@c244a",
-        "ec316b7e-c8b1-4379-9c02-11676a25e672@09513",
         "ec316b7e-c8b1-4379-9c02-11676a25e672@0b568"
       ],
       "skeletons": [],
@@ -298,7 +263,6 @@
         "ec316b7e-c8b1-4379-9c02-11676a25e672@30866",
         "ec316b7e-c8b1-4379-9c02-11676a25e672@ec8df",
         "ec316b7e-c8b1-4379-9c02-11676a25e672@54756",
-        "ec316b7e-c8b1-4379-9c02-11676a25e672@785b0",
         "ec316b7e-c8b1-4379-9c02-11676a25e672@4b155"
       ],
       "scenes": [

@@ -5,6 +5,15 @@
   const canvas = document.getElementById('GameCanvas');
   const launch = document.getElementById('LaunchButton');
   const launchStatus = document.getElementById('LaunchStatus');
+  const missionPreset = document.getElementById('MissionPreset');
+  const missionBrief = document.getElementById('MissionBrief');
+  function syncMissionChoice() {
+    if (!missionPreset) return;
+    document.body.dataset.missionPreset = missionPreset.value;
+    if (missionBrief) missionBrief.textContent = missionPreset.selectedOptions[0]?.dataset.brief || '';
+  }
+  missionPreset?.addEventListener('change', syncMissionChoice);
+  syncMissionChoice();
   const launchLabel = document.getElementById('LaunchLabel');
   const resume = document.getElementById('ResumeButton');
   const restart = document.getElementById('RestartButton');
@@ -365,12 +374,23 @@
     setText('ShieldValue', Math.round(state.shield || 0));
     setText('EnergyValue', Math.round(state.energy || 0));
     setText('KillValue', state.kills || 0);
-    setText('KillTarget', state.requiredKills || 1);
     setText('WaveValue', state.wave || 1);
     setText('SectorValue', state.sectorName || '碎光航道');
     setText('EventValue', state.eventName || '敌袭预警');
     setText('CameraValue', state.cameraMode === 'cockpit' ? '驾驶舱' : '追尾');
-    setText('MissionLabel', state.missionStatus === 'complete' ? '下一波接近' : state.missionStatus === 'failed' ? '战机失联' : '清除航道威胁');
+    const objective = state.objective;
+    const progress = Math.floor(objective?.progress || 0);
+    const target = objective?.target || 0;
+    const objectiveText = {
+      collect: `回收货箱 ${progress}/${target} · 剩余敌机 ${objective?.remainingHostiles || 0}`,
+      survive: `还需坚守 ${Math.ceil(Math.max(0, target - (objective?.progress || 0)))} 秒`,
+      defense: `防区坚守 ${progress}/${target} 秒`,
+      escort: `护航进度 ${progress}% · 运输船 ${Math.round(objective?.escortHealth || 0)}%`,
+      hunt: `精英目标 ${progress}/${target}`,
+      eliminate: `击毁敌机 ${progress}/${target}`,
+    };
+    setText('MissionLabel', state.missionStatus === 'complete' ? '返航完成'
+      : state.missionStatus === 'failed' ? '战机失联' : objectiveText[objective?.type] || '清除航道威胁');
     setBar('HealthBar', state.health || 0, state.maxHealth || 100);
     setBar('ShieldBar', state.shield || 0, state.maxShield || 80);
     setBar('EnergyBar', state.energy || 0, state.maxEnergy || 100);
@@ -602,6 +622,7 @@
   });
   /* capture 阶段先于原 enterCombat 冒泡监听：每次出击前把浏览器里的任务预设同步进仿真。 */
   launch.addEventListener('click', () => {
+    syncMissionChoice();
     window.dispatchEvent(new CustomEvent('spacefight:mission-change'));
   }, true);
   window.addEventListener('spacefight:tutorial-step', (event) => {

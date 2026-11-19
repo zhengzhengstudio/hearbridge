@@ -81,7 +81,11 @@ export class WorldStreamer {
   private readonly stationBeaconMaterial = createMaterial(new Color(245, 153, 48, 255), 0.18, 0.2);
   private readonly stationInteriorMaterial = createMaterial(new Color(132, 148, 154, 255), 0.62, 0.48);
   private readonly stationGlassMaterial = createMaterial(new Color(38, 116, 140, 255), 0.4, 0.18);
-  private readonly debrisMaterial = createMaterial(new Color(78, 72, 67, 255), 0.12, 0.92);
+  // 2026-11-19：原本残骸混用亮灰蓝 stationMaterial + 灰褐 debrisMaterial，
+  // 真机像一堆斑驳白灰方块（用户称「斑点」）。统一成暗冷灰岩石色，只留一个
+  // 略亮的变体做层次，不再出现跳脱的亮蓝白块。
+  private readonly debrisMaterial = createMaterial(new Color(42, 48, 54, 255), 0.05, 0.95);
+  private readonly debrisAccentMaterial = createMaterial(new Color(58, 66, 72, 255), 0.05, 0.92);
   private readonly stationRingMesh = utils.createMesh(primitives.torus(5.8, 0.48, {
     radialSegments: 16,
     tubularSegments: 32,
@@ -186,11 +190,12 @@ export class WorldStreamer {
     for (let index = 0; index < this.profile.activeWorldChunks; index += 1) {
       this.chunkPool.push(this.createChunk(index));
     }
-    if (this.profile.detailedOutpost) this.loadDetailedOutpost();
+    this.loadDetailedOutpost(this.profile.detailedOutpost ? 'models' : 'models-low');
   }
 
   private stationAnimationTime = 0;
   private detailedOutpost: Prefab | null = null;
+  private disposed = false;
 
   public update(playerPosition: Readonly<Vec3>, deltaTime = 0): void {
     this.stationAnimationTime += Math.min(Math.max(deltaTime, 0), 0.05);
@@ -227,20 +232,33 @@ export class WorldStreamer {
     this.animateStations();
   }
 
-  private loadDetailedOutpost(): void {
-    resources.load('models/stations/outpost/outpost', Prefab, (error: Error | null, prefab: Prefab) => {
+  private loadDetailedOutpost(modelRoot: 'models' | 'models-low'): void {
+    resources.load(`${modelRoot}/stations/outpost/outpost`, Prefab, (error: Error | null, prefab: Prefab) => {
+      if (this.disposed) return;
       if (error || !prefab) {
+        if (modelRoot === 'models') {
+          this.loadDetailedOutpost('models-low');
+          return;
+        }
         console.warn('[SpaceFight world] detailed outpost unavailable; keeping modular fallback', error);
         return;
       }
       this.detailedOutpost = prefab;
-      this.chunkPool.forEach((chunk) => this.installDetailedOutpost(chunk.station));
-      this.activeChunks.forEach((chunk) => this.installDetailedOutpost(chunk.station));
+      const approach = this.activeChunks.get(chunkKey(0, 0));
+      if (approach) this.updateOutpostExterior(approach.station, true);
     });
   }
 
-  private installDetailedOutpost(station: Node): void {
-    if (!this.detailedOutpost || station.getChildByName('DetailedOutpostGLB')) return;
+  private updateOutpostExterior(station: Node, isApproach: boolean): void {
+    if (!this.detailedOutpost) return;
+    let visual = station.getChildByName('DetailedOutpostGLB');
+    if (!visual && isApproach) {
+      visual = instantiate(this.detailedOutpost);
+      visual.name = 'DetailedOutpostGLB';
+      visual.setParent(station);
+    }
+    if (!visual) return;
+    visual.active = isApproach;
     const fallbackExterior = new Set([
       'StationRing.UpperAssembly',
       'StationRing.LowerAssembly',
@@ -253,19 +271,16 @@ export class WorldStreamer {
     ]);
     for (const child of station.children) {
       if (fallbackExterior.has(child.name) || child.name.startsWith('DockingArm.')) {
-        child.active = false;
+        child.active = !isApproach;
       }
     }
-    const visual = instantiate(this.detailedOutpost);
-    visual.name = 'DetailedOutpostGLB';
-    visual.setParent(station);
-    visual.setScale(1, 1, 1);
   }
 
   public recycleChunk(chunk: WorldChunk, gridX: number, gridZ: number): void {
     chunk.gridX = gridX;
     chunk.gridZ = gridZ;
     const isSpawnChunk = gridX === 0 && gridZ === 0;
+    this.updateOutpostExterior(chunk.station, isSpawnChunk);
     const stationChunk = isSpawnChunk || Math.abs(gridX * 17 + gridZ * 31) % 11 === 0;
     const facilityIndex = Math.abs(gridX * 13 + gridZ * 23) % 11;
     const facilityChunk = !stationChunk && facilityIndex < 6;
@@ -328,7 +343,12 @@ export class WorldStreamer {
           hashCoordinate(gridX, gridZ, index * 4 + 16) * 180,
         );
         const scale = 0.6 + hashCoordinate(gridX, gridZ, index * 4 + 13) * 2.8;
-        asteroid.setScale(scale, scale * 0.7, scale * 1.15);
+        // 三轴不等比例 + 各自随机偏斜，避免所有碎石变成同款正方块堆在星空里。
+        asteroid.setScale(
+          scale * (0.7 + hashCoordinate(gridX, gridZ, index * 7 + 20) * 0.7),
+          scale * 0.55,
+          scale * (0.8 + hashCoordinate(gridX, gridZ, index * 7 + 21) * 0.6),
+        );
       }
     }
     chunk.root.active = true;
@@ -385,13 +405,14 @@ export class WorldStreamer {
       asteroid.setParent(debris);
       const renderer = asteroid.addComponent(MeshRenderer);
       const coverKind = debrisIndex % 5;
+      // 2/5 比例的近场掩体保留 box/柱体（有碰撞价值），但材质一律用暗岩石色；
+      // 其余 3/5 用不规则球体当远景碎石，减少「整齐方块斑点」的观感。
       renderer.mesh = coverKind === 0
         ? this.approachWallMesh
         : coverKind === 1 ? this.approachCargoMesh
           : coverKind === 2 ? this.approachPylonMesh : this.asteroidMesh;
       renderer.setMaterial(
-        coverKind === 0 || coverKind === 2 ? this.stationDarkMaterial
-          : coverKind === 1 ? this.stationMaterial : this.debrisMaterial,
+        coverKind === 1 ? this.debrisAccentMaterial : this.debrisMaterial,
         0,
       );
       if (this.profile.debrisColliders
@@ -698,6 +719,7 @@ export class WorldStreamer {
    * （Cocos 3.8 的 Asset.destroy），避免这些 GPU 资源在场景切换后常驻。
    */
   public dispose(): void {
+    this.disposed = true;
     const materials: Material[] = [
       this.stationMaterial,
       this.stationGlowMaterial,

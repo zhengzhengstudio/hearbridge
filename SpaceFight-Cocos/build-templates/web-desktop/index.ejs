@@ -31,23 +31,25 @@
         <img src="spacefight-icon.png" alt="SpaceFight">
         <span><b>SPACEFIGHT</b><small>INTERCEPTOR COMMAND</small></span>
       </div>
-      <div class="build-readout"><i></i> 本机战斗核心 <b>0.13.35</b></div>
+      <div class="build-readout"><i></i> 本机战斗核心 <b>0.13.37</b></div>
     </header>
 
     <section class="launch-briefing">
-      <p class="sector-label">碎光航道 / 六类作战</p>
-      <h1 id="LaunchTitle">拦截敌机、守住空间站<br>或护送运输船</h1>
-      <p class="mission-copy">驾驶 SF-09 穿越动态残骸区：采集补给、猎杀精英、限时存活、守住空间站或护送运输船，每类任务的打法都不同。战斗全程在本机运行。</p>
-      <div class="mission-readout" aria-label="任务参数">
-        <span><small>任务</small><b>六类作战</b></span>
-        <span><small>威胁</small><b>四类空域</b></span>
-        <span><small>模式</small><b>单机 60 Hz</b></span>
+      <p class="sector-label">行动简报</p>
+      <h1 id="LaunchTitle">碎光航道</h1>
+      <div class="mission-choice">
+        <label for="MissionPreset">出击任务</label>
+        <select id="MissionPreset" aria-describedby="MissionBrief">
+          <option value="salvage" data-brief="回收货箱，并清除航道上的敌机。">残骸巡收</option>
+          <option value="assault" data-brief="突入中继区，击毁守军编队。">中继站强袭</option>
+          <option value="hunt" data-brief="优先击落精英目标，避免被杂兵拖住。">黑讯号猎杀</option>
+          <option value="defense" data-brief="留在空间站防区，阻止敌军逼近核心。">前哨防卫</option>
+          <option value="survive" data-brief="坚持到计时结束，可利用掩体拖延增援。">静默坚守</option>
+          <option value="escort" data-brief="与运输船保持距离，击退来袭编队。">运输护航</option>
+          <option value="tutorial" data-brief="练习飞行、开火、回收与返航。">首次飞行</option>
+        </select>
+        <p id="MissionBrief" aria-live="polite">回收货箱，并清除航道上的敌机。</p>
       </div>
-      <ol class="ops-flow" aria-label="出击流程">
-        <li class="is-current"><span>01</span><b>选择任务</b></li>
-        <li><span>02</span><b>战备装配</b></li>
-        <li><span>03</span><b>进入战场</b></li>
-      </ol>
       <div class="launch-actions">
         <div class="graphics-choice" role="group" aria-label="画面质量">
           <button type="button" data-graphics-choice="low">低配模式</button>
@@ -99,7 +101,7 @@
     <footer class="launch-footer">
       <span>LOCAL SIMULATION</span>
       <span>WEBGL 2 / LANDSCAPE</span>
-      <span>BUILD 98</span>
+      <span>BUILD 100</span>
     </footer>
   </main>
 
@@ -218,7 +220,7 @@
       <span>当前任务</span>
       <b id="MissionLabel">清除航道威胁</b>
       <small><output id="SectorValue">碎光航道</output> · 波次 <output id="WaveValue">1</output> · <output id="EventValue">敌袭预警</output></small>
-      <small><output id="KillValue">0</output> / <output id="KillTarget">1</output> 目标已击毁</small>
+      <small>累计击毁 <output id="KillValue">0</output></small>
     </div>
     <div class="camera-readout"><span>视角</span><b id="CameraValue">追尾</b><small class="desktop-only">F2</small></div>
     <div class="weapon-readout"><span>01</span><img id="WeaponArt" src="spacefight-weapon-pulse.png" alt=""><div><small>主武器</small><b id="WeaponName">脉冲炮</b></div><i>READY</i></div>
