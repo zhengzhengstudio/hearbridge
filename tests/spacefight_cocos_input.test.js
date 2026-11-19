@@ -134,6 +134,9 @@ function desktopShellHarness({
     setTimeout: () => 0,
     dispatchEvent() {},
   });
+  const mission = element('MissionPreset');
+  mission.value = 'salvage';
+  mission.selectedOptions = [{ dataset: { brief: 'Recover cargo' } }];
   windowRef.window = windowRef;
   const matchMedia = query => ({
     matches: query === '(pointer: coarse)' ? coarsePointer : finePointer,
@@ -158,8 +161,18 @@ function desktopShellHarness({
     path.join(__dirname, '../SpaceFight-Cocos/build-templates/web-desktop/spacefight-shell.js'),
     'utf8',
   ), context);
-  return { body, canvas: element('GameCanvas'), windowRef };
+  return { body, canvas: element('GameCanvas'), windowRef, mission, missionBrief: element('MissionBrief') };
 }
+
+test('web mission selection updates the preset and its briefing', () => {
+  const { body, mission, missionBrief } = desktopShellHarness({ width: 1280, height: 720 });
+  assert.equal(body.dataset.missionPreset, 'salvage');
+  mission.value = 'escort';
+  mission.selectedOptions = [{ dataset: { brief: 'Protect the convoy' } }];
+  mission.emit('change');
+  assert.equal(body.dataset.missionPreset, 'escort');
+  assert.equal(missionBrief.textContent, 'Protect the convoy');
+});
 
 test('desktop mouse delta keeps turning the camera when pointer lock is unavailable', () => {
   const desktop = new input.DesktopFlightInput({ sensitivity: 1 });
@@ -562,10 +575,12 @@ test('three touch pointers remain independent when one pointer ends', () => {
   const afterFireEnds = touch.consumeCommand();
   assert.equal(afterFireEnds.throttle, 1);
   assert.ok(afterFireEnds.yaw > 0);
-  assert.equal(afterFireEnds.primaryFire, false);
+  assert.equal(afterFireEnds.primaryFire, true, 'the short tap is delivered on this frame');
 
   touch.endPointer(2);
-  assert.equal(touch.consumeCommand().throttle, 1);
+  const nextFrame = touch.consumeCommand();
+  assert.equal(nextFrame.throttle, 1);
+  assert.equal(nextFrame.primaryFire, false);
 });
 
 test('a second movement pointer cannot steal or release the active joystick', () => {
@@ -750,6 +765,20 @@ test('touch camera and pause actions are emitted through the shared command', ()
   assert.equal(command.pause, true);
   touch.endPointer(7);
   touch.endPointer(8);
+});
+
+test('short taps survive a slow frame once, and input reset clears queued taps', () => {
+  const touch = new input.TouchFlightInput({ width: 844, height: 390 });
+  for (const action of ['returnRequested', 'primaryFire', 'pause', 'cameraToggle']) {
+    touch.beginAction(7, action);
+    touch.endPointer(7);
+    assert.equal(touch.consumeCommand()[action], true);
+    assert.equal(touch.consumeCommand()[action], false);
+  }
+  touch.beginAction(7, 'returnRequested');
+  touch.endPointer(7);
+  touch.releaseAll();
+  assert.equal(touch.consumeCommand().returnRequested, false);
 });
 
 test('touch prefab exposes stable landscape zones for every pointer role', () => {

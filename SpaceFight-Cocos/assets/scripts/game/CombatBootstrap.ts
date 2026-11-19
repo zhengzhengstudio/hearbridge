@@ -12,6 +12,7 @@ import {
   MeshRenderer,
   Node,
   ParticleSystem,
+  Quat,
   SphereLight,
   sys,
   tween,
@@ -52,6 +53,7 @@ import {
   STATION_WALK_START,
   STATION_WALK_TERMINALS,
   STATION_WALK_CORES,
+  STATION_WALK_PATROL,
   type WalkTarget,
 } from '../core/StationWalkSystem';
 import { BrowserInputBridge } from '../input/BrowserInputBridge';
@@ -483,8 +485,21 @@ export class CombatBootstrap extends Component {
   private walkAvatarGlow: Node | null = null;
   /** 五个能量核心的可视节点，收集后隐藏。 */
   private readonly walkCoreNodes = new Map<number, Node>();
+  /** 三个限时巡检信标的可视节点，按序点亮。 */
+  private readonly walkPatrolNodes = new Map<number, Node>();
+  private walkPatrolIdle: Material | null = null;
+  private walkPatrolActive: Material | null = null;
   /** 终端指示光柱，靠近时点亮。 */
   private readonly walkTerminalNodes = new Map<WalkTarget, Node>();
+  private walkTerminalIdle: Material | null = null;
+  private walkTerminalActive: Material | null = null;
+  private walkInterior: Node | null = null;
+  private walkAnimationTime = 0;
+  private readonly walkBankRotation = new Quat();
+  private walkNotice = '';
+  private walkNoticeTime = 0;
+  private mechanicRecoveryPending = false;
+  private walkBonusPaid = false;
   private walkActive = false;
   private walkOrigin: Vec3 | null = null;
   private walkSyncElapsed = 0;
@@ -620,6 +635,7 @@ export class CombatBootstrap extends Component {
       window.addEventListener('spacefight:fullscreen-exit', this.handleFullscreenExit);
       // 网页覆盖层的"离港"按钮触发，与游戏内离港逻辑统一走 leaveOutpost。
       window.addEventListener('spacefight:outpost-exit', this.handleOutpostExit);
+      window.addEventListener('spacefight:mechanic-briefing', this.acceptMechanicRecovery);
       window.addEventListener('spacefight:toggle-pause', this.handleTogglePause);
       window.addEventListener('spacefight:loadout-change', this.handleLoadoutChange);
       window.addEventListener('spacefight:mission-change', this.handleMissionChange);
@@ -749,6 +765,7 @@ export class CombatBootstrap extends Component {
     window.removeEventListener('spacefight:fullscreen-enter', this.handleFullscreenEnter);
     window.removeEventListener('spacefight:fullscreen-exit', this.handleFullscreenExit);
     window.removeEventListener('spacefight:outpost-exit', this.handleOutpostExit);
+    window.removeEventListener('spacefight:mechanic-briefing', this.acceptMechanicRecovery);
     window.removeEventListener('spacefight:toggle-pause', this.handleTogglePause);
     window.removeEventListener('spacefight:loadout-change', this.handleLoadoutChange);
     window.removeEventListener('spacefight:mission-change', this.handleMissionChange);
@@ -1025,9 +1042,7 @@ export class CombatBootstrap extends Component {
   /** 站内 3D 已经建好但相机从不切过去；这里按实际节点世界坐标切机位。 */
   private focusOutpostInterior(): void {
     if (!this.cameraNode) return;
-    const interior = this.worldRoot
-      ? this.findNodeByName(this.worldRoot, 'StationInterior', 7)
-      : null;
+    const interior = this.worldStreamer?.primaryInterior();
     const target = interior
       ? interior.worldPosition
       : new Vec3(PRIMARY_OUTPOST_POSITION.x, PRIMARY_OUTPOST_POSITION.y, PRIMARY_OUTPOST_POSITION.z);
@@ -1035,16 +1050,6 @@ export class CombatBootstrap extends Component {
     this.cameraNode.lookAt(new Vec3(target.x, target.y - 0.2, target.z - 2.5));
     const camera = this.cameraNode.getComponent(Camera);
     if (camera) camera.fov = 64;
-  }
-
-  private findNodeByName(root: Node, name: string, depth: number): Node | null {
-    if (depth <= 0) return null;
-    for (const child of root.children) {
-      if (child.name === name) return child;
-      const nested = this.findNodeByName(child, name, depth - 1);
-      if (nested) return nested;
-    }
-    return null;
   }
 
   private resetSimulation(loadout = readBrowserLoadout(), preset = readBrowserMissionPreset()): void {
@@ -1071,6 +1076,9 @@ export class CombatBootstrap extends Component {
     this.combatVisuals?.recycleAll();
     this.pendingBrowserCombatEvents = [];
     this.dockedAtOutpost = true;
+    this.mechanicRecoveryPending = false;
+    this.walkBonusPaid = false;
+    this.worldStreamer?.update(new Vec3(PRIMARY_OUTPOST_POSITION.x, PRIMARY_OUTPOST_POSITION.y, PRIMARY_OUTPOST_POSITION.z));
     this.snapshot = this.simulation.serviceAtOutpost();
     // 结算必须让玩家「看得见入账」：旧版静默发券且货值 ÷5，玩家只看到买东西在扣钱，
     // 体感就是星港券只出不入。现在按货值 + 击杀发券（含保底），并把 +N 推给 HUD。
@@ -1133,7 +1141,8 @@ export class CombatBootstrap extends Component {
     // 离港必须解除启动闸门，否则战斗主循环会一直停在暂停分支，
     // 玩家"离港"后游戏仍冻结 —— 表现为进哨站后无法离开太空。
     this.pausedByLaunchGate = false;
-    this.snapshot = this.simulation.departOutpost(this.pendingCalibrationShield);
+    this.snapshot = this.simulation.departOutpost(this.pendingCalibrationShield, this.mechanicRecoveryPending);
+    this.mechanicRecoveryPending = false;
     this.pendingCalibrationShield = 0;
     this.previousHealth = this.snapshot.player.health + this.snapshot.player.shield;
     this.inputRouter?.releaseAll();
@@ -1147,6 +1156,19 @@ export class CombatBootstrap extends Component {
 
   // ==================== 站内 3D 自由行走 ====================
 
+  private readonly acceptMechanicRecovery = (): void => {
+    if (!this.dockedAtOutpost) return;
+    const alreadyAccepted = this.mechanicRecoveryPending;
+    this.mechanicRecoveryPending = true;
+    const message = alreadyAccepted
+      ? this.st('机务 R-7：货箱信标已设好，离港后往右前方找。', 'R-7: Beacon set. Look ahead and right after launch.')
+      : this.st('机务 R-7：离港后回收右前方的遗失货箱，带它返航。', 'R-7: Recover the crate ahead and right, then bring it home.');
+    this.walkNotice = message;
+    this.walkNoticeTime = 5;
+    dispatchBrowserEvent('spacefight:mechanic-briefed', { message });
+    if (this.walkActive) this.pushWalkHud();
+  };
+
   /**
    * 进入站内自由行走：把玩家飞船化作舱内可操控的化身，相机切到舱内跟随视角。
    * 3D 场景（StationInterior）早已由 WorldStreamer 建好，这里复用它，不再"只可远观"。
@@ -1155,21 +1177,37 @@ export class CombatBootstrap extends Component {
     if (this.walkActive || !this.dockedAtOutpost) return;
     this.walkActive = true;
     this.walkSyncElapsed = 0;
+    this.walkAnimationTime = 0;
+    this.walkNoticeTime = 0;
+    this.walkFacingX = 0;
+    this.walkFacingZ = -1;
     this.stationWalk.reset();
     this.inputRouter?.releaseAll();
 
     // 收起 2D 前哨面板，露出 3D 场景；HUD 切到稀疏行走提示层。
     this.nativeHud?.setWalkVisible(true);
-    const interior = this.worldRoot
-      ? this.findNodeByName(this.worldRoot, 'StationInterior', 7)
-      : null;
+    const interior = this.worldStreamer?.primaryInterior() ?? null;
+    this.walkInterior = interior;
     this.walkOrigin = interior
       ? interior.worldPosition.clone()
       : new Vec3(PRIMARY_OUTPOST_POSITION.x, PRIMARY_OUTPOST_POSITION.y, PRIMARY_OUTPOST_POSITION.z);
 
     this.buildWalkAvatar();
+    for (const core of STATION_WALK_CORES) {
+      this.walkCoreNodes.get(core.id)?.setWorldPosition(this.walkLocal(core.x, core.z));
+    }
+    for (const terminal of STATION_WALK_TERMINALS) {
+      this.walkTerminalNodes.get(terminal.id)?.setWorldPosition(this.walkLocal(terminal.x, terminal.z));
+    }
+    for (const patrol of STATION_WALK_PATROL) {
+      const node = this.walkPatrolNodes.get(patrol.id);
+      node?.setWorldPosition(this.walkLocal(patrol.x, patrol.z, -1.3));
+      if (node) node.active = true;
+    }
+    this.syncPatrolVisuals();
     this.updateWalkAvatarTransform();
     this.updateWalkCamera();
+    this.pushWalkHud();
     this.gameAudio?.ui();
     nativeTrace('station: enter walk');
   }
@@ -1182,6 +1220,7 @@ export class CombatBootstrap extends Component {
     if (this.walkAvatar) this.walkAvatar.active = false;
     for (const node of this.walkCoreNodes.values()) node.active = false;
     for (const node of this.walkTerminalNodes.values()) node.active = false;
+    for (const node of this.walkPatrolNodes.values()) node.active = false;
     this.inputRouter?.releaseAll();
     nativeTrace('station: exit walk');
   }
@@ -1194,10 +1233,18 @@ export class CombatBootstrap extends Component {
       // 核心被收集的节点保持隐藏。
       for (const [id, node] of this.walkCoreNodes) node.active = !this.stationWalk.collectedCores().has(id);
       for (const node of this.walkTerminalNodes.values()) node.active = true;
+      for (const node of this.walkPatrolNodes.values()) node.active = true;
       return;
     }
     const parent = this.worldRoot;
     if (!parent) return;
+    this.walkCoreNodes.clear();
+    this.walkTerminalNodes.clear();
+    this.walkPatrolNodes.clear();
+    this.walkTerminalIdle ??= cockpitMaterial(new Color(79, 214, 224, 255));
+    this.walkTerminalActive ??= cockpitMaterial(new Color(240, 168, 60, 255));
+    this.walkPatrolIdle ??= cockpitMaterial(new Color(79, 214, 224, 255));
+    this.walkPatrolActive ??= cockpitMaterial(new Color(240, 168, 60, 255));
     const root = new Node('StationWalkAvatar');
     root.setParent(parent);
     const hull = cockpitMaterial(new Color(240, 168, 60, 255));
@@ -1241,34 +1288,80 @@ export class CombatBootstrap extends Component {
       const node = new Node(`WalkTerminal.${terminal.id}`);
       node.setParent(parent);
       const renderer = node.addComponent(MeshRenderer);
-      renderer.mesh = utils.createMesh(primitives.cylinder(0.09, 0.09, 1.5, { radialSegments: 8 }));
-      const mat = cockpitMaterial(new Color(79, 214, 224, 170));
-      if (mat) renderer.setMaterial(mat, 0);
+      renderer.mesh = utils.createMesh(terminal.id === 'mechanic'
+        ? primitives.sphere(0.32, { segments: 12 })
+        : primitives.cylinder(0.09, 0.09, 1.5, { radialSegments: 8 }));
+      if (this.walkTerminalIdle) renderer.setMaterial(this.walkTerminalIdle, 0);
+      if (terminal.id === 'mechanic') {
+        const visor = new Node('MechanicR7.Visor');
+        visor.setParent(node);
+        visor.setPosition(0, 0.04, 0.29);
+        const visorRenderer = visor.addComponent(MeshRenderer);
+        visorRenderer.mesh = utils.createMesh(primitives.box({ width: 0.42, height: 0.12, length: 0.08 }));
+        if (dark) visorRenderer.setMaterial(dark, 0);
+      }
       this.walkTerminalNodes.set(terminal.id, node);
+    }
+
+    // 巡检信标：底座 + 灯珠。当前目标点亮成琥珀色，其余保持青色，
+    // 玩家不用看文字也知道下一个该往哪飞。
+    for (const patrol of STATION_WALK_PATROL) {
+      const node = new Node(`WalkPatrol.${patrol.id + 1}`);
+      node.setParent(parent);
+      const renderer = node.addComponent(MeshRenderer);
+      renderer.mesh = utils.createMesh(primitives.cylinder(0.26, 0.34, 0.7, { radialSegments: 10 }));
+      if (this.walkPatrolIdle) renderer.setMaterial(this.walkPatrolIdle, 0);
+      const lamp = new Node('PatrolLamp');
+      lamp.setParent(node);
+      lamp.setPosition(0, 0.46, 0);
+      const lampRenderer = lamp.addComponent(MeshRenderer);
+      lampRenderer.mesh = utils.createMesh(primitives.sphere(0.16, { segments: 10 }));
+      if (this.walkPatrolActive) lampRenderer.setMaterial(this.walkPatrolActive, 0);
+      this.walkPatrolNodes.set(patrol.id, node);
+    }
+  }
+
+  /** 当前巡检目标点亮琥珀色，已走过/未轮到的信标维持青色。 */
+  private syncPatrolVisuals(): void {
+    const progress = this.stationWalk.patrolProgress();
+    for (const patrol of STATION_WALK_PATROL) {
+      const node = this.walkPatrolNodes.get(patrol.id);
+      if (!node) continue;
+      const renderer = node.getComponent(MeshRenderer);
+      const material = progress.running && patrol.id === progress.step
+        ? this.walkPatrolActive : this.walkPatrolIdle;
+      if (renderer && material && renderer.getSharedMaterial(0) !== material) renderer.setMaterial(material, 0);
+      const pulse = progress.running && patrol.id === progress.step
+        ? 1 + Math.sin(this.walkAnimationTime * 6) * 0.12
+        : 1;
+      node.setScale(pulse, 1, pulse);
     }
   }
 
   /** 把散落的 3D 节点摆到舱内本地坐标（原点 = StationInterior 世界位置）。 */
   private walkLocal(x: number, z: number, y = -0.6): Vec3 {
+    if (this.walkInterior?.isValid) {
+      return Vec3.transformMat4(new Vec3(), new Vec3(x, y, z), this.walkInterior.worldMatrix);
+    }
     const origin = this.walkOrigin || new Vec3();
     return new Vec3(origin.x + x, origin.y + y, origin.z + z);
   }
 
-  private updateWalkAvatarTransform(): void {
+  private updateWalkAvatarTransform(bank = 0): void {
     if (!this.walkAvatar) return;
     const pos = this.stationWalk.position();
-    this.walkAvatar.setWorldPosition(this.walkLocal(pos.x, pos.z));
-    // 机头朝飞行方向：始终按最后一次移动方向设置偏航（初值为沿 -Z）。
-    const yaw = Math.atan2(-this.walkFacingX, -this.walkFacingZ) * 180 / Math.PI;
-    this.walkAvatar.setRotationFromEuler(0, yaw, 0);
+    const height = -0.6 + Math.sin(this.walkAnimationTime * 4) * 0.035;
+    this.walkAvatar.setWorldPosition(this.walkLocal(pos.x, pos.z, height));
+    this.walkAvatar.lookAt(this.walkLocal(pos.x + this.walkFacingX, pos.z + this.walkFacingZ, height));
+    this.walkAvatar.rotate(Quat.fromEuler(this.walkBankRotation, 0, 0, bank));
   }
 
   /** 舱内跟随相机：位于化身斜后上方，看向化身前方的走廊。 */
   private updateWalkCamera(): void {
     if (!this.cameraNode || !this.walkAvatar) return;
-    const avatar = this.walkAvatar.worldPosition;
-    this.cameraNode.setWorldPosition(new Vec3(avatar.x, avatar.y + 2.7, avatar.z + 6.4));
-    this.cameraNode.lookAt(new Vec3(avatar.x, avatar.y + 0.1, avatar.z - 2.2));
+    const pos = this.stationWalk.position();
+    this.cameraNode.setWorldPosition(this.walkLocal(pos.x, pos.z + 3.9, 1.35));
+    this.cameraNode.lookAt(this.walkLocal(pos.x, pos.z - 2.2, -0.55));
     const camera = this.cameraNode.getComponent(Camera);
     if (camera) camera.fov = 66;
     if (this.cockpitInterior) this.cockpitInterior.active = false;
@@ -1280,6 +1373,8 @@ export class CombatBootstrap extends Component {
     // 但不调用 step()——保持交互闩锁与核心状态不变，面板一关即可继续走。
     const command = this.inputRouter?.consumeCommand() || neutralFlightCommand();
     if (frozen) return;
+    this.walkAnimationTime += Math.min(deltaTime, 0.05);
+    this.walkNoticeTime = Math.max(0, this.walkNoticeTime - deltaTime);
     if (Math.abs(command.strafe) > 0.05 || Math.abs(command.throttle) > 0.05) {
       this.walkFacingX = command.strafe;
       this.walkFacingZ = -command.throttle;
@@ -1297,12 +1392,38 @@ export class CombatBootstrap extends Component {
       if (node) node.active = false;
       this.gameAudio?.ui();
     }
-    if (result.bonus) {
-      grantTickets(120, `spacefight.walk.bonus.${this.snapshot.mission.id}.${this.snapshot.tick}`);
-      this.nativeHud?.showTicketSettlement(120);
+    if (result.bonus && !this.walkBonusPaid) {
+      const reward = grantTickets(120, `spacefight.walk.bonus.${this.snapshot.mission.id}.${this.snapshot.tick}`);
+      this.walkBonusPaid = true;
+      if (reward.ok) this.nativeHud?.showTicketSettlement(120);
     }
+    if (result.patrolNode !== null) {
+      const progress = this.stationWalk.patrolProgress();
+      this.walkNotice = this.st(
+        `巡检信标 ${result.patrolNode + 1}/3 已激活 · 剩余 ${progress.timeLeft}s`,
+        `Patrol beacon ${result.patrolNode + 1}/3 active · ${progress.timeLeft}s left`,
+      );
+      this.walkNoticeTime = 3;
+      this.gameAudio?.ui();
+    }
+    if (result.patrolComplete) {
+      const runs = this.stationWalk.patrolProgress().completedRuns;
+      const reward = grantTickets(90, `spacefight.walk.patrol.${this.snapshot.mission.id}.${this.snapshot.tick}.${runs}`);
+      this.walkNotice = reward.ok
+        ? this.st('全站巡检完成 · +90 星港券', 'Full patrol complete · +90 tickets')
+        : this.st('全站巡检完成', 'Full patrol complete');
+      this.walkNoticeTime = 5;
+      if (reward.ok) this.nativeHud?.showTicketSettlement(90);
+      this.gameAudio?.ui();
+    }
+    if (result.patrolTimeout) {
+      this.walkNotice = this.st('巡检超时 · 从 1 号信标重新开始', 'Patrol timed out · restart at beacon 1');
+      this.walkNoticeTime = 4;
+    }
+    this.syncPatrolVisuals();
 
-    this.updateWalkAvatarTransform();
+    this.updateWalkAvatarTransform(-command.strafe * 13);
+    this.walkAvatarGlow?.setScale(1, 1, command.boost ? 2.5 : 1);
     this.updateWalkCamera();
     // 终端光柱：接近的点亮为橙色。
     for (const terminal of STATION_WALK_TERMINALS) {
@@ -1310,10 +1431,11 @@ export class CombatBootstrap extends Component {
       if (!node) continue;
       const near = result.near?.id === terminal.id;
       const renderer = node.getComponent(MeshRenderer);
-      const mat = cockpitMaterial(near
-        ? new Color(240, 168, 60, 235)
-        : new Color(79, 214, 224, 170));
-      if (renderer && mat) renderer.setMaterial(mat, 0);
+      const mat = near ? this.walkTerminalActive : this.walkTerminalIdle;
+      if (renderer && mat && renderer.getSharedMaterial(0) !== mat) renderer.setMaterial(mat, 0);
+      if (terminal.id === 'mechanic') {
+        node.setWorldPosition(this.walkLocal(terminal.x, terminal.z, -0.3 + Math.sin(this.walkAnimationTime * 3) * 0.12));
+      }
     }
 
     // HUD 同步节流到 ~10Hz，避免每帧刷 UI。
@@ -1331,6 +1453,10 @@ export class CombatBootstrap extends Component {
     this.stationWalk.suspendInteraction();
     this.inputRouter?.releaseAll();
     this.gameAudio?.ui();
+    if (target === 'mechanic') {
+      this.acceptMechanicRecovery();
+      return;
+    }
     if (target === 'undock') {
       // 就近离港：与正常离港走同一条流程（内部会 exitStationWalk）。
       this.leaveOutpost();
@@ -1342,11 +1468,13 @@ export class CombatBootstrap extends Component {
 
   /** 把当前行走状态推给 HUD 提示层（经 bridge 读取，HUD 不持有逻辑实例）。 */
   private pushWalkHud(): void {
-    // HUD 通过 walkBridge 的 nearLabel/terminalRows 拉取；这里只触发其刷新方法。
-      this.nativeHud?.syncWalkHint({
+    this.nativeHud?.syncWalkHint({
       nearLabel: this.walkNearLabel(),
       terminalRows: this.walkTerminalRows(),
       coresText: this.walkCoresText(),
+      patrolText: this.walkPatrolText(),
+      objectivesText: this.st('收集能量核心 · 按序完成巡检 · 终端办理业务', 'Collect cores · Run the patrol · Use terminals'),
+      notice: this.walkNoticeTime > 0 ? this.walkNotice : '',
     });
   }
 
@@ -1358,6 +1486,7 @@ export class CombatBootstrap extends Component {
       trade: ['交易终端', 'Trade Terminal'],
       facilities: ['站内设施', 'Facilities'],
       refit: ['校准改装', 'Refit Bay'],
+      mechanic: ['机务 R-7', 'Mechanic R-7'],
       undock: ['离港出击', 'Undock & Launch'],
     };
     const [zh, en] = labels[near.id];
@@ -1380,10 +1509,26 @@ export class CombatBootstrap extends Component {
       trade: ['交易', 'Trade'],
       facilities: ['设施', 'Facilities'],
       refit: ['改装', 'Refit'],
+      mechanic: ['机务 R-7', 'Mechanic R-7'],
       undock: ['离港', 'Undock'],
     };
     const [zh, en] = names[target];
     return this.st(zh, en);
+  }
+
+  private walkPatrolText(en = false): string {
+    const progress = this.stationWalk.patrolProgress();
+    if (progress.running) {
+      return en
+        ? `PATROL ${progress.step + 1}/${progress.total} · ${progress.timeLeft}s`
+        : `巡检 ${progress.step + 1}/${progress.total} · ${progress.timeLeft}s`;
+    }
+    if (progress.completedRuns > 0) {
+      return en
+        ? `PATROL DONE ×${progress.completedRuns} · FLY TO BEACON 1 TO RETRY`
+        : `巡检完成 ×${progress.completedRuns} · 飞近 1 号信标可再来`;
+    }
+    return en ? 'PATROL READY · FLY TO BEACON 1' : '巡检待启动 · 飞近 1 号信标';
   }
 
   private walkCoresText(en = false): string {

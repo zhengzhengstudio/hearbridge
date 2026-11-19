@@ -12,6 +12,7 @@ import {
   Vec3,
 } from 'cc';
 import { PRIMARY_OUTPOST_POSITION } from '../core/CombatSimulation';
+import { STATION_WALK_TERMINALS } from '../core/StationWalkSystem';
 import {
   createWorldStreamProfile,
   type WorldStreamProfile,
@@ -81,6 +82,15 @@ export class WorldStreamer {
   private readonly stationBeaconMaterial = createMaterial(new Color(245, 153, 48, 255), 0.18, 0.2);
   private readonly stationInteriorMaterial = createMaterial(new Color(132, 148, 154, 255), 0.62, 0.48);
   private readonly stationGlassMaterial = createMaterial(new Color(38, 116, 140, 255), 0.4, 0.18);
+  // 站内细节化分层：暗色甲板 / 中灰结构板 / 亮金属骨架 / 灯带 / 屏幕 / 暖色警示。
+  // 用 builtin-unlit 固定色，真机不依赖光照，不会出现「一块黑一块白」的跳色。
+  private readonly stationDeckMaterial = createMaterial(new Color(24, 37, 45, 255), 0.5, 0.7);
+  private readonly stationPanelMaterial = createMaterial(new Color(52, 70, 80, 255), 0.6, 0.55);
+  private readonly stationTrimMaterial = createMaterial(new Color(104, 130, 140, 255), 0.7, 0.35);
+  private readonly stationLightMaterial = createMaterial(new Color(126, 232, 242, 255), 0.2, 0.2);
+  private readonly stationScreenMaterial = createMaterial(new Color(38, 158, 182, 255), 0.3, 0.25);
+  private readonly stationWarmMaterial = createMaterial(new Color(240, 168, 60, 255), 0.25, 0.3);
+  private readonly stationWindowMaterial = createMaterial(new Color(7, 20, 32, 255), 0.1, 0.9);
   // 2026-11-19：原本残骸混用亮灰蓝 stationMaterial + 灰褐 debrisMaterial，
   // 真机像一堆斑驳白灰方块（用户称「斑点」）。统一成暗冷灰岩石色，只留一个
   // 略亮的变体做层次，不再出现跳脱的亮蓝白块。
@@ -182,6 +192,25 @@ export class WorldStreamer {
   private readonly asteroidMesh = utils.createMesh(primitives.sphere(1, {
     segments: 8,
   }));
+  // 站内 DetailKit：全部复用网格，只在节点层摆位置/缩放，避免每块墙板生成独立 mesh。
+  private readonly deckTileMesh = utils.createMesh(primitives.box({ width: 1.02, height: 0.08, length: 1.1 }));
+  private readonly deckStripMesh = utils.createMesh(primitives.box({ width: 0.12, height: 0.05, length: 1.02 }));
+  private readonly wallPanelMesh = utils.createMesh(primitives.box({ width: 0.14, height: 1.24, length: 1.28 }));
+  private readonly wallRibMesh = utils.createMesh(primitives.box({ width: 0.3, height: 3.6, length: 0.22 }));
+  private readonly windowMesh = utils.createMesh(primitives.box({ width: 0.1, height: 0.92, length: 1.5 }));
+  private readonly pipeMesh = utils.createMesh(primitives.cylinder(0.07, 0.07, 6.6, { radialSegments: 8 }));
+  private readonly ceilingPanelMesh = utils.createMesh(primitives.box({ width: 1.32, height: 0.1, length: 1.16 }));
+  private readonly ceilingBeamMesh = utils.createMesh(primitives.box({ width: 6.6, height: 0.2, length: 0.28 }));
+  private readonly consoleMesh = utils.createMesh(primitives.box({ width: 1.08, height: 0.92, length: 0.58 }));
+  private readonly consoleScreenMesh = utils.createMesh(primitives.box({ width: 0.88, height: 0.46, length: 0.08 }));
+  private readonly holoMesh = utils.createMesh(primitives.cylinder(0.22, 0.36, 0.82, { radialSegments: 12 }));
+  private readonly crateMesh = utils.createMesh(primitives.box({ width: 0.62, height: 0.5, length: 0.62 }));
+  private readonly railMesh = utils.createMesh(primitives.box({ width: 0.08, height: 0.08, length: 2.8 }));
+  private readonly deckRingMesh = utils.createMesh(primitives.torus(0.62, 0.045, {
+    radialSegments: 8,
+    tubularSegments: 20,
+  }));
+  private readonly stationStarMesh = utils.createMesh(primitives.sphere(0.045, { segments: 6 }));
 
   public constructor(
     private readonly parent: Node,
@@ -196,6 +225,10 @@ export class WorldStreamer {
   private stationAnimationTime = 0;
   private detailedOutpost: Prefab | null = null;
   private disposed = false;
+
+  public primaryInterior(): Node | null {
+    return this.activeChunks.get(chunkKey(0, 0))?.station.getChildByName('StationInterior') ?? null;
+  }
 
   public update(playerPosition: Readonly<Vec3>, deltaTime = 0): void {
     this.stationAnimationTime += Math.min(Math.max(deltaTime, 0), 0.05);
@@ -298,6 +331,9 @@ export class WorldStreamer {
       ? 1.42
       : 0.88 + hashCoordinate(gridX, gridZ, 8) * 0.34;
     chunk.station.setScale(stationScale, stationScale, stationScale);
+    // 只有主前哨点亮细节内景：玩家真正走进去的是这一座，远处的站仍保持低开销。
+    const interiorDetail = chunk.station.getChildByName('StationInterior')?.getChildByName('InteriorDetail');
+    if (interiorDetail) interiorDetail.active = isSpawnChunk;
 
     const driftX = (hashCoordinate(gridX, gridZ, 1) - 0.5) * CHUNK_SIZE * 0.42;
     const driftY = (hashCoordinate(gridX, gridZ, 2) - 0.5) * 18;
@@ -673,6 +709,171 @@ export class WorldStreamer {
       landingMark.setPosition(side * 1.75, -2.06, 3.4);
       landingMark.setScale(0.72, 0.45, 1.4);
     }
+    // 细节化内景只在主前哨（chunk 0,0）点亮；其余站的同一份节点保持 inactive，
+    // 既有完整建模可复用，又不会让 25 个远景物块同时多出上百个渲染体。
+    this.createStationInteriorDetail(interior);
+  }
+
+  /**
+   * 站内细节化建模：甲板砖 / 墙板 / 舷窗 / 灯带 / 管线 / 终端台 / 机务 / 机库门。
+   * 坐标与 StationWalkSystem 的 (x,z) 完全一致，父节点是 StationInterior 本体（不含 corridor 偏移）。
+   */
+  private createStationInteriorDetail(interior: Node): void {
+    const detail = new Node('InteriorDetail');
+    detail.setParent(interior);
+    detail.active = false;
+    const part = (
+      name: string,
+      mesh: MeshRenderer['mesh'],
+      material: Material,
+      x: number, y: number, z: number,
+      rotation: readonly [number, number, number] | null = null,
+      scale: readonly [number, number, number] | null = null,
+    ): Node => {
+      const node = this.addStationPart(detail, name, mesh, material);
+      node.setPosition(x, y, z);
+      if (rotation) node.setRotationFromEuler(rotation[0], rotation[1], rotation[2]);
+      if (scale) node.setScale(scale[0], scale[1], scale[2]);
+      return node;
+    };
+
+    // 甲板：深浅交错的功能分区砖 + 两条贯穿走廊的引导灯带。
+    for (let ix = 0; ix < 6; ix += 1) {
+      for (let iz = 0; iz < 7; iz += 1) {
+        const x = -2.75 + ix * 1.1;
+        const z = -3.2 + iz * 1.2;
+        part(
+          `DeckTile.${ix}.${iz}`,
+          this.deckTileMesh,
+          (ix + iz) % 3 === 0 ? this.stationPanelMaterial : this.stationDeckMaterial,
+          x, -2.03, z,
+        );
+      }
+    }
+    for (const side of [-1, 1]) {
+      for (let index = 0; index < 7; index += 1) {
+        part(
+          `DeckGuide.${side < 0 ? 'L' : 'R'}.${index + 1}`,
+          this.deckStripMesh,
+          this.stationLightMaterial,
+          side * 1.1, -1.94, -3.0 + index * 1.15,
+        );
+      }
+    }
+    part('DeckEmblem', this.deckRingMesh, this.stationScreenMaterial, 0, -1.9, 0.35, null, [1.6, 1.6, 1.6]);
+
+    // 侧壁：分块装甲板 + 竖向骨架 + 舷窗（深色玻璃 + 星点）+ 连续管线。
+    for (const side of [-1, 1]) {
+      const label = side < 0 ? 'Port' : 'Starboard';
+      for (let index = 0; index < 6; index += 1) {
+        const z = -3.2 + index * 1.36;
+        part(
+          `InteriorWallPanel.${label}.${index + 1}`,
+          this.wallPanelMesh,
+          index % 2 === 0 ? this.stationPanelMaterial : this.stationTrimMaterial,
+          side * 3.4, -0.35, z,
+        );
+      }
+      for (let index = 0; index < 5; index += 1) {
+        part(
+          `InteriorWallRib.${label}.${index + 1}`,
+          this.wallRibMesh,
+          this.stationTrimMaterial,
+          side * 3.22, 0, -2.9 + index * 1.55,
+        );
+      }
+      for (const index of [1, 4]) {
+        const z = -3.2 + index * 1.36;
+        part(
+          `InteriorWindow.${label}.${index}`,
+          this.windowMesh,
+          this.stationWindowMaterial,
+          side * 3.3, 0.45, z,
+        );
+        for (let star = 0; star < 4; star += 1) {
+          part(
+            `WindowStar.${label}.${index}.${star}`,
+            this.stationStarMesh,
+            this.stationLightMaterial,
+            side * 3.22, 0.2 + star * 0.18, z - 0.42 + star * 0.27,
+          );
+        }
+      }
+      part(
+        `InteriorConduit.${label}`,
+        this.pipeMesh,
+        this.stationTrimMaterial,
+        side * 3.05, 1.42, 0.2,
+        [90, 0, 0],
+      );
+      part(
+        `InteriorRail.${label}`,
+        this.railMesh,
+        this.stationWarmMaterial,
+        side * 2.95, -1.15, 0.35,
+      );
+      for (let index = 0; index < 3; index += 1) {
+        part(
+          `CargoCrate.${label}.${index + 1}`,
+          this.crateMesh,
+          index === 1 ? this.stationPanelMaterial : this.stationTrimMaterial,
+          side * 2.75, -1.68 + index * 0.03, -2.45 + index * 1.3,
+          null,
+          [1 - index * 0.12, 0.9 + index * 0.12, 1],
+        );
+      }
+    }
+
+    // 顶部：灯板 + 横梁 + 走线，给舱室一个明确的「天花板」，挡住外部方块穿帮。
+    for (let index = 0; index < 6; index += 1) {
+      const z = -2.9 + index * 1.25;
+      for (const x of [-2.15, -0.72, 0.72, 2.15]) {
+        part(
+          `CeilingPanel.${x}.${index}`,
+          this.ceilingPanelMesh,
+          Math.abs(x) < 1 ? this.stationLightMaterial : this.stationDeckMaterial,
+          x, 2.08, z,
+        );
+      }
+      if (index % 2 === 0) {
+        part(`CeilingBeam.${index}`, this.ceilingBeamMesh, this.stationTrimMaterial, 0, 1.96, z);
+      }
+    }
+
+    // 五个交互点的实体化模型：终端台底座 / 倾斜屏幕 / 悬浮光柱 / 地面光圈。
+    for (const terminal of STATION_WALK_TERMINALS) {
+      if (terminal.id === 'undock') continue;
+      const accent = terminal.id === 'mechanic' ? this.stationWarmMaterial : this.stationScreenMaterial;
+      part(`TerminalBase.${terminal.id}`, this.consoleMesh, this.stationTrimMaterial,
+        terminal.x, -1.48, terminal.z);
+      part(`TerminalScreen.${terminal.id}`, this.consoleScreenMesh, accent,
+        terminal.x, -0.92, terminal.z - 0.28, [-18, 0, 0]);
+      part(`TerminalHolo.${terminal.id}`, this.holoMesh, accent,
+        terminal.x, -0.38, terminal.z, null, [0.8, 1, 0.8]);
+      part(`TerminalRing.${terminal.id}`, this.deckRingMesh, this.stationLightMaterial,
+        terminal.x, -1.9, terminal.z, null, [1.05, 1.05, 1.05]);
+    }
+
+    // 机务 R-7： torso + 头 + 面罩，和纯光柱终端一眼区分。
+    part('MechanicR7.Torso', this.consoleMesh, this.stationWarmMaterial, 0, -1.15, -1.1, null, [0.65, 1.25, 0.55]);
+    part('MechanicR7.Head', this.stationStarMesh, this.stationTrimMaterial, 0, -0.35, -1.1, null, [6, 6, 6]);
+    part('MechanicR7.Visor', this.consoleScreenMesh, this.stationDeckMaterial, 0, -0.33, -0.83, null, [0.55, 0.35, 1]);
+
+    // 机库出口：双立柱 + 顶梁 + 警示灯，玩家一眼知道「这里能离港」。
+    part('HangarGate.Left', this.wallRibMesh, this.stationTrimMaterial, -2.55, -0.1, 3.95, null, [1.1, 1, 1.1]);
+    part('HangarGate.Right', this.wallRibMesh, this.stationTrimMaterial, 2.55, -0.1, 3.95, null, [1.1, 1, 1.1]);
+    part('HangarGate.Header', this.ceilingBeamMesh, this.stationPanelMaterial, 0, 1.7, 3.95, null, [1.05, 1.4, 1.2]);
+    part('HangarGate.Glow', this.deckRingMesh, this.stationWarmMaterial, 0, -1.88, 3.55, null, [2.4, 2.4, 2.4]);
+    for (const side of [-1, 1]) {
+      for (let index = 0; index < 4; index += 1) {
+        part(
+          `HangarWarning.${side < 0 ? 'L' : 'R'}.${index + 1}`,
+          this.deckStripMesh,
+          this.stationWarmMaterial,
+          side * (1.4 + index * 0.35), -1.9, 3.3,
+        );
+      }
+    }
   }
 
   private animateStations(): void {
@@ -727,6 +928,13 @@ export class WorldStreamer {
       this.stationBeaconMaterial,
       this.stationInteriorMaterial,
       this.stationGlassMaterial,
+      this.stationDeckMaterial,
+      this.stationPanelMaterial,
+      this.stationTrimMaterial,
+      this.stationLightMaterial,
+      this.stationScreenMaterial,
+      this.stationWarmMaterial,
+      this.stationWindowMaterial,
       this.debrisMaterial,
     ];
     const meshes = [
@@ -752,6 +960,21 @@ export class WorldStreamer {
       this.approachPylonMesh,
       this.jumpGateMesh,
       this.asteroidMesh,
+      this.deckTileMesh,
+      this.deckStripMesh,
+      this.wallPanelMesh,
+      this.wallRibMesh,
+      this.windowMesh,
+      this.pipeMesh,
+      this.ceilingPanelMesh,
+      this.ceilingBeamMesh,
+      this.consoleMesh,
+      this.consoleScreenMesh,
+      this.holoMesh,
+      this.crateMesh,
+      this.railMesh,
+      this.deckRingMesh,
+      this.stationStarMesh,
     ];
     for (const material of materials) material.destroy();
     for (const mesh of meshes) mesh.destroy();

@@ -5,6 +5,7 @@ import {
   Node,
   NodePool,
   primitives,
+  Quat,
   resources,
   Texture2D,
   tween,
@@ -61,6 +62,7 @@ export class CombatVisuals {
   private readonly billboardPool = new NodePool('CombatBillboardPool');
   private readonly activeBillboards = new Set<Node>();
   private readonly debris: Debris[] = [];
+  private readonly debrisRotation = new Quat();
   private readonly debrisMaterial = unlitMaterial(new Color(255, 168, 72, 255));
   private readonly debrisMesh = utils.createMesh(primitives.box(0.22));
   private readonly billboardMesh = utils.createMesh(primitives.quad());
@@ -216,7 +218,8 @@ export class CombatVisuals {
         position.y + piece.velocity.y * deltaTime,
         position.z + piece.velocity.z * deltaTime,
       ));
-      piece.node.rotateFromEuler(piece.spin.x * deltaTime, piece.spin.y * deltaTime, piece.spin.z * deltaTime);
+      piece.node.rotate(Quat.fromEuler(this.debrisRotation,
+        piece.spin.x * deltaTime, piece.spin.y * deltaTime, piece.spin.z * deltaTime));
       const scale = Math.max(0.01, piece.life / piece.maxLife);
       piece.node.setScale(scale, scale, scale);
     }

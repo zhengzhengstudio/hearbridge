@@ -1604,8 +1604,9 @@ body[data-outpost-open="true"] #OutpostPanel { display: grid; }
   position: relative;
   width: min(1080px, 96vw);
   max-height: 92vh;
-  overflow: auto;
-  display: grid;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   gap: 22px;
   padding: 26px 30px;
   background: var(--panel-strong);
@@ -1627,7 +1628,11 @@ body[data-outpost-open="true"] #OutpostPanel { display: grid; }
   border: 1px solid var(--line-strong); background: transparent; color: var(--text);
   width: 40px; height: 40px; font-size: 22px; line-height: 1;
 }
-.outpost-body { display: grid; grid-template-columns: minmax(240px, .8fr) 1.6fr; gap: 26px; }
+.outpost-mechanic { display: grid; gap: 6px; margin-top: 12px; }
+.outpost-mechanic button { justify-self: start; min-height: 40px; padding: 6px 12px; color: #def4f1; background: #102b32; border: 1px solid #578891; cursor: pointer; }
+.outpost-mechanic p { margin: 0; color: #a9c6ca; font-size: 13px; }
+.outpost-shell > header, .outpost-shell > footer { flex: none; }
+.outpost-body { display: grid; grid-template-columns: minmax(240px, .8fr) 1.6fr; gap: 26px; min-height: 0; overflow-y: auto; }
 .outpost-shell h3 { margin: 0 0 14px; font-size: 14px; letter-spacing: .08em; color: var(--accent); }
 .outpost-manifest { border-right: 1px solid var(--line); padding-right: 22px; }
 .outpost-empty { color: var(--muted); font-size: 13px; }

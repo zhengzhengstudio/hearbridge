@@ -145,6 +145,22 @@ test('交易：买价高于卖价，行情刷新改变价格', () => {
   assert.notDeepEqual(market2, market1, '刷新后行情应变化');
 });
 
+test('交易：同一趟重开应用仍能买卖，非有限数量不会动到库存或券', () => {
+  const storage = makeStorage();
+  const economy = makeEconomy();
+  const first = new StationSystem(storage, economy);
+  assert.equal(first.buy('ore').ok, true);
+  const reopened = new StationSystem(storage, economy);
+  assert.equal(reopened.buy('ore').ok, true);
+  const balance = economy.getTickets();
+  for (const quantity of [NaN, Infinity, Number.MAX_SAFE_INTEGER]) {
+    assert.equal(reopened.buy('ore', quantity).ok, false);
+    assert.equal(reopened.sell('ore', quantity).ok, false);
+  }
+  assert.equal(economy.getTickets(), balance);
+  assert.equal(reopened.snapshot().holdings.ore, 2);
+});
+
 test('设施互动：氛围设施不刷券，收益设施按冷却给券', () => {
   const storage = makeStorage();
   const economy = makeEconomy(1000);
@@ -172,6 +188,14 @@ test('校准改装：低准度失败不扣券，高准度成功可累计', () =>
   assert.equal(station.snapshot().refitCount, 1);
   assert.equal(station.snapshot().refitBest, 85);
   assert.ok(economy.getTickets() < before, '成功扣券');
+  const after = economy.getTickets();
+  const reopened = new StationSystem(storage, economy);
+  assert.equal(reopened.shieldCapacityBonus(), 17);
+  assert.equal(reopened.completeRefit(101).reason, 'calibration-failed');
+  assert.equal(reopened.completeRefit(85).reason, 'no-improvement');
+  assert.equal(economy.getTickets(), after);
+  assert.equal(reopened.completeRefit(100).ok, true);
+  assert.equal(reopened.shieldCapacityBonus(), 20);
 });
 
 test('存档持久化：新建实例读回同一份状态', () => {

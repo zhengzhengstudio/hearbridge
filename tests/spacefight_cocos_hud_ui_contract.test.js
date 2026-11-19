@@ -125,3 +125,10 @@ test('摇杆底座只保留四件套，不再叠四段弧线', () => {
   assert.equal(arcCalls, 0, `摇杆底座不应再有弧线装饰（真机截图里它们混成了杂物），实际 ${arcCalls} 处`);
   assert.match(deadzone[0], /safeCircle/, '摇杆底座仍需底盘与圆环');
 });
+
+test('原生暂停和失败遮罩独立于控件，返航不穿透覆盖层', () => {
+  const source = stripComments(fs.readFileSync(HUD_PATH, 'utf8'));
+  assert.match(source, /pauseBackdrop = attachGraphics\(this\.createNode\('NativePauseShade', this\.pausePanel\)\)/);
+  assert.match(source, /defeatBackdrop = attachGraphics\(this\.createNode\('NativeDefeatShade', this\.defeatPanel\)\)/);
+  assert.match(source, /visual\.node\.active = this\.combatChromeVisible && available;/);
+});

@@ -457,9 +457,14 @@ export class NativeCombatHud implements NativeInputFeedback {
   private stationNotice: { message: string } | null = null;
 
   // ---- 站内自由行走（3D 舱内探索）：稀疏提示层，不遮住 3D 场景 ----
-  /** 行走提示层：顶部操作说明 + 近距"按开火交互"提示 + 四终端方位列表。 */
+  /** 行走提示层：左侧目标卡 + 右侧导览卡 + 底部交互提示，均是稀疏卡片而非满屏遮罩。 */
   private walkHintLayer: Node | null = null;
+  private walkObjectivePlate: Graphics | null = null;
+  private walkCompassPlate: Graphics | null = null;
+  private walkPromptPlate: Graphics | null = null;
   private walkTitleLabel: Label | null = null;
+  private walkObjectiveLabel: Label | null = null;
+  private walkPatrolLabel: Label | null = null;
   private walkPromptLabel: Label | null = null;
   private walkTerminalLabels: Label[] = [];
   private walkExitButton: Node | null = null;
@@ -1057,17 +1062,22 @@ export class NativeCombatHud implements NativeInputFeedback {
   }
 
   private createStatus(): void {
-    this.statusLabel = this.createLabel('FlightStatus', 15, HUD_WHITE);
+    this.statusLabel = this.createLabel('FlightStatus', 16, HUD_WHITE);
     this.statusLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
     // 顶部信息区底板：必须在这三行文字**之前**创建 —— Cocos 按 sibling 顺序绘制，
     // 先创建的在下，底板才压得住文字（反过来会把文字盖掉）。
     this.objectivePlate = attachGraphics(this.createNode('ObjectivePlate'));
-    this.objectiveLabel = this.createLabel('ObjectiveStatus', 17, HUD_CYAN);
-    this.sectorLabel = this.createLabel('SectorStatus', 14, HUD_WHITE);
+    this.objectiveLabel = this.createLabel('ObjectiveStatus', 19, HUD_CYAN);
+    this.objectiveLabel.horizontalAlign = HorizontalTextAlignment.CENTER;
+    this.objectiveLabel.overflow = Label.Overflow.SHRINK;
+    this.sectorLabel = this.createLabel('SectorStatus', 15, HUD_WHITE);
     this.sectorLabel.horizontalAlign = HorizontalTextAlignment.CENTER;
-    this.targetLabel = this.createLabel('TargetStatus', 14, HUD_ACTIVE);
-    this.cargoLabel = this.createLabel('CargoStrip', 14, HUD_WHITE);
-    this.cargoLabel.horizontalAlign = HorizontalTextAlignment.RIGHT;
+    this.sectorLabel.overflow = Label.Overflow.SHRINK;
+    this.targetLabel = this.createLabel('TargetStatus', 15, HUD_ACTIVE);
+    this.targetLabel.horizontalAlign = HorizontalTextAlignment.CENTER;
+    this.targetLabel.overflow = Label.Overflow.SHRINK;
+    this.cargoLabel = this.createLabel('CargoStrip', 15, HUD_WHITE);
+    this.cargoLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
     this.hullStatusBar = attachGraphics(this.createNode('HullStatusBar'));
     this.shieldStatusBar = attachGraphics(this.createNode('ShieldStatusBar'));
     this.energyStatusBar = attachGraphics(this.createNode('EnergyStatusBar'));
@@ -1095,7 +1105,7 @@ export class NativeCombatHud implements NativeInputFeedback {
 
   private layoutStatus(): void {
     const usableWidth = Math.max(240, this.width - this.safeInsets.left - this.safeInsets.right);
-    const statusWidth = Math.min(340, usableWidth - 24);
+    const statusWidth = Math.min(300, usableWidth - 24);
     const statusCenterX = this.leftHanded
       ? this.width - this.safeInsets.right - 12 - (statusWidth / 2)
       : this.safeInsets.left + 12 + (statusWidth / 2);
@@ -1123,7 +1133,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       this.safeInsets.top + 44,
     ));
     this.objectiveLabel?.getComponent(UITransform)?.setContentSize(
-      Math.min(320, usableWidth * 0.48),
+      Math.min(536, usableWidth * 0.46),
       30,
     );
     // 航区/波次：紧贴目标条下方居中，玩家一眼可见当前位置与进度
@@ -1132,8 +1142,8 @@ export class NativeCombatHud implements NativeInputFeedback {
       this.safeInsets.top + 72,
     ));
     this.sectorLabel?.getComponent(UITransform)?.setContentSize(
-      Math.min(320, usableWidth * 0.48),
-      20,
+      Math.min(536, usableWidth * 0.46),
+      22,
     );
     // 目标锁定读数下移到航区行下方，避免「无目标」压在「当前区域…」上。
     this.targetLabel?.node.setPosition(this.canvasPosition(
@@ -1141,40 +1151,52 @@ export class NativeCombatHud implements NativeInputFeedback {
       this.safeInsets.top + 100,
     ));
     this.targetLabel?.getComponent(UITransform)?.setContentSize(
-      Math.min(360, usableWidth * 0.58),
+      Math.min(560, usableWidth * 0.5),
       24,
     );
     // 目标血条紧贴在目标名下方，两者之间留出净空，不再与「当前区域…」那行挤在一起。
     this.targetHealthBar?.node.setPosition(this.canvasPosition(this.width / 2, this.safeInsets.top + 118, 2));
     // 顶部信息区统一底板：三行读数合成一块，而不是三串浮在星空上的散字。
     if (this.objectivePlate) {
-      const plateWidth = Math.min(340, usableWidth * 0.5);
+      // 顶部目标区做成一块完整战术仪表：比原来 340×96 放大到 580×124，
+      // 三行读数各有明显基线，不再挤成一小撮看不清的浅蓝小字。
+      const plateWidth = Math.min(580, usableWidth * 0.52);
+      const plateHeight = 124;
       this.objectivePlate.node.setPosition(this.canvasPosition(
         this.width / 2,
         this.safeInsets.top + 70,
         1,
       ));
       this.safeClear(this.objectivePlate);
-      this.objectivePlate.fillColor = new Color(3, 11, 16, 150);
+      this.objectivePlate.fillColor = new Color(3, 11, 16, 182);
       this.safeRoundRect(
         this.objectivePlate,
         -(plateWidth / 2),
-        -48,
+        -(plateHeight / 2),
         plateWidth,
-        96,
-        10,
+        plateHeight,
+        12,
       );
       this.safeFill(this.objectivePlate);
-      this.objectivePlate.strokeColor = new Color(79, 214, 224, 70);
-      this.objectivePlate.lineWidth = 1;
+      this.objectivePlate.strokeColor = new Color(79, 214, 224, 88);
+      this.objectivePlate.lineWidth = 1.5;
       this.safeRoundRect(
         this.objectivePlate,
         -(plateWidth / 2),
-        -48,
+        -(plateHeight / 2),
         plateWidth,
-        96,
-        10,
+        plateHeight,
+        12,
       );
+      this.safeStroke(this.objectivePlate);
+      this.objectivePlate.strokeColor = HUD_ACTIVE;
+      this.objectivePlate.lineWidth = 2;
+      this.safeMoveTo(this.objectivePlate, -(plateWidth / 2) + 12, -(plateHeight / 2) + 12);
+      this.safeLineTo(this.objectivePlate, -(plateWidth / 2) + 12, -(plateHeight / 2) + 30);
+      this.safeMoveTo(this.objectivePlate, (plateWidth / 2) - 12, (plateHeight / 2) - 12);
+      this.safeLineTo(this.objectivePlate, (plateWidth / 2) - 12, (plateHeight / 2) - 30);
+      this.safeMoveTo(this.objectivePlate, -(plateWidth / 2) + 32, (plateHeight / 2) - 2);
+      this.safeLineTo(this.objectivePlate, (plateWidth / 2) - 32, (plateHeight / 2) - 2);
       this.safeStroke(this.objectivePlate);
     }
     this.hitMarker?.node.setPosition(this.canvasPosition(this.width / 2, this.height / 2, 4));
@@ -1207,14 +1229,13 @@ export class NativeCombatHud implements NativeInputFeedback {
     // 强化读数再往上挪一格，避开返航动作片的顶部。
     this.upgradeLabel?.node.setPosition(this.canvasPosition(this.width / 2, this.height - this.safeInsets.bottom - 124, 5));
     this.upgradeLabel?.getComponent(UITransform)?.setContentSize(Math.min(440, usableWidth - 32), 28);
-    // 窄屏(<600)：货舱读数下移一行并缩宽、保持右对齐，避免 375 宽竖屏与 statusLabel 重叠。
-    const narrow = usableWidth < 600;
-    const cargoWidth = narrow ? Math.min(200, usableWidth - 24) : 236;
+    // 货舱读数并入左上状态列（原来放在右上角，正好被暂停/视角按钮压住）。
     this.cargoLabel?.node.setPosition(this.canvasPosition(
-      this.width - this.safeInsets.right - (narrow ? 12 + (cargoWidth / 2) : 130),
-      this.safeInsets.top + (narrow ? 52 : 20),
+      statusBarX + (statusWidth / 2),
+      this.safeInsets.top + 90,
+      3,
     ));
-    this.cargoLabel?.getComponent(UITransform)?.setContentSize(cargoWidth, 30);
+    this.cargoLabel?.getComponent(UITransform)?.setContentSize(statusWidth, 24);
   }
 
   /**
@@ -2574,30 +2595,54 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.walkHintLayer = layer;
     layer.addComponent(UIOpacity);
 
-    this.walkTitleLabel = this.createLabel('WalkTitle', 20, HUD_ACTIVE, layer);
+    // 三块底板先创建，保证绘制顺序在文字下面。视觉语言与覆盖面板一致：
+    // 圆角深色玻璃 + 青色描边 + 琥珀角标，但只占屏幕边缘，不当满屏遮罩。
+    this.walkObjectivePlate = attachGraphics(this.createNode('WalkObjectivePlate', layer));
+    this.walkCompassPlate = attachGraphics(this.createNode('WalkCompassPlate', layer));
+    this.walkPromptPlate = attachGraphics(this.createNode('WalkPromptPlate', layer));
+
+    this.walkTitleLabel = this.createLabel('WalkTitle', 19, HUD_ACTIVE, layer);
     this.walkTitleLabel.string = this.st('站内 · 自由探索', 'STATION · FREE ROAM');
     this.walkTitleLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    this.walkTitleLabel.overflow = Label.Overflow.SHRINK;
 
-    const help = this.createLabel('WalkHelp', 12, HUD_CYAN, layer);
+    this.walkObjectiveLabel = this.createLabel('WalkObjectives', 13, HUD_WHITE, layer);
+    this.walkObjectiveLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    this.walkObjectiveLabel.overflow = Label.Overflow.SHRINK;
+
+    this.walkPatrolLabel = this.createLabel('WalkPatrol', 14, HUD_ACTIVE, layer);
+    this.walkPatrolLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    this.walkPatrolLabel.overflow = Label.Overflow.SHRINK;
+
+    const help = this.createLabel('WalkHelp', 11, HUD_CYAN, layer);
     help.string = this.st(
-      '左摇杆飞行 · 加速冲刺 · 靠近发光终端按开火键交互 · 收集能量核心',
-      'Left stick to fly · Boost to sprint · Fire near a glowing terminal · Collect energy cores',
+      '摇杆飞行 · 加速冲刺 · 靠近发光终端按开火键交互',
+      'Stick to fly · Boost · Fire near a glowing terminal',
     );
     help.horizontalAlign = HorizontalTextAlignment.LEFT;
+    help.overflow = Label.Overflow.SHRINK;
 
-    this.walkPromptLabel = this.createLabel('WalkPrompt', 17, HUD_WHITE, layer);
-    this.walkPromptLabel.horizontalAlign = HorizontalTextAlignment.CENTER;
-
-    const coreLabel = this.createLabel('WalkCoreCount', 14, HUD_GREEN, layer);
+    const coreLabel = this.createLabel('WalkCoreCount', 13, HUD_GREEN, layer);
     coreLabel.name = 'WalkCoreCount';
-    coreLabel.horizontalAlign = HorizontalTextAlignment.RIGHT;
+    coreLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+    coreLabel.overflow = Label.Overflow.SHRINK;
 
-    // 四个终端 + 离港的方位列表（含距离），让玩家知道往哪飞。
-    for (let i = 0; i < 5; i += 1) {
-      const row = this.createLabel(`WalkTerminalRow${i}`, 12, HUD_CYAN, layer);
+    const compassTitle = this.createLabel('WalkCompassTitle', 13, HUD_CYAN, layer);
+    compassTitle.string = this.st('站点导览', 'STATION DIRECTORY');
+    compassTitle.horizontalAlign = HorizontalTextAlignment.LEFT;
+    compassTitle.overflow = Label.Overflow.SHRINK;
+
+    // 四个终端 + 机务 + 离港的方位列表，右侧独立成卡，不再压在血量条上。
+    for (let i = 0; i < 6; i += 1) {
+      const row = this.createLabel(`WalkTerminalRow${i}`, 12, HUD_WHITE, layer);
       row.horizontalAlign = HorizontalTextAlignment.LEFT;
+      row.overflow = Label.Overflow.SHRINK;
       this.walkTerminalLabels.push(row);
     }
+
+    this.walkPromptLabel = this.createLabel('WalkPrompt', 18, HUD_WHITE, layer);
+    this.walkPromptLabel.horizontalAlign = HorizontalTextAlignment.CENTER;
+    this.walkPromptLabel.overflow = Label.Overflow.SHRINK;
 
     this.walkExitButton = this.createPanelButton(
       'NativeWalkExit', this.st('离港 · 出击', 'UNDOCK · LAUNCH'),
@@ -2606,50 +2651,112 @@ export class NativeCombatHud implements NativeInputFeedback {
     layer.active = false;
   }
 
+  /** 站内卡片统一绘制：圆角玻璃底 + 青描边 + 琥珀角标，避免灰底白字的高级感缺失。 */
+  private drawWalkCard(graphics: Graphics | null, x: number, y: number, width: number, height: number): void {
+    if (!graphics) return;
+    this.safeClear(graphics);
+    graphics.fillColor = new Color(4, 13, 19, 198);
+    this.safeRoundRect(graphics, x, y, width, height, 10);
+    this.safeFill(graphics);
+    graphics.strokeColor = new Color(79, 214, 224, 96);
+    graphics.lineWidth = 1.5;
+    this.safeRoundRect(graphics, x, y, width, height, 10);
+    this.safeStroke(graphics);
+    graphics.strokeColor = HUD_ACTIVE;
+    graphics.lineWidth = 2;
+    // 左上 / 右下各一枚 L 形角标，和站内战术面板语言一致。
+    this.safeMoveTo(graphics, x + 8, y + height - 4);
+    this.safeLineTo(graphics, x + 8, y + height - 18);
+    this.safeLineTo(graphics, x + 24, y + height - 18);
+    this.safeMoveTo(graphics, x + width - 8, y + 4);
+    this.safeLineTo(graphics, x + width - 8, y + 18);
+    this.safeLineTo(graphics, x + width - 24, y + 18);
+    this.safeStroke(graphics);
+  }
+
   private layoutWalkHintLayer(): void {
     const layer = this.walkHintLayer;
     if (!layer) return;
     layer.getComponent(UITransform)?.setContentSize(this.width, this.height);
     const compact = this.width < 900 || this.height < 520;
-    const pad = this.safeInsets.left + 20;
-    const top = this.height / 2 - this.safeInsets.top - 18;
-    const title = layer.getChildByName('WalkTitle');
-    if (title) this.placeChild(layer, 'WalkTitle', -this.width / 2 + pad + 200, top - 12, 400, 26);
-    const help = layer.getChildByName('WalkHelp');
-    if (help) this.placeChild(layer, 'WalkHelp', -this.width / 2 + pad + 300, top - (compact ? 32 : 38), 600, 22);
-    const core = layer.getChildByName('WalkCoreCount');
-    if (core) this.placeChild(layer, 'WalkCoreCount', this.width / 2 - this.safeInsets.right - 150, top - 12, 280, 24);
+    const left = -this.width / 2 + this.safeInsets.left + 18;
+    const right = this.width / 2 - this.safeInsets.right - 18;
+    const top = this.height / 2 - this.safeInsets.top - 14;
+    const bottom = -this.height / 2 + this.safeInsets.bottom;
+    const objectiveWidth = compact ? 296 : 352;
+    const objectiveHeight = compact ? 152 : 176;
+    const compassWidth = compact ? 224 : 268;
+    const compassHeight = compact ? 180 : 196;
 
-    // 终端方位列表：左上角竖排，遮罩面板打开时整层会隐藏，不会串台。
-    const listTop = top - (compact ? 58 : 70);
+    this.drawWalkCard(
+      this.walkObjectivePlate,
+      left, top - objectiveHeight, objectiveWidth, objectiveHeight,
+    );
+    this.drawWalkCard(
+      this.walkCompassPlate,
+      right - compassWidth, top - compassHeight, compassWidth, compassHeight,
+    );
+
+    const place = (name: string, x: number, y: number, width: number, height: number): Node | null => {
+      const node = layer.getChildByName(name);
+      if (node) {
+        node.setPosition(x, y, 4);
+        node.getComponent(UITransform)?.setContentSize(width, height);
+      }
+      return node;
+    };
+    place('WalkTitle', left + 16, top - 24, objectiveWidth - 32, 26);
+    place('WalkObjectives', left + 16, top - 58, objectiveWidth - 32, 42);
+    place('WalkPatrol', left + 16, top - 104, objectiveWidth - 32, 24);
+    place('WalkCoreCount', left + 16, top - 130, objectiveWidth - 32, 22);
+    const help = place('WalkHelp', left + 16, top - (compact ? 150 : 160), objectiveWidth - 32, 20);
+    if (help) help.active = !compact;
+    if (this.walkObjectiveLabel) this.walkObjectiveLabel.fontSize = compact ? 12 : 13;
+    if (this.walkPatrolLabel) this.walkPatrolLabel.fontSize = compact ? 13 : 14;
+
+    place('WalkCompassTitle', right - compassWidth + 16, top - 26, compassWidth - 32, 22);
     this.walkTerminalLabels.forEach((label, index) => {
-      label.node.setPosition(-this.width / 2 + pad + 132, listTop - index * 22, 4);
-      label.node.getComponent(UITransform)?.setContentSize(250, 20);
+      label.node.setPosition(right - compassWidth + 16, top - 56 - index * (compact ? 21 : 23), 4);
+      label.node.getComponent(UITransform)?.setContentSize(compassWidth - 32, 20);
+      label.fontSize = compact ? 11 : 12;
     });
 
+    // 交互提示独占底部中段：有独立底板，离右下动作控件留出净空。
+    const promptWidth = Math.min(this.width - this.safeInsets.left - this.safeInsets.right - 40, 620);
+    const promptY = bottom + (compact ? 92 : 106);
+    this.drawWalkCard(
+      this.walkPromptPlate,
+      -promptWidth / 2, promptY - 23, promptWidth, 46,
+    );
     if (this.walkPromptLabel) {
-      this.walkPromptLabel.node.setPosition(0, -this.height / 2 + this.safeInsets.bottom + 108, 4);
-      this.walkPromptLabel.node.getComponent(UITransform)?.setContentSize(this.width * 0.7, 30);
-      this.walkPromptLabel.fontSize = compact ? 14 : 17;
+      this.walkPromptLabel.node.setPosition(0, promptY, 5);
+      this.walkPromptLabel.node.getComponent(UITransform)?.setContentSize(promptWidth - 28, 32);
+      this.walkPromptLabel.fontSize = compact ? 15 : 18;
     }
+    // 离港不再与右下开火键同位，改到右侧中段，仍是一眼能点到的主按钮。
     if (this.walkExitButton) {
-      this.walkExitButton.setPosition(this.width / 2 - this.safeInsets.right - 118, -this.height / 2 + this.safeInsets.bottom + 62, 4);
-      this.resizePanelButton(this.walkExitButton, 210, 46, compact ? 11 : 13);
+      this.walkExitButton.setPosition(right - 108, bottom + (compact ? 178 : 206), 5);
+      this.resizePanelButton(this.walkExitButton, 196, 46, compact ? 11 : 13);
     }
   }
 
-  /** 每帧由 Bootstrap 推送：更新近距交互提示 + 终端方位 + 核心计数。 */
+  /** 每帧由 Bootstrap 推送：目标 / 巡检 / 近距交互 / 终端方位 / 核心计数。 */
   public syncWalkHint(state: {
     nearLabel: string;
     terminalRows: string[];
     coresText: string;
+    patrolText?: string;
+    objectivesText?: string;
+    notice?: string;
   } | null): void {
     if (!state) return;
+    if (this.walkObjectiveLabel) this.walkObjectiveLabel.string = state.objectivesText || '';
+    if (this.walkPatrolLabel) this.walkPatrolLabel.string = state.patrolText || '';
     if (this.walkPromptLabel) {
-      this.walkPromptLabel.string = state.nearLabel
+      this.walkPromptLabel.string = state.notice || (state.nearLabel
         ? this.st(`按开火键 · ${state.nearLabel}`, `FIRE · ${state.nearLabel}`)
-        : this.st('飞近发光终端即可交互', 'Fly close to a glowing terminal');
-      this.walkPromptLabel.color = state.nearLabel ? HUD_ACTIVE : HUD_CYAN;
+        : this.st('飞近终端或机务即可交互', 'Approach a terminal or the mechanic'));
+      this.walkPromptLabel.color = state.notice || state.nearLabel ? HUD_ACTIVE : HUD_CYAN;
     }
     const core = this.walkHintLayer?.getChildByName('WalkCoreCount')?.getComponent(Label);
     if (core) core.string = state.coresText;
@@ -3551,10 +3658,13 @@ export class NativeCombatHud implements NativeInputFeedback {
     }
     if (this.reticleGraphics) this.reticleGraphics.node.active = showReadouts;
     if (this.objectivePlate) this.objectivePlate.node.active = showReadouts;
-    for (const graphics of [this.hullStatusBar, this.shieldStatusBar, this.energyStatusBar, this.targetHealthBar, this.hitMarker]) {
-      if (graphics) graphics.node.active = visible;
+    // 战斗资源条/准星/装配入口同样属于「战斗读数」：站内行走时必须整组收起，
+    // 否则 0.13.38 真机截图那种血量条压在站内标题上、装配按钮悬在走廊里的串台会复现。
+    for (const graphics of [this.hullStatusBar, this.shieldStatusBar, this.energyStatusBar,
+      this.targetHealthBar, this.hitMarker]) {
+      if (graphics) graphics.node.active = showReadouts;
     }
-    if (this.loadoutButton) this.loadoutButton.active = visible && !this.returning;
+    if (this.loadoutButton) this.loadoutButton.active = showReadouts && !this.returning;
     if (this.stickThumb) this.stickThumb.active = visible && !this.returning;
     this.refreshActionVisibility();
     // 调试遥测任何情况下都不显示。

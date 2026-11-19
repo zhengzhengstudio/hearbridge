@@ -70,7 +70,9 @@ class MockSprite {
 }
 MockSprite.SizeMode = { CUSTOM: 0, TRIMMED: 1, RAW: 2 };
 MockSprite.Type = { SIMPLE: 0, SLICED: 1, TILED: 2 };
-class MockSpriteFrame { constructor() { this.texture = null; } }
+class MockSpriteFrame {
+  reset({ texture, rect, originalSize }) { Object.assign(this, { texture, rect, originalSize }); }
+}
 class MockUITransform { setContentSize(w, h) { this.width = w; this.height = h; } }
 class MockTexture { reset() {} }
 
@@ -97,9 +99,11 @@ function loadShim(isNative = true) {
           Sprite: MockSprite,
           SpriteFrame: MockSpriteFrame,
           UITransform: MockUITransform,
+          Rect: class { constructor(x, y, width, height) { Object.assign(this, { x, y, width, height }); } },
+          Size: class { constructor(width, height) { Object.assign(this, { width, height }); } },
           Texture2D: MockTexture,
           PixelFormat: { RGBA8888: 13 },
-          builtinResMgr: { get() { return null; } },
+          builtinResMgr: { get() { return { width: 2, height: 2 }; } },
         };
       }
       if (id === './NativeGraphicsGuard') return { isNativeRuntime: () => isNative };
@@ -274,7 +278,7 @@ test('白纹理帧必须用引擎官方 reset() 构造，且不得退化到运�
   assert.doesNotMatch(shim, /new Texture2D\(\)/, '不得在运行时新建纹理');
   assert.doesNotMatch(shim, /PixelFormat/, '不再需要像素格式常量');
   // 拿不到 builtin 白纹理时必须明确报错，而不是静默画不出来
-  assert.match(shim, /builtin 白纹理不可用/);
+  assert.match(shim, /builtin 白纹理(?:暂|仍)不可用/);
 });
 
 test('池节点复用前必须复位角度，避免扫描线继承上一帧分段条角度', () => {

@@ -666,6 +666,7 @@ export class CombatSimulation {
   private projectiles: ProjectileState[] = [];
   private combatEvents: CombatEvent[] = [];
   private pickups: PickupState[];
+  private readonly initialPickups: readonly PickupState[];
   private cooldowns: Record<WeaponSlot, number> = { primary: 0, secondary: 0 };
 
   /** 战术设备主动技能运行状态（数据表见 DEVICE_ABILITIES）。 */
@@ -1081,13 +1082,14 @@ export class CombatSimulation {
         lastDamagedBy: 'world',
       };
     });
-    this.pickups = (options.mission.pickups || []).map((pickup) => ({
+    this.initialPickups = (options.mission.pickups || []).map((pickup) => ({
       id: pickup.id,
       kind: pickup.kind,
       position: missionVector(pickup.position, { x: 0, y: 0, z: 0 }),
       value: Math.max(0, finiteNumber(pickup.value, 0)),
       upgradeId: pickup.upgradeId,
     }));
+    this.pickups = this.initialPickups.map((pickup) => ({ ...pickup, position: cloneVector(pickup.position) }));
     if (this.enemies.length === 0) this.spawnWave(1);
     // 猎杀目标开局也要有精英可杀，否则第一波目标天然不可达。
     if (this.objectiveType === 'hunt') this.spawnElite(1);
@@ -2966,7 +2968,7 @@ export class CombatSimulation {
     return this.snapshot();
   }
 
-  public departOutpost(additionalShieldCapacity = 0): CombatSnapshot {
+  public departOutpost(additionalShieldCapacity = 0, mechanicRecovery = false): CombatSnapshot {
     this.baseMaxShield += Math.max(0, Math.floor(finiteNumber(additionalShieldCapacity, 0)));
     this.combatEvents = [];
     this.docked = false;
@@ -2997,7 +2999,7 @@ export class CombatSimulation {
     this.projectiles = [];
     this.debris = [];
     this.canyonScraping = false;
-    this.pickups = [];
+    this.pickups = this.initialPickups.map((pickup) => ({ ...pickup, position: cloneVector(pickup.position) }));
     this.waveTransition = 0;
     this.sector = 1;
     this.regionId = this.regionForSector(this.sector);
@@ -3035,6 +3037,15 @@ export class CombatSimulation {
       y: PRIMARY_OUTPOST_POSITION.y,
       z: PRIMARY_OUTPOST_POSITION.z + OUTPOST_DOCKING_RADIUS + 12,
     };
+    this.player.attitude = neutralAttitude();
+    if (mechanicRecovery) {
+      this.pickups.push({
+        id: 'mechanic-recovery-cache',
+        kind: 'relic',
+        position: { x: this.player.position.x + 9, y: this.player.position.y + 1, z: this.player.position.z - 15 },
+        value: 55,
+      });
+    }
     this.player.spawnProtection = Math.max(this.player.spawnProtection, 3);
     return this.snapshot();
   }

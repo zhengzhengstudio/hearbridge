@@ -18,6 +18,7 @@ const {
   STATION_WALK_START,
   STATION_WALK_TERMINALS,
   STATION_WALK_CORES,
+  STATION_WALK_PATROL,
 } = require(path.join(compiledCoreRoot, 'StationWalkSystem.js'));
 
 function command(overrides = {}) {
@@ -92,8 +93,8 @@ test('nearest 检测终端半径，出口起点即靠近 undock', () => {
   const atTerminal = walk.nearest(terminal.x, terminal.z);
   assert.equal(atTerminal.id, 'contracts');
 
-  const far = walk.nearest(0, 0);
-  assert.equal(far, null, 'center should be outside all terminal radii');
+  assert.equal(walk.nearest(0, 0)?.id, 'mechanic');
+  assert.equal(walk.nearest(0, 0.9), null, 'the approach still has a neutral zone');
 });
 
 test('开火上升沿在终端内触发一次交互，长按不重复', () => {
@@ -111,11 +112,18 @@ test('开火上升沿在终端内触发一次交互，长按不重复', () => {
 
 test('不在终端内按开火不触发交互', () => {
   const walk = new StationWalkSystem();
-  // 走到中心（各终端半径外）。
-  for (let i = 0; i < 40; i += 1) walk.step(command({ throttle: 1 }), 0.016);
+  // 走到机务与机库出口之间的过渡区。
+  for (let i = 0; i < 30; i += 1) walk.step(command({ throttle: 1 }), 0.016);
   const mid = walk.step(command({ primaryFire: true }), 0.016);
   assert.equal(mid.near, null);
   assert.equal(mid.interact, null);
+});
+
+test('飞近 R-7 后可用交互键接取委托', () => {
+  const walk = new StationWalkSystem();
+  for (let i = 0; i < 43; i += 1) walk.step(command({ throttle: 1 }), 0.016);
+  assert.equal(walk.step(command({ primaryFire: true }), 0.016).interact, 'mechanic');
+  assert.equal(walk.step(command({ primaryFire: true }), 0.016).interact, null);
 });
 
 test('suspendInteraction 吃掉当前按键，面板关闭瞬间不误触', () => {
@@ -197,4 +205,85 @@ test('reset 重置核心收集，可重新玩', () => {
   walk.reset();
   assert.equal(walk.coresRemaining(), STATION_WALK_CORES.length);
   assert.equal(walk.collectedCores().size, 0);
+});
+
+/** 直接沿 x/z 分轴飞向目标；只用于纯逻辑测试，不做路径规划。 */
+function flyTo(walk, target, resultSink) {
+  for (let guard = 0; guard < 500; guard += 1) {
+    const pos = walk.position();
+    const dx = target.x - pos.x;
+    const dz = target.z - pos.z;
+    if (Math.hypot(dx, dz) <= 0.3) return true;
+    const result = walk.step(command({
+      strafe: Math.max(-1, Math.min(1, dx)),
+      throttle: Math.max(-1, Math.min(1, -dz)),
+    }), 0.02);
+    if (resultSink) resultSink(result);
+  }
+  return false;
+}
+
+test('巡检信标必须按 1→2→3 顺序激活', () => {
+  const walk = new StationWalkSystem();
+  const events = [];
+  const [first, second] = STATION_WALK_PATROL;
+  // 先跑到 2 号点：顺序未到，不能跳过 1 号直接激活。
+  flyTo(walk, second, (result) => {
+    if (result.patrolNode !== null) events.push(result.patrolNode);
+  });
+  assert.equal(events.length, 0, 'node 2 must not activate before node 1');
+  assert.equal(walk.patrolProgress().step, 0);
+  flyTo(walk, first, (result) => {
+    if (result.patrolNode !== null) events.push(result.patrolNode);
+  });
+  assert.equal(events[0], first.id, 'first activation must be node 1');
+  assert.equal(walk.patrolProgress().step, 1);
+});
+
+test('按序激活三个信标只奖励一次，并累计完成轮数', () => {
+  const walk = new StationWalkSystem();
+  let completions = 0;
+  for (const node of STATION_WALK_PATROL) {
+    flyTo(walk, node, (result) => {
+      if (result.patrolComplete) completions += 1;
+    });
+  }
+  assert.equal(completions, 1);
+  const progress = walk.patrolProgress();
+  assert.equal(progress.completedRuns, 1);
+  assert.equal(progress.step, 0);
+  assert.equal(progress.running, false);
+  // 再绕一圈仍可完成，但没有重复本帧奖励。
+  for (const node of STATION_WALK_PATROL) flyTo(walk, node);
+  assert.equal(walk.patrolProgress().completedRuns, 2);
+});
+
+test('巡检超时会重置序列，但不影响核心收集', () => {
+  const walk = new StationWalkSystem();
+  flyTo(walk, STATION_WALK_PATROL[0]);
+  assert.equal(walk.patrolProgress().step, 1);
+  const core = STATION_WALK_CORES[0];
+  flyTo(walk, core);
+  assert.ok(walk.collectedCores().has(core.id), 'core pickup survives patrol timeout path');
+  // 用 dt 上限反复推进计时（42s / 0.05 = 840 帧）。
+  let timedOut = false;
+  for (let i = 0; i < 900 && !timedOut; i += 1) {
+    const result = walk.step(command(), 0.05);
+    timedOut = result.patrolTimeout;
+  }
+  assert.ok(timedOut, 'patrol should time out');
+  assert.equal(walk.patrolProgress().step, 0);
+  assert.equal(walk.patrolProgress().running, false);
+  assert.ok(walk.collectedCores().has(core.id), 'core stays collected after timeout');
+});
+
+test('reset 同时重置巡检进度', () => {
+  const walk = new StationWalkSystem();
+  flyTo(walk, STATION_WALK_PATROL[0]);
+  assert.equal(walk.patrolProgress().step, 1);
+  walk.reset();
+  const progress = walk.patrolProgress();
+  assert.equal(progress.step, 0);
+  assert.equal(progress.running, false);
+  assert.equal(progress.completedRuns, 0);
 });

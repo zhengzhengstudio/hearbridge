@@ -655,6 +655,7 @@
   const RARITY_LABELS = { common: '普通', uncommon: '优良', rare: '稀有', epic: '史诗' };
 
   function setOutpostOpen(open) {
+    if (open && document.pointerLockElement === canvas) document.exitPointerLock?.();
     document.body.dataset.outpostOpen = String(open);
     // 直接查 DOM：closePanels 可能在脚本初始化早期被调到，别依赖末尾的 const。
     document.getElementById('OutpostPanel')?.setAttribute('aria-hidden', String(!open));
@@ -689,6 +690,8 @@
   }
 
   window.addEventListener('spacefight:outpost-entered', (event) => {
+    const mechanicStatus = document.getElementById('OutpostMechanicStatus');
+    if (mechanicStatus) mechanicStatus.textContent = 'R-7 有一条货箱搜救委托。';
     // 停靠状态：前哨面板开着时玩家在港内，飞行输入不该生效。
     document.body.dataset.docked = 'true';
     fillOutpost(event.detail || {});
@@ -701,6 +704,13 @@
     outpostSettlement.textContent = `本趟结算  +${state.amount || 0} 星港券　·　货值 ${state.cargoValue || 0}　·　击落 ${state.kills || 0}`;
   });
   document.getElementById('OutpostClose')?.addEventListener('click', () => { setOutpostOpen(false); });
+  document.getElementById('OutpostMechanic')?.addEventListener('click', () => {
+    window.dispatchEvent(new CustomEvent('spacefight:mechanic-briefing'));
+  });
+  window.addEventListener('spacefight:mechanic-briefed', (event) => {
+    const status = document.getElementById('OutpostMechanicStatus');
+    if (status) status.textContent = event.detail?.message || '';
+  });
   // 前哨面板 → 装配台：和原生 HUD 的「进入装配台」一致，装配完再回前哨。
   document.getElementById('OutpostLoadout')?.addEventListener('click', () => {
     setOutpostOpen(false);

@@ -1443,17 +1443,41 @@ test('guard: repeated docking never settles the same cargo twice', () => {
   const again = simulation.serviceAtOutpost();
   assert.equal(again.navigation.securedCargoValue, first.navigation.securedCargoValue);
 
-  // 离港清货，下一局不能再把同一批货算一次。
-  const launched = simulation.departOutpost();
+  // 离港应用本站校准，同时清空货物，保留战斗中的护盾损耗。
+  const launched = simulation.departOutpost(17, true);
   assert.equal(launched.cargo.items.length, 0);
+  assert.ok(launched.pickups.some(pickup => pickup.id === 'scrap-1'), '离港恢复任务物资');
+  assert.ok(launched.pickups.some(pickup => pickup.id === 'mechanic-recovery-cache'), 'R-7 委托生成实际货箱');
+  assert.equal(launched.player.maxShield, first.player.maxShield + 17);
+  assert.equal(launched.player.shield, first.player.shield);
   const secondRun = simulation.serviceAtOutpost();
   assert.equal(secondRun.navigation.securedCargoValue, 0, '新一局没有旧货物可重复结算');
+  const relaunched = simulation.departOutpost();
+  assert.equal(relaunched.player.maxShield, launched.player.maxShield);
+  assert.ok(!relaunched.pickups.some(pickup => pickup.id === 'mechanic-recovery-cache'), '下一趟不会免费复制委托');
 
   // cargo 层同样保证一次远征只结算一次。
   const cargo = new LootAndCargoSystem(8, 1);
   cargo.add({ id: 'a', category: 'material', insured: false, rarity: 'common', value: 50 });
   assert.equal(cargo.settleExpedition('returned').keptValue, 50);
   assert.equal(cargo.settleExpedition('returned').keptValue, 0);
+});
+
+test('R-7 cargo can be flown to, collected and settled on return', () => {
+  const simulation = createSimulation(core.CombatSimulation);
+  simulation.serviceAtOutpost();
+  let state = simulation.departOutpost(0, true);
+  const cacheId = 'mechanic-recovery-cache';
+  const cache = state.pickups.find(pickup => pickup.id === cacheId);
+  assert.ok(cache);
+  for (let frame = 0; frame < 360 && !state.cargo.items.some(item => item.id === cacheId + '-cargo'); frame += 1) {
+    const x = cache.position.x - state.player.position.x;
+    const z = state.player.position.z - cache.position.z;
+    const range = Math.max(1, Math.hypot(x, z));
+    state = simulation.step({ throttle: z / range, strafe: x / range }, 1 / 60);
+  }
+  assert.ok(state.cargo.items.some(item => item.id === cacheId + '-cargo'));
+  assert.ok(simulation.serviceAtOutpost().navigation.securedCargoValue >= 55);
 });
 
 test('guard: weapon swap is ignored while paused', () => {

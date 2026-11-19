@@ -30,6 +30,23 @@ function template(name, file) {
 
 const SHELLS = ['web-desktop', 'web-mobile'];
 
+test('前哨停靠清理货箱不依赖 Cocos 编译器展开 Map', () => {
+  const loot = script('game/LootPresenter.ts');
+  assert.match(loot, /this\.nodes\.forEach\(\(node, id\) => \{/);
+  assert.doesNotMatch(loot, /\.\.\.this\.nodes\b/);
+  for (const shell of SHELLS) {
+    assert.match(template(shell, 'spacefight-shell.js'), /if \(open && document\.pointerLockElement === canvas\) document\.exitPointerLock/);
+  }
+});
+
+test('站内侧倾和太空碎片使用 Cocos 3.8 支持的旋转方法', () => {
+  for (const source of ['game/CombatBootstrap.ts', 'game/CombatVisuals.ts']) {
+    const code = script(source);
+    assert.match(code, /\.rotate\(Quat\.fromEuler\(/);
+    assert.doesNotMatch(code, /\.rotateFromEuler\(/);
+  }
+});
+
 test('六艘舰 low/high 两档 glb 齐备，贴图 mimeType 与实际编码一致，且已压到手游体量', () => {
   const dirs = [
     'assets/resources/models-low/ships',
