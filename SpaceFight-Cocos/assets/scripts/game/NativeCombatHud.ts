@@ -132,6 +132,16 @@ export interface StationHudBridge {
   market(): Readonly<Record<TradeGoodId, { buy: number; sell: number }>>;
 }
 
+/** 站内自由行走 HUD 桥接：Bootstrap 每帧把化身位置/接近终端推给 HUD 画提示。 */
+export interface WalkHudBridge {
+  /** 玩家当前是否处于 3D 站内行走模式（相机跟随、摇杆驱动）。 */
+  isWalking(): boolean;
+  /** 当前半径内最近终端的本地化名称；没有则空串。 */
+  nearLabel(): string;
+  /** 终端四项方位文字（含未接近项），用于小地图列表。 */
+  terminalRows(): string[];
+}
+
 export interface NativeHudActions {
   onReturnHome?: () => void;
   onStationService?: (service: StationServiceId) => void;
@@ -139,6 +149,9 @@ export interface NativeHudActions {
   onStartTutorial?: () => void;
   coop?: CoopHudBridge;
   station?: StationHudBridge;
+  walk?: WalkHudBridge;
+  /** 在前哨面板点「站内玩法」时进入 3D 自由行走（由 Bootstrap 切相机/建化身）。 */
+  onEnterWalk?: () => void;
 }
 
 type NativeHomeView = 'operations' | 'hangar' | 'cargo' | 'market' | 'settings' | 'coop';
@@ -443,6 +456,16 @@ export class NativeCombatHud implements NativeInputFeedback {
   private stationCalibration = 0;
   private stationNotice: { message: string } | null = null;
 
+  // ---- 站内自由行走（3D 舱内探索）：稀疏提示层，不遮住 3D 场景 ----
+  /** 行走提示层：顶部操作说明 + 近距"按开火交互"提示 + 四终端方位列表。 */
+  private walkHintLayer: Node | null = null;
+  private walkTitleLabel: Label | null = null;
+  private walkPromptLabel: Label | null = null;
+  private walkTerminalLabels: Label[] = [];
+  private walkExitButton: Node | null = null;
+  /** 3D 站内行走态：战斗读数收起，只留稀疏提示层与摇杆/开火键。 */
+  private walkActive = false;
+
   constructor(
     scene: Node,
     touchEnabled: boolean,
@@ -498,6 +521,7 @@ export class NativeCombatHud implements NativeInputFeedback {
       ['keybind settings', () => this.createKeybindPanel()],
       ['run logs', () => this.createRunlogPanel()],
       ['station interior', () => this.createStationPanel()],
+      ['station walk hint', () => this.createWalkHintLayer()],
       ['launcher key art', () => this.loadLauncherKeyArt()],
       ['return overlay', () => this.createReturnOverlay()],
     ];
@@ -555,6 +579,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.layoutKeybindPanel();
     this.layoutRunlogPanel();
     this.layoutStationPanel();
+    this.layoutWalkHintLayer();
     this.refreshGraphicsLayerBadge();
     if (!this.touchEnabled) return;
     if (this.actionVisuals.size === 0) this.createTouchControls();
@@ -980,6 +1005,16 @@ export class NativeCombatHud implements NativeInputFeedback {
     // 敌机/陨石仍在后台推进并击中玩家 → 「进菜单回来掉血」的根因。
     // blocksFlightInput() 已含 pauseOpen（输入已屏蔽），此处补齐仿真冻结才一致。
     return this.loadoutOpen || this.homeOpen || this.outpostOpen || this.defeatOpen || this.pauseOpen;
+  }
+
+  /** 是否正在 3D 站内自由行走（Bootstrap 据此决定是否消费输入驱动化身）。 */
+  isWalking(): boolean {
+    return this.walkActive;
+  }
+
+  /** 站内面板是否打开（行走时靠近终端弹面板，期间冻结行走输入）。 */
+  isStationOpen(): boolean {
+    return this.stationOpen;
   }
 
   blocksFlightInput(): boolean {
@@ -1885,9 +1920,12 @@ export class NativeCombatHud implements NativeInputFeedback {
       () => this.actions?.onStationService?.('refit'), this.outpostPanel);
     this.outpostHomeButton = this.createPanelButton('NativeOutpostHome', this.text('outpost.home'),
       () => this.actions?.onReturnHome?.(), this.outpostPanel);
-    // 「站内玩法」：进入独立的总台面板（任务 / 交易 / 设施 / 校准改装）。
+    // 「站内玩法」：3D 舱内自由行走已接线时进入可操控的站内场景；否则回退到 2D 总台。
     this.outpostStationButton = this.createPanelButton('NativeOutpostStation',
-      this.st('站内玩法', 'Station Interior'), () => this.showStation(), this.outpostPanel, 'primary');
+      this.st('进入站内', 'Enter Station'), () => {
+        if (this.actions?.onEnterWalk) this.actions.onEnterWalk();
+        else this.showStation();
+      }, this.outpostPanel, 'primary');
     // 「舱内物资」：不新建面板，切换货物读数行显示五类物资台账，避免挤压 2×2 服务网格。
     this.outpostInteriorButton = this.createPanelButton('NativeOutpostInterior', this.text('outpost.interior'),
       () => this.toggleInterior(), this.outpostPanel);
@@ -2528,6 +2566,129 @@ export class NativeCombatHud implements NativeInputFeedback {
     }
   }
 
+  // ==================== 站内自由行走（3D 舱内探索）====================
+
+  /** 创建稀疏行走提示层：不铺满屏，保留 3D 舱内可见。 */
+  private createWalkHintLayer(): void {
+    const layer = this.createNode('NativeWalkHintLayer');
+    this.walkHintLayer = layer;
+    layer.addComponent(UIOpacity);
+
+    this.walkTitleLabel = this.createLabel('WalkTitle', 20, HUD_ACTIVE, layer);
+    this.walkTitleLabel.string = this.st('站内 · 自由探索', 'STATION · FREE ROAM');
+    this.walkTitleLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
+
+    const help = this.createLabel('WalkHelp', 12, HUD_CYAN, layer);
+    help.string = this.st(
+      '左摇杆飞行 · 加速冲刺 · 靠近发光终端按开火键交互 · 收集能量核心',
+      'Left stick to fly · Boost to sprint · Fire near a glowing terminal · Collect energy cores',
+    );
+    help.horizontalAlign = HorizontalTextAlignment.LEFT;
+
+    this.walkPromptLabel = this.createLabel('WalkPrompt', 17, HUD_WHITE, layer);
+    this.walkPromptLabel.horizontalAlign = HorizontalTextAlignment.CENTER;
+
+    const coreLabel = this.createLabel('WalkCoreCount', 14, HUD_GREEN, layer);
+    coreLabel.name = 'WalkCoreCount';
+    coreLabel.horizontalAlign = HorizontalTextAlignment.RIGHT;
+
+    // 四个终端 + 离港的方位列表（含距离），让玩家知道往哪飞。
+    for (let i = 0; i < 5; i += 1) {
+      const row = this.createLabel(`WalkTerminalRow${i}`, 12, HUD_CYAN, layer);
+      row.horizontalAlign = HorizontalTextAlignment.LEFT;
+      this.walkTerminalLabels.push(row);
+    }
+
+    this.walkExitButton = this.createPanelButton(
+      'NativeWalkExit', this.st('离港 · 出击', 'UNDOCK · LAUNCH'),
+      () => this.onDeploy?.(), layer, 'primary',
+    );
+    layer.active = false;
+  }
+
+  private layoutWalkHintLayer(): void {
+    const layer = this.walkHintLayer;
+    if (!layer) return;
+    layer.getComponent(UITransform)?.setContentSize(this.width, this.height);
+    const compact = this.width < 900 || this.height < 520;
+    const pad = this.safeInsets.left + 20;
+    const top = this.height / 2 - this.safeInsets.top - 18;
+    const title = layer.getChildByName('WalkTitle');
+    if (title) this.placeChild(layer, 'WalkTitle', -this.width / 2 + pad + 200, top - 12, 400, 26);
+    const help = layer.getChildByName('WalkHelp');
+    if (help) this.placeChild(layer, 'WalkHelp', -this.width / 2 + pad + 300, top - (compact ? 32 : 38), 600, 22);
+    const core = layer.getChildByName('WalkCoreCount');
+    if (core) this.placeChild(layer, 'WalkCoreCount', this.width / 2 - this.safeInsets.right - 150, top - 12, 280, 24);
+
+    // 终端方位列表：左上角竖排，遮罩面板打开时整层会隐藏，不会串台。
+    const listTop = top - (compact ? 58 : 70);
+    this.walkTerminalLabels.forEach((label, index) => {
+      label.node.setPosition(-this.width / 2 + pad + 132, listTop - index * 22, 4);
+      label.node.getComponent(UITransform)?.setContentSize(250, 20);
+    });
+
+    if (this.walkPromptLabel) {
+      this.walkPromptLabel.node.setPosition(0, -this.height / 2 + this.safeInsets.bottom + 108, 4);
+      this.walkPromptLabel.node.getComponent(UITransform)?.setContentSize(this.width * 0.7, 30);
+      this.walkPromptLabel.fontSize = compact ? 14 : 17;
+    }
+    if (this.walkExitButton) {
+      this.walkExitButton.setPosition(this.width / 2 - this.safeInsets.right - 118, -this.height / 2 + this.safeInsets.bottom + 62, 4);
+      this.resizePanelButton(this.walkExitButton, 210, 46, compact ? 11 : 13);
+    }
+  }
+
+  /** 每帧由 Bootstrap 推送：更新近距交互提示 + 终端方位 + 核心计数。 */
+  public syncWalkHint(state: {
+    nearLabel: string;
+    terminalRows: string[];
+    coresText: string;
+  } | null): void {
+    if (!state) return;
+    if (this.walkPromptLabel) {
+      this.walkPromptLabel.string = state.nearLabel
+        ? this.st(`按开火键 · ${state.nearLabel}`, `FIRE · ${state.nearLabel}`)
+        : this.st('飞近发光终端即可交互', 'Fly close to a glowing terminal');
+      this.walkPromptLabel.color = state.nearLabel ? HUD_ACTIVE : HUD_CYAN;
+    }
+    const core = this.walkHintLayer?.getChildByName('WalkCoreCount')?.getComponent(Label);
+    if (core) core.string = state.coresText;
+    this.walkTerminalLabels.forEach((label, i) => {
+      label.string = state.terminalRows[i] || '';
+    });
+  }
+
+  /** 进入/退出 3D 行走：行走时收起战斗 HUD 读数，只留稀疏提示层。 */
+  public setWalkVisible(visible: boolean): void {
+    if (visible) {
+      // 从前哨结算面板进入：关掉它，露出 3D 站内场景。
+      this.setOutpostOpen(false);
+      this.setHomeOpen(false);
+    }
+    if (this.walkHintLayer) this.walkHintLayer.active = visible;
+    this.walkActive = visible;
+    // 行走时必须保留摇杆/开火键可交互：战斗控件整体点亮，
+    // 但下面的读数/准星单独收起（walkActive 已并入 setCombatChromeVisible 判断）。
+    if (visible) this.setCombatChromeVisible(true);
+    // 行走时隐藏战斗读数与准星，避免叠在 3D 舱内画面上。
+    for (const label of [this.statusLabel, this.objectiveLabel, this.sectorLabel, this.targetLabel,
+      this.cargoLabel, this.combatFeedLabel, this.navigationLabel, this.weaponLabel,
+      this.abilityLabel, this.comboLabel, this.upgradeLabel]) {
+      if (label) label.node.active = !visible && this.combatChromeVisible;
+    }
+    if (this.reticleGraphics) this.reticleGraphics.node.active = !visible && this.combatChromeVisible;
+  }
+
+  /** Bootstrap 在玩家于终端按开火时调用：直接打开指定页签的 2D 面板。 */
+  public openStationTab(tab: StationTab): void {
+    if (this.walkHintLayer) this.walkHintLayer.active = false;
+    this.stationTab = tab;
+    this.stationNotice = null;
+    this.stationSelected = 0;
+    this.stationCalibration = 0;
+    this.setStationOpen(true);
+  }
+
   // ==================== 站内玩法（建筑内）：任务 / 交易 / 设施 / 校准改装 ====================
 
   /** 从进站面板打开站内玩法总台，默认落在任务板。 */
@@ -2961,9 +3122,15 @@ export class NativeCombatHud implements NativeInputFeedback {
     }
 
     this.stationBackButton = this.createPanelButton(
-      'StationBack', this.st('返回前哨', 'Back to Outpost'), () => {
+      'StationBack', this.st('返回站内', 'Back to Station'), () => {
         this.setStationOpen(false);
-        this.setOutpostOpen(true);
+        if (this.walkActive) {
+          // 从 3D 行走里点进终端：关面板后回到舱内继续飞，而不是回 2D 结算面板。
+          if (this.walkHintLayer) this.walkHintLayer.active = true;
+          this.setCombatChromeVisible(true);
+        } else {
+          this.setOutpostOpen(true);
+        }
       }, panel,
     );
     panel.active = false;
@@ -3377,11 +3544,13 @@ export class NativeCombatHud implements NativeInputFeedback {
       || this.stationOpen || this.shouldShowTraining();
     this.combatChromeVisible = visible && !this.startupVisible && !anyOverlayOpen;
     // 打开面板时连击/强化/武器读数也必须一并收起，否则旧读数浮在面板上。
+    // 3D 行走态同样收起读数，只留摇杆/开火键（下面 refreshActionVisibility 保留）。
+    const showReadouts = visible && !this.walkActive;
     for (const label of [this.statusLabel, this.objectiveLabel, this.sectorLabel, this.targetLabel, this.cargoLabel, this.combatFeedLabel, this.navigationLabel, this.weaponLabel, this.abilityLabel, this.comboLabel, this.upgradeLabel]) {
-      if (label) label.node.active = visible;
+      if (label) label.node.active = showReadouts;
     }
-    if (this.reticleGraphics) this.reticleGraphics.node.active = visible;
-    if (this.objectivePlate) this.objectivePlate.node.active = visible;
+    if (this.reticleGraphics) this.reticleGraphics.node.active = showReadouts;
+    if (this.objectivePlate) this.objectivePlate.node.active = showReadouts;
     for (const graphics of [this.hullStatusBar, this.shieldStatusBar, this.energyStatusBar, this.targetHealthBar, this.hitMarker]) {
       if (graphics) graphics.node.active = visible;
     }

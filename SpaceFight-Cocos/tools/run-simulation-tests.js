@@ -37,6 +37,7 @@ const compilerArguments = [
   path.join(projectRoot, 'assets', 'scripts', 'core', 'WeaponCatalog.ts'),
   path.join(projectRoot, 'assets', 'scripts', 'core', 'CombatSimulation.ts'),
   path.join(projectRoot, 'assets', 'scripts', 'core', 'StationSystem.ts'),
+  path.join(projectRoot, 'assets', 'scripts', 'core', 'StationWalkSystem.ts'),
 ];
 
 try {
@@ -55,6 +56,7 @@ try {
       path.join(repositoryRoot, 'tests', 'spacefight_weapon_behavior.test.js'),
       path.join(repositoryRoot, 'tests', 'spacefight_device_ability.test.js'),
       path.join(repositoryRoot, 'tests', 'spacefight_station_system.test.js'),
+      path.join(repositoryRoot, 'tests', 'spacefight_station_walk.test.js'),
     ], {
       cwd: repositoryRoot,
       env: {

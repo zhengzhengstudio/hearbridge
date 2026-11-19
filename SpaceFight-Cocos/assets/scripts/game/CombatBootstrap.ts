@@ -47,6 +47,13 @@ import {
   TRADE_GOODS,
   FACILITIES,
 } from '../core/StationSystem';
+import {
+  StationWalkSystem,
+  STATION_WALK_START,
+  STATION_WALK_TERMINALS,
+  STATION_WALK_CORES,
+  type WalkTarget,
+} from '../core/StationWalkSystem';
 import { BrowserInputBridge } from '../input/BrowserInputBridge';
 import { CocosInputBridge, NATIVE_SAFE_INSETS } from '../input/CocosInputBridge';
 import { CocosGamepadBridge } from '../input/CocosGamepadBridge';
@@ -469,6 +476,27 @@ export class CombatBootstrap extends Component {
   private readonly stationBridge: StationHudBridge | null = this.stationSystem
     ? this.createStationBridge(this.stationSystem)
     : null;
+  /** 站内 3D 自由行走：摇杆驱动化身在舱内飞，靠近终端按开火键交互，顺路收集能量核心。 */
+  private readonly stationWalk = new StationWalkSystem();
+  /** 行走化身所在节点（挂在前哨站内场景里，随 StationInterior 一起移动）。 */
+  private walkAvatar: Node | null = null;
+  private walkAvatarGlow: Node | null = null;
+  /** 五个能量核心的可视节点，收集后隐藏。 */
+  private readonly walkCoreNodes = new Map<number, Node>();
+  /** 终端指示光柱，靠近时点亮。 */
+  private readonly walkTerminalNodes = new Map<WalkTarget, Node>();
+  private walkActive = false;
+  private walkOrigin: Vec3 | null = null;
+  private walkSyncElapsed = 0;
+  /** 机头朝向（跟随最后一次移动方向），无输入时保持。 */
+  private walkFacingX = 0;
+  private walkFacingZ = -1;
+  /** HUD 行走桥接：只读当前状态，HUD 不持有 StationWalkSystem。 */
+  private readonly walkBridge: import('../game/NativeCombatHud').WalkHudBridge = {
+    isWalking: () => this.walkActive,
+    nearLabel: () => this.walkNearLabel(),
+    terminalRows: () => this.walkTerminalRows(),
+  };
   /**
    * 返航闩锁：轻点一次「返航」即开始返航并持续到完成，不再要求一直按住。
    * 之前必须按住 2.4s 且挨打会重置进度，在碎石/敌机连续擦碰时进度被永久冻结，
@@ -539,6 +567,8 @@ export class CombatBootstrap extends Component {
     onStartTutorial: () => this.startTutorial(),
     coop: this.coopBridge,
     station: this.stationBridge ?? undefined,
+    walk: this.walkBridge,
+    onEnterWalk: () => this.enterStationWalk(),
   };
 
   protected onLoad(): void {
@@ -624,6 +654,13 @@ export class CombatBootstrap extends Component {
       || !this.shipPresenter
       || this.nativeHud?.isLoadoutOpen()
     ) {
+      return;
+    }
+
+    // 站内 3D 自由行走：消费摇杆驱动化身，冻结战斗仿真。
+    // 靠近终端弹出的 2D 面板打开时暂停行走（等价战斗里打开面板冻结仿真）。
+    if (this.walkActive) {
+      this.updateStationWalk(deltaTime, this.nativeHud?.isStationOpen() === true);
       return;
     }
 
@@ -1077,6 +1114,8 @@ export class CombatBootstrap extends Component {
   }
 
   private readonly leaveOutpost = (): void => {
+    // 从 3D 站内行走态离港：先收起化身/提示层，恢复正常战斗相机与 HUD。
+    if (this.walkActive) this.exitStationWalk();
     // 战斗（含从主页/机库部署）开始即重置玩家视觉宽限计时，
     // 让宽限从"这一局"起算，而非沿用上一局的累计值。
     this.combatVisualWaitMs = 0;
@@ -1105,6 +1144,258 @@ export class CombatBootstrap extends Component {
     this.nativeHud?.syncCombat(this.snapshot);
     this.dispatchCombatState(0, true);
   };
+
+  // ==================== 站内 3D 自由行走 ====================
+
+  /**
+   * 进入站内自由行走：把玩家飞船化作舱内可操控的化身，相机切到舱内跟随视角。
+   * 3D 场景（StationInterior）早已由 WorldStreamer 建好，这里复用它，不再"只可远观"。
+   */
+  private enterStationWalk(): void {
+    if (this.walkActive || !this.dockedAtOutpost) return;
+    this.walkActive = true;
+    this.walkSyncElapsed = 0;
+    this.stationWalk.reset();
+    this.inputRouter?.releaseAll();
+
+    // 收起 2D 前哨面板，露出 3D 场景；HUD 切到稀疏行走提示层。
+    this.nativeHud?.setWalkVisible(true);
+    const interior = this.worldRoot
+      ? this.findNodeByName(this.worldRoot, 'StationInterior', 7)
+      : null;
+    this.walkOrigin = interior
+      ? interior.worldPosition.clone()
+      : new Vec3(PRIMARY_OUTPOST_POSITION.x, PRIMARY_OUTPOST_POSITION.y, PRIMARY_OUTPOST_POSITION.z);
+
+    this.buildWalkAvatar();
+    this.updateWalkAvatarTransform();
+    this.updateWalkCamera();
+    this.gameAudio?.ui();
+    nativeTrace('station: enter walk');
+  }
+
+  /** 退出行走态：隐藏化身与核心，恢复战斗相机/HUD。离港流程会接着推进。 */
+  private exitStationWalk(): void {
+    if (!this.walkActive) return;
+    this.walkActive = false;
+    this.nativeHud?.setWalkVisible(false);
+    if (this.walkAvatar) this.walkAvatar.active = false;
+    for (const node of this.walkCoreNodes.values()) node.active = false;
+    for (const node of this.walkTerminalNodes.values()) node.active = false;
+    this.inputRouter?.releaseAll();
+    nativeTrace('station: exit walk');
+  }
+
+  /** 创建/复用舱内化身与能量核心、终端光柱（懒加载，只在首次进站建一次）。 */
+  private buildWalkAvatar(): void {
+    if (this.walkAvatar && this.walkAvatar.isValid) {
+      this.walkAvatar.active = true;
+      for (const node of this.walkCoreNodes.values()) node.active = true;
+      // 核心被收集的节点保持隐藏。
+      for (const [id, node] of this.walkCoreNodes) node.active = !this.stationWalk.collectedCores().has(id);
+      for (const node of this.walkTerminalNodes.values()) node.active = true;
+      return;
+    }
+    const parent = this.worldRoot;
+    if (!parent) return;
+    const root = new Node('StationWalkAvatar');
+    root.setParent(parent);
+    const hull = cockpitMaterial(new Color(240, 168, 60, 255));
+    const glow = cockpitMaterial(new Color(79, 214, 224, 220));
+    const dark = cockpitMaterial(new Color(24, 34, 42, 255));
+    const addPart = (name: string, size: Vec3, pos: Vec3, mat: Material | null): void => {
+      const node = new Node(name);
+      node.setParent(root);
+      node.setPosition(pos);
+      const renderer = node.addComponent(MeshRenderer);
+      renderer.mesh = utils.createMesh(primitives.box({ width: size.x, height: size.y, length: size.z }));
+      if (mat) renderer.setMaterial(mat, 0);
+    };
+    // 一艘小穿梭机：机身 + 两侧机翼 + 尾部引擎辉光，舱内尺度缩小。
+    addPart('Hull', new Vec3(0.36, 0.14, 0.9), new Vec3(0, 0, 0), hull);
+    addPart('WingL', new Vec3(0.42, 0.05, 0.3), new Vec3(-0.34, -0.02, 0.12), dark);
+    addPart('WingR', new Vec3(0.42, 0.05, 0.3), new Vec3(0.34, -0.02, 0.12), dark);
+    addPart('Cockpit', new Vec3(0.2, 0.1, 0.3), new Vec3(0, 0.1, -0.16), glow);
+    const thruster = new Node('ThrusterGlow');
+    thruster.setParent(root);
+    thruster.setPosition(0, 0, 0.5);
+    const thrusterRenderer = thruster.addComponent(MeshRenderer);
+    thrusterRenderer.mesh = utils.createMesh(primitives.sphere(0.12, { segments: 10 }));
+    if (glow) thrusterRenderer.setMaterial(glow, 0);
+    this.walkAvatarGlow = thruster;
+    this.walkAvatar = root;
+
+    // 五个能量核心：发光球体，飞近自动收集。
+    const coreMaterial = cockpitMaterial(new Color(91, 211, 170, 230));
+    for (const core of STATION_WALK_CORES) {
+      const node = new Node(`WalkCore.${core.id}`);
+      node.setParent(parent);
+      const renderer = node.addComponent(MeshRenderer);
+      renderer.mesh = utils.createMesh(primitives.sphere(0.22, { segments: 10 }));
+      if (coreMaterial) renderer.setMaterial(coreMaterial, 0);
+      this.walkCoreNodes.set(core.id, node);
+    }
+
+    // 终端指示光柱：竖立的细长发光体，靠近时由 update 点亮。
+    for (const terminal of STATION_WALK_TERMINALS) {
+      const node = new Node(`WalkTerminal.${terminal.id}`);
+      node.setParent(parent);
+      const renderer = node.addComponent(MeshRenderer);
+      renderer.mesh = utils.createMesh(primitives.cylinder(0.09, 0.09, 1.5, { radialSegments: 8 }));
+      const mat = cockpitMaterial(new Color(79, 214, 224, 170));
+      if (mat) renderer.setMaterial(mat, 0);
+      this.walkTerminalNodes.set(terminal.id, node);
+    }
+  }
+
+  /** 把散落的 3D 节点摆到舱内本地坐标（原点 = StationInterior 世界位置）。 */
+  private walkLocal(x: number, z: number, y = -0.6): Vec3 {
+    const origin = this.walkOrigin || new Vec3();
+    return new Vec3(origin.x + x, origin.y + y, origin.z + z);
+  }
+
+  private updateWalkAvatarTransform(): void {
+    if (!this.walkAvatar) return;
+    const pos = this.stationWalk.position();
+    this.walkAvatar.setWorldPosition(this.walkLocal(pos.x, pos.z));
+    // 机头朝飞行方向：始终按最后一次移动方向设置偏航（初值为沿 -Z）。
+    const yaw = Math.atan2(-this.walkFacingX, -this.walkFacingZ) * 180 / Math.PI;
+    this.walkAvatar.setRotationFromEuler(0, yaw, 0);
+  }
+
+  /** 舱内跟随相机：位于化身斜后上方，看向化身前方的走廊。 */
+  private updateWalkCamera(): void {
+    if (!this.cameraNode || !this.walkAvatar) return;
+    const avatar = this.walkAvatar.worldPosition;
+    this.cameraNode.setWorldPosition(new Vec3(avatar.x, avatar.y + 2.7, avatar.z + 6.4));
+    this.cameraNode.lookAt(new Vec3(avatar.x, avatar.y + 0.1, avatar.z - 2.2));
+    const camera = this.cameraNode.getComponent(Camera);
+    if (camera) camera.fov = 66;
+    if (this.cockpitInterior) this.cockpitInterior.active = false;
+  }
+
+  /** 每帧行走推进：消费飞行输入 → 驱动化身 → 拾取核心 → 处理终端交互 → 同步 HUD/相机。 */
+  private updateStationWalk(deltaTime: number, frozen: boolean): void {
+    // 2D 面板打开时冻结行走：仍消费输入排空按键状态（避免关面板后残留上升沿误触发），
+    // 但不调用 step()——保持交互闩锁与核心状态不变，面板一关即可继续走。
+    const command = this.inputRouter?.consumeCommand() || neutralFlightCommand();
+    if (frozen) return;
+    if (Math.abs(command.strafe) > 0.05 || Math.abs(command.throttle) > 0.05) {
+      this.walkFacingX = command.strafe;
+      this.walkFacingZ = -command.throttle;
+    }
+    const result = this.stationWalk.step({
+      throttle: command.throttle,
+      strafe: command.strafe,
+      primaryFire: command.primaryFire,
+      boost: command.boost,
+    }, deltaTime);
+
+    // 收集核心：隐藏对应 3D 节点，集齐发一次性奖励券。
+    for (const id of result.collected) {
+      const node = this.walkCoreNodes.get(id);
+      if (node) node.active = false;
+      this.gameAudio?.ui();
+    }
+    if (result.bonus) {
+      grantTickets(120, `spacefight.walk.bonus.${this.snapshot.mission.id}.${this.snapshot.tick}`);
+      this.nativeHud?.showTicketSettlement(120);
+    }
+
+    this.updateWalkAvatarTransform();
+    this.updateWalkCamera();
+    // 终端光柱：接近的点亮为橙色。
+    for (const terminal of STATION_WALK_TERMINALS) {
+      const node = this.walkTerminalNodes.get(terminal.id);
+      if (!node) continue;
+      const near = result.near?.id === terminal.id;
+      const renderer = node.getComponent(MeshRenderer);
+      const mat = cockpitMaterial(near
+        ? new Color(240, 168, 60, 235)
+        : new Color(79, 214, 224, 170));
+      if (renderer && mat) renderer.setMaterial(mat, 0);
+    }
+
+    // HUD 同步节流到 ~10Hz，避免每帧刷 UI。
+    this.walkSyncElapsed += deltaTime;
+    if (this.walkSyncElapsed >= 0.1) {
+      this.walkSyncElapsed = 0;
+      this.pushWalkHud();
+    }
+
+    // 交互：核心收集与移动是先处理的；交互落在这里，避免面板打开后同帧继续消费输入。
+    if (result.interact) this.handleWalkInteract(result.interact);
+  }
+
+  private handleWalkInteract(target: WalkTarget): void {
+    this.stationWalk.suspendInteraction();
+    this.inputRouter?.releaseAll();
+    this.gameAudio?.ui();
+    if (target === 'undock') {
+      // 就近离港：与正常离港走同一条流程（内部会 exitStationWalk）。
+      this.leaveOutpost();
+      return;
+    }
+    this.nativeHud?.openStationTab(target);
+    nativeTrace(`station: open ${target}`);
+  }
+
+  /** 把当前行走状态推给 HUD 提示层（经 bridge 读取，HUD 不持有逻辑实例）。 */
+  private pushWalkHud(): void {
+    // HUD 通过 walkBridge 的 nearLabel/terminalRows 拉取；这里只触发其刷新方法。
+      this.nativeHud?.syncWalkHint({
+      nearLabel: this.walkNearLabel(),
+      terminalRows: this.walkTerminalRows(),
+      coresText: this.walkCoresText(),
+    });
+  }
+
+  private walkNearLabel(): string {
+    const near = this.stationWalk.nearest();
+    if (!near) return '';
+    const labels: Record<WalkTarget, [string, string]> = {
+      contracts: ['任务板', 'Mission Board'],
+      trade: ['交易终端', 'Trade Terminal'],
+      facilities: ['站内设施', 'Facilities'],
+      refit: ['校准改装', 'Refit Bay'],
+      undock: ['离港出击', 'Undock & Launch'],
+    };
+    const [zh, en] = labels[near.id];
+    return this.st(zh, en);
+  }
+
+  private walkTerminalRows(): string[] {
+    const pos = this.stationWalk.position();
+    return STATION_WALK_TERMINALS.map((terminal) => {
+      const dist = Math.hypot(terminal.x - pos.x, terminal.z - pos.z);
+      const near = this.stationWalk.nearest();
+      const marker = near?.id === terminal.id ? '◆' : '·';
+      return `${marker} ${this.walkTargetName(terminal.id)}  ${dist.toFixed(0)}m`;
+    });
+  }
+
+  private walkTargetName(target: WalkTarget): string {
+    const names: Record<WalkTarget, [string, string]> = {
+      contracts: ['任务板', 'Missions'],
+      trade: ['交易', 'Trade'],
+      facilities: ['设施', 'Facilities'],
+      refit: ['改装', 'Refit'],
+      undock: ['离港', 'Undock'],
+    };
+    const [zh, en] = names[target];
+    return this.st(zh, en);
+  }
+
+  private walkCoresText(en = false): string {
+    const got = this.stationWalk.collectedCores().size;
+    const total = STATION_WALK_CORES.length;
+    return en ? `Energy cores ${got}/${total}` : `能量核心 ${got}/${total}`;
+  }
+
+  private st(zh: string, en: string): string {
+    const locale = typeof navigator !== 'undefined' ? navigator.language : '';
+    return locale === 'zh-CN' || locale === 'zh-TW' || locale.startsWith('zh') ? zh : en;
+  }
 
   private readonly handleRestart = (): void => {
     this.dockedAtOutpost = false;
@@ -1806,6 +2097,11 @@ export class CombatBootstrap extends Component {
 
   private updateCamera(snapshot: CombatSnapshot): void {
     if (!this.cameraNode) {
+      return;
+    }
+    // 站内自由行走由 updateWalkCamera 独占相机；其它刷新路径不得把镜头拉走。
+    if (this.walkActive) {
+      this.updateWalkCamera();
       return;
     }
     // 停靠期间所有刷新路径都必须保持站内机位，否则服务/发券后的 dispatchCombatState
