@@ -667,12 +667,17 @@ export class NativeCombatHud implements NativeInputFeedback {
     };
     // 返航过场：命中判定只认暂停/视角/返航按钮。此前只把节点 active=false，
     // 但 CocosInputBridge 仍按 touchLayout().actions 判定，隐藏的开火/加速照样能点到。
-    const actions = this.returning
-      ? all.filter((control) => control.role === 'pause' || control.role === 'cameraToggle')
-      : all;
+    const actions = this.walkActive
+      // 站内命中同样只认移动/交互/视角/暂停，隐藏的技能键不能残留可点区域。
+      ? all.filter((control) => control.role === 'primaryFire'
+        || control.role === 'cameraToggle' || control.role === 'pause')
+      : this.returning
+        ? all.filter((control) => control.role === 'pause' || control.role === 'cameraToggle')
+        : all;
     const result = actions.map(place);
-    // 可返航/可停靠时补上返航进度圆（去重，避免重复 role）。
-    if ((this.canReturn || this.canDock) && !result.some((control) => control.role === 'returnRequested')) {
+    // 可返航/可停靠时补上返航进度圆（去重，避免重复 role）；站内不显示返航键。
+    if (!this.walkActive && (this.canReturn || this.canDock)
+      && !result.some((control) => control.role === 'returnRequested')) {
       result.push(place(returnControlCircle(this.width, this.height, this.safeInsets, this.controlScale)));
     }
     return {
@@ -2655,8 +2660,8 @@ export class NativeCombatHud implements NativeInputFeedback {
 
     const help = this.createLabel('WalkHelp', 11, HUD_CYAN, layer);
     help.string = this.st(
-      '摇杆飞行 · 加速冲刺 · 靠近发光终端按开火键交互',
-      'Stick to fly · Boost · Fire near a glowing terminal',
+      '摇杆飞行 · 视角键切换机位 · 靠近发光终端按交互键',
+      'Stick to fly · View key switches camera · Interact near a glowing terminal',
     );
     help.horizontalAlign = HorizontalTextAlignment.LEFT;
     help.overflow = Label.Overflow.SHRINK;
@@ -2682,6 +2687,13 @@ export class NativeCombatHud implements NativeInputFeedback {
     this.walkPromptLabel = this.createLabel('WalkPrompt', 18, HUD_WHITE, layer);
     this.walkPromptLabel.horizontalAlign = HorizontalTextAlignment.CENTER;
     this.walkPromptLabel.overflow = Label.Overflow.SHRINK;
+
+    // 站内左对齐文字统一改成左锚点：createLabel 默认锚点居中，而 place() 按卡片左边缘
+    // 设 x，导致文字中心落在边缘上、左半截被屏幕切掉（真机截图"自由探索"变"由探索"）。
+    for (const node of [this.walkTitleLabel.node, this.walkObjectiveLabel.node, this.walkPatrolLabel.node,
+      coreLabel.node, help.node, compassTitle.node, ...this.walkTerminalLabels.map((l) => l.node)]) {
+      node.getComponent(UITransform)?.setAnchorPoint(0, 0.5);
+    }
 
     this.walkExitButton = this.createPanelButton(
       'NativeWalkExit', this.st('离港 · 出击', 'UNDOCK · LAUNCH'),
@@ -2793,8 +2805,8 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (this.walkPatrolLabel) this.walkPatrolLabel.string = state.patrolText || '';
     if (this.walkPromptLabel) {
       this.walkPromptLabel.string = state.notice || (state.nearLabel
-        ? this.st(`按开火键 · ${state.nearLabel}`, `FIRE · ${state.nearLabel}`)
-        : this.st('飞近终端或机务即可交互', 'Approach a terminal or the mechanic'));
+        ? this.st(`按交互键 · ${state.nearLabel}`, `INTERACT · ${state.nearLabel}`)
+        : this.st('飞近终端 / 机务交互 · 收集核心 · 按序巡检', 'Approach a terminal · Collect cores · Run the patrol'));
       this.walkPromptLabel.color = state.notice || state.nearLabel ? HUD_ACTIVE : HUD_CYAN;
     }
     const core = this.walkHintLayer?.getChildByName('WalkCoreCount')?.getComponent(Label);
@@ -2813,6 +2825,11 @@ export class NativeCombatHud implements NativeInputFeedback {
     }
     if (this.walkHintLayer) this.walkHintLayer.active = visible;
     this.walkActive = visible;
+    // 站内右键已是独立的「离港·出击」按钮，开火键改作通用「交互」，避免两处都写出击。
+    const fireLabel = this.actionVisuals.get('primaryFire')?.node.getChildByName(`${this.actionNodeName('primaryFire')}Label`)?.getComponent(Label);
+    if (fireLabel) fireLabel.string = visible
+      ? this.st('交互', 'Interact')
+      : this.text('touch.fire');
     // 行走时必须保留摇杆/开火键可交互：战斗控件整体点亮，
     // 但下面的读数/准星单独收起（walkActive 已并入 setCombatChromeVisible 判断）。
     if (visible) this.setCombatChromeVisible(true);
@@ -3710,11 +3727,19 @@ export class NativeCombatHud implements NativeInputFeedback {
     if (this.debugTelemetryLabel) this.debugTelemetryLabel.node.active = false;
   }
 
-  /** 返航中只保留暂停/视角/返航进度按钮，其余战斗输入全部收起。 */
+  /** 返航中只保留暂停/视角/返航进度按钮；站内行走只保留移动/交互/视角/暂停。 */
   private refreshActionVisibility(): void {
     for (const [role, visual] of this.actionVisuals) {
-      const allowed = !this.returning
-        || role === 'pause' || role === 'cameraToggle' || role === 'returnRequested';
+      let allowed: boolean;
+      if (this.walkActive) {
+        // 站内用不上的战斗键（技能/副武器/换武器/加速/返航）一律隐藏，
+        // 只留摇杆、开火（改作"交互"）、视角、暂停——避免一片按钮堆在舱室画面上。
+        allowed = role === 'movement' || role === 'primaryFire'
+          || role === 'cameraToggle' || role === 'pause';
+      } else {
+        allowed = !this.returning
+          || role === 'pause' || role === 'cameraToggle' || role === 'returnRequested';
+      }
       const available = role !== 'returnRequested' || this.canReturn || this.canDock;
       visual.node.active = this.combatChromeVisible && allowed && available;
     }

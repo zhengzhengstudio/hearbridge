@@ -51,6 +51,7 @@ import {
 import {
   StationWalkSystem,
   STATION_WALK_START,
+  STATION_WALK_BOUNDS,
   STATION_WALK_TERMINALS,
   STATION_WALK_CORES,
   STATION_WALK_PATROL,
@@ -509,6 +510,15 @@ export class CombatBootstrap extends Component {
   /** 机头朝向（跟随最后一次移动方向），无输入时保持。 */
   private walkFacingX = 0;
   private walkFacingZ = -1;
+  /**
+   * 站内相机机位：0=第三人称跟随、1=高角度俯视、2=驾驶舱第一人称。
+   * 用「视角」键（cameraToggle）边沿循环切换；每帧 updateWalkCamera 只重算当前机位，
+   * 不再把镜头硬锁死在单一跟随位，玩家在站内也能转视角。
+   */
+  private walkCameraMode = 0;
+  private walkCameraToggleHeld = false;
+  /** 俯视机位的偏航角（摇杆水平输入可绕化身旋转视角），弧度。 */
+  private walkOrbitYaw = 0;
   /** HUD 行走桥接：只读当前状态，HUD 不持有 StationWalkSystem。 */
   private readonly walkBridge: import('../game/NativeCombatHud').WalkHudBridge = {
     isWalking: () => this.walkActive,
@@ -1064,15 +1074,18 @@ export class CombatBootstrap extends Component {
     this.nativeHud?.showPreflight();
   };
 
-  /** 站内 3D 已经建好但相机从不切过去；这里按实际节点世界坐标切机位。 */
+  /** 停靠观景机位：站在舱内往走廊深处看，不放到舱外（舱外会被外壳/舱壁挡成纯色块）。 */
   private focusOutpostInterior(): void {
     if (!this.cameraNode) return;
-    const interior = this.worldStreamer?.primaryInterior();
-    const target = interior
-      ? interior.worldPosition
-      : new Vec3(PRIMARY_OUTPOST_POSITION.x, PRIMARY_OUTPOST_POSITION.y, PRIMARY_OUTPOST_POSITION.z);
-    this.cameraNode.setWorldPosition(new Vec3(target.x, target.y + 1.6, target.z + 10.5));
-    this.cameraNode.lookAt(new Vec3(target.x, target.y - 0.2, target.z - 2.5));
+    if (this.walkInterior?.isValid) {
+      this.cameraNode.setWorldPosition(this.walkLocal(0, 2.2, 1.1));
+      this.cameraNode.lookAt(this.walkLocal(0, -2.4, -0.6));
+    } else {
+      // 兜底：内景节点还没就绪时，用一个大致朝向站点的机位，绝不长时间停在舱外。
+      const target = new Vec3(PRIMARY_OUTPOST_POSITION.x, PRIMARY_OUTPOST_POSITION.y, PRIMARY_OUTPOST_POSITION.z);
+      this.cameraNode.setWorldPosition(new Vec3(target.x, target.y + 1.2, target.z + 4.0));
+      this.cameraNode.lookAt(new Vec3(target.x, target.y - 0.4, target.z - 1.0));
+    }
     const camera = this.cameraNode.getComponent(Camera);
     if (camera) camera.fov = 64;
   }
@@ -1215,11 +1228,16 @@ export class CombatBootstrap extends Component {
     this.walkNoticeTime = 0;
     this.walkFacingX = 0;
     this.walkFacingZ = -1;
+    this.walkCameraMode = 0;
+    this.walkCameraToggleHeld = false;
+    this.walkOrbitYaw = 0;
     this.stationWalk.reset();
     this.inputRouter?.releaseAll();
 
     // 收起 2D 前哨面板，露出 3D 场景；HUD 切到稀疏行走提示层。
     this.nativeHud?.setWalkVisible(true);
+    // 点亮细节内景 + 关掉 GLB 外壳：否则玩家看到的是外壳纯色内壁，不是舱室。
+    this.worldStreamer?.setInteriorMode(true);
     const interior = this.worldStreamer?.primaryInterior() ?? null;
     this.walkInterior = interior;
     this.walkOrigin = interior
@@ -1255,6 +1273,8 @@ export class CombatBootstrap extends Component {
     for (const node of this.walkCoreNodes.values()) node.active = false;
     for (const node of this.walkTerminalNodes.values()) node.active = false;
     for (const node of this.walkPatrolNodes.values()) node.active = false;
+    // 离港恢复前哨外观：GLB 外壳重新点亮。
+    this.worldStreamer?.setInteriorMode(false);
     this.inputRouter?.releaseAll();
     nativeTrace('station: exit walk');
   }
@@ -1390,15 +1410,79 @@ export class CombatBootstrap extends Component {
     this.walkAvatar.rotate(Quat.fromEuler(this.walkBankRotation, 0, 0, bank));
   }
 
-  /** 舱内跟随相机：位于化身斜后上方，看向化身前方的走廊。 */
+  /**
+   * 舱内相机：全部坐标走 walkLocal（含站点的旋转/缩放），位置严格钳制在舱室边界内，
+   * 绝不再放到舱室外（旧版 z+3.9 起步就在建模最远 z=4 之外，镜头贴着外壳内壁 → 纯色块）。
+   * 三个机位用「视角」键循环切换，玩家在站内也能转视角。
+   */
   private updateWalkCamera(): void {
     if (!this.cameraNode || !this.walkAvatar) return;
     const pos = this.stationWalk.position();
-    this.cameraNode.setWorldPosition(this.walkLocal(pos.x, pos.z + 3.9, 1.35));
-    this.cameraNode.lookAt(this.walkLocal(pos.x, pos.z - 2.2, -0.55));
+    const facingX = this.walkFacingX;
+    const facingZ = this.walkFacingZ;
+    const clampX = (v: number): number => Math.max(STATION_WALK_BOUNDS.minX + 0.1, Math.min(STATION_WALK_BOUNDS.maxX - 0.1, v));
+    const clampZ = (v: number): number => Math.max(STATION_WALK_BOUNDS.minZ + 0.1, Math.min(STATION_WALK_BOUNDS.maxZ - 0.1, v));
+
+    let camX: number;
+    let camZ: number;
+    let camY: number;
+    let lookX: number;
+    let lookZ: number;
+    let lookY: number;
+    let fov: number;
+
+    if (this.walkCameraMode === 1) {
+      // 俯视：绕化身旋转（摇杆水平可转 yaw），从上方看清整个舱室布局与 NPC/终端。
+      const radius = 5.2;
+      camX = pos.x + Math.sin(this.walkOrbitYaw) * radius;
+      camZ = pos.z - Math.cos(this.walkOrbitYaw) * radius;
+      camY = 5.4;
+      lookX = pos.x;
+      lookZ = pos.z;
+      lookY = -1.2;
+      fov = 62;
+    } else if (this.walkCameraMode === 2) {
+      // 驾驶舱第一人称：相机就在化身机头位置，沿朝向看出去。
+      camX = pos.x + facingX * 0.18;
+      camZ = pos.z + facingZ * 0.18;
+      camY = -0.32;
+      lookX = pos.x + facingX * 4;
+      lookZ = pos.z + facingZ * 4;
+      lookY = -0.5;
+      fov = 72;
+    } else {
+      // 第三人称跟随：化身斜后上方，距离收紧到 2.1（旧版 3.9 出舱）。
+      camX = pos.x - facingX * 2.1;
+      camZ = pos.z - facingZ * 2.1;
+      camY = 1.15;
+      lookX = pos.x + facingX * 2.4;
+      lookZ = pos.z + facingZ * 2.4;
+      lookY = -0.55;
+      fov = 68;
+    }
+
+    this.cameraNode.setWorldPosition(this.walkLocal(clampX(camX), clampZ(camZ), camY));
+    this.cameraNode.lookAt(this.walkLocal(
+      Math.max(STATION_WALK_BOUNDS.minX, Math.min(STATION_WALK_BOUNDS.maxX, lookX)),
+      Math.max(STATION_WALK_BOUNDS.minZ, Math.min(STATION_WALK_BOUNDS.maxZ, lookZ)),
+      lookY,
+    ));
     const camera = this.cameraNode.getComponent(Camera);
-    if (camera) camera.fov = 66;
+    if (camera) camera.fov = fov;
     if (this.cockpitInterior) this.cockpitInterior.active = false;
+  }
+
+  private cycleWalkCamera(): void {
+    this.walkCameraMode = (this.walkCameraMode + 1) % 3;
+    const names = [
+      this.st('第三人称视角', 'Chase camera'),
+      this.st('俯视全局视角', 'Top-down camera'),
+      this.st('驾驶舱视角', 'Cockpit camera'),
+    ];
+    this.walkNotice = this.st('视角 · ', 'View · ') + names[this.walkCameraMode];
+    this.walkNoticeTime = 2.2;
+    this.gameAudio?.ui();
+    this.pushWalkHud();
   }
 
   /** 每帧行走推进：消费飞行输入 → 驱动化身 → 拾取核心 → 处理终端交互 → 同步 HUD/相机。 */
@@ -1409,13 +1493,26 @@ export class CombatBootstrap extends Component {
     if (frozen) return;
     this.walkAnimationTime += Math.min(deltaTime, 0.05);
     this.walkNoticeTime = Math.max(0, this.walkNoticeTime - deltaTime);
-    if (Math.abs(command.strafe) > 0.05 || Math.abs(command.throttle) > 0.05) {
+
+    // 视角键边沿切换机位（战斗里是座舱切换，站内改为三种视角循环），长按不连切。
+    if (command.cameraToggle && !this.walkCameraToggleHeld) this.cycleWalkCamera();
+    this.walkCameraToggleHeld = command.cameraToggle;
+
+    let moveStrafe = command.strafe;
+    let moveThrottle = command.throttle;
+    if (this.walkCameraMode === 1) {
+      // 俯视机位：摇杆水平转视角（yaw），前后照常移动——坦克式操控，看得清也走得动。
+      if (Math.abs(command.strafe) > 0.05) this.walkOrbitYaw += command.strafe * Math.min(deltaTime, 0.05) * 2.6;
+      moveStrafe = 0;
+      this.walkFacingX = Math.sin(this.walkOrbitYaw);
+      this.walkFacingZ = -Math.cos(this.walkOrbitYaw);
+    } else if (Math.abs(command.strafe) > 0.05 || Math.abs(command.throttle) > 0.05) {
       this.walkFacingX = command.strafe;
       this.walkFacingZ = -command.throttle;
     }
     const result = this.stationWalk.step({
-      throttle: command.throttle,
-      strafe: command.strafe,
+      throttle: moveThrottle,
+      strafe: moveStrafe,
       primaryFire: command.primaryFire,
       boost: command.boost,
     }, deltaTime);
@@ -1991,6 +2088,19 @@ export class CombatBootstrap extends Component {
     console.info('[SpaceFight boot] combat presentation ready');
     nativeTrace('boot: combat presentation ready');
     dispatchBrowserEvent('spacefight:engine-ready');
+    // 调试钩子（仅带 ?__sfwalk=1 时生效，正常玩家不会触发）：初始化后直接进站内行走，
+    // 供无头浏览器复现/回归站内建模、相机与 HUD，避免每次都手动飞回前哨。
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('__sfwalk')) {
+      // 用原生定时器而非 scheduleOnce：LaunchGate 未确认时 Cocos 主循环不 tick，
+      // scheduleOnce 回调不会执行，debug 钩子就永远进不了站。
+      window.setTimeout(() => {
+        if (typeof document !== 'undefined') document.body.dataset.playing = 'true';
+        this.pausedByLaunchGate = false;
+        this.dockedAtOutpost = true;
+        this.worldStreamer?.update(new Vec3(PRIMARY_OUTPOST_POSITION.x, PRIMARY_OUTPOST_POSITION.y, PRIMARY_OUTPOST_POSITION.z));
+        this.enterStationWalk();
+      }, 800);
+    }
     // 存活心跳：轨迹文件已镜像到外部存储，可远程判断进程是否稳定跑过启动阶段。
     for (const delay of [0.5, 1.5, 3, 6]) {
       this.scheduleOnce(() => nativeTrace(`boot: alive ${delay}s`), delay);

@@ -225,9 +225,27 @@ export class WorldStreamer {
   private stationAnimationTime = 0;
   private detailedOutpost: Prefab | null = null;
   private disposed = false;
+  /** 主前哨是否处于舱内行走态：为 true 时 GLB 外壳保持隐藏，不被异步加载/回收重新点亮。 */
+  private interiorMode = false;
 
   public primaryInterior(): Node | null {
     return this.activeChunks.get(chunkKey(0, 0))?.station.getChildByName('StationInterior') ?? null;
+  }
+
+  /**
+   * 切换主前哨的「舱内视角」：点亮细节内景并隐藏 GLB 外壳。
+   * GLB 外壳的背面会包住整个舱室，玩家走进去时看到的是它的纯色内壁（真机截图实锤），
+   * 必须在行走态关掉；离港后恢复外观。只作用主前哨，不碰远景站，零额外开销。
+   */
+  public setInteriorMode(active: boolean): void {
+    this.interiorMode = active;
+    const chunk = this.activeChunks.get(chunkKey(0, 0));
+    if (!chunk) return;
+    const station = chunk.station;
+    const detail = station.getChildByName('StationInterior')?.getChildByName('InteriorDetail');
+    if (detail) detail.active = true;
+    const shell = station.getChildByName('DetailedOutpostGLB');
+    if (shell) shell.active = !active;
   }
 
   public update(playerPosition: Readonly<Vec3>, deltaTime = 0): void {
@@ -291,7 +309,8 @@ export class WorldStreamer {
       visual.setParent(station);
     }
     if (!visual) return;
-    visual.active = isApproach;
+    // 舱内行走态下外壳必须保持隐藏（它的背面会包住舱室成为纯色挡墙）。
+    visual.active = isApproach && !this.interiorMode;
     const fallbackExterior = new Set([
       'StationRing.UpperAssembly',
       'StationRing.LowerAssembly',
