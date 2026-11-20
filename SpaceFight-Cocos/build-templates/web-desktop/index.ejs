@@ -31,7 +31,7 @@
         <img src="spacefight-icon.png" alt="SpaceFight">
         <span><b>SPACEFIGHT</b><small>INTERCEPTOR COMMAND</small></span>
       </div>
-      <div class="build-readout"><i></i> 本机战斗核心 <b>0.13.39</b></div>
+      <div class="build-readout"><i></i> 本机战斗核心 <b>0.13.40</b></div>
     </header>
 
     <section class="launch-briefing">
@@ -101,7 +101,7 @@
     <footer class="launch-footer">
       <span>LOCAL SIMULATION</span>
       <span>WEBGL 2 / LANDSCAPE</span>
-      <span>BUILD 103</span>
+      <span>BUILD 104</span>
     </footer>
   </main>
 
@@ -182,7 +182,6 @@
           <h2 id="OutpostTitle">前哨站 · 物资台账</h2>
           <p>本趟回收已入舱，可以查验物资后离港</p>
         </div>
-        <button id="OutpostClose" type="button" aria-label="关闭舱内面板">×</button>
       </header>
       <div class="outpost-body">
         <section class="outpost-manifest">
@@ -229,7 +228,8 @@
     <div class="camera-readout"><span>视角</span><b id="CameraValue">追尾</b><small class="desktop-only">F2</small></div>
     <div class="weapon-readout"><span>01</span><img id="WeaponArt" src="spacefight-weapon-pulse.png" alt=""><div><small>主武器</small><b id="WeaponName">脉冲炮</b></div><i>READY</i></div>
     <div class="ability-readout"><small>战术设备</small><b id="AbilityName">火控锁定</b><i id="AbilityState">就绪</i></div>
-    <div class="desktop-flight-hint">WASD 飞行　鼠标瞄准　左键开火　Shift 加速　F 释放技能</div>
+    <div class="outpost-nav"><span id="OutpostRange">前哨 · —</span><button id="DockAction" type="button" hidden>停靠</button></div>
+    <div class="desktop-flight-hint">WASD 飞行　鼠标瞄准　左键开火　Esc 暂停</div>
   </section>
 
   <div id="TutorialHint" aria-live="polite" hidden><span id="TutorialStep"></span><b id="TutorialText"></b></div>
@@ -253,6 +253,7 @@
       <h2 id="PauseTitle">战斗已暂停</h2>
       <p>飞行与武器系统已冻结。</p>
       <button id="ResumeButton" type="button">继续战斗</button>
+      <button id="LeaveBattle" type="button">返回大厅</button>
     </div>
   </section>
 

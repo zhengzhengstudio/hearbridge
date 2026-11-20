@@ -360,6 +360,41 @@ body[data-playing="true"] #LaunchGate { display: none; }
 
 body[data-playing="true"] #CombatHud { display: block; }
 
+#LeaveBattle {
+  margin-inline-start: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.outpost-nav {
+  position: absolute;
+  top: calc(120px + var(--safe-top));
+  left: calc(24px + var(--safe-left));
+  display: grid;
+  justify-items: start;
+  gap: 5px;
+  color: var(--text);
+  font-size: 12px;
+}
+.outpost-nav > span { background: var(--panel-strong); padding: 5px 8px; border-left: 2px solid var(--accent); }
+#DockAction {
+  pointer-events: auto;
+  min-height: 44px;
+  min-width: 64px;
+  border: 1px solid var(--accent);
+  background: var(--panel-strong);
+  color: var(--text);
+  cursor: pointer;
+}
+#DockAction[hidden], body[data-paused="true"] .outpost-nav, body[data-docked="true"] .outpost-nav { display: none; }
+@media (max-height: 450px) {
+  .outpost-nav { top: calc(100px + var(--safe-top)); }
+}
+
 .hud-brand {
   position: absolute;
   top: calc(22px + var(--safe-top));
@@ -975,6 +1010,8 @@ body[data-mission="failed"] #MissionFailed { display: grid; }
   background: conic-gradient(from 0deg, rgba(79, 214, 224, 0.24), transparent 72deg);
   animation: sf-sector-sweep 7s linear infinite;
 }
+body[data-input-mode="touch"] #CombatHud::before,
+body[data-input-mode="touch"] #CombatHud::after { display: none; }
 @keyframes sf-sector-sweep { to { transform: rotate(360deg); } }
 
 /* 触屏战斗键：切角 + 键位角标（摇杆保持圆形） */

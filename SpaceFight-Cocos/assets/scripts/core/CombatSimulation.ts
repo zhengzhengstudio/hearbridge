@@ -3043,7 +3043,7 @@ export class CombatSimulation {
         id: 'mechanic-recovery-cache',
         kind: 'relic',
         position: { x: this.player.position.x + 9, y: this.player.position.y + 1, z: this.player.position.z - 15 },
-        value: 55,
+        value: 90,
       });
     }
     this.player.spawnProtection = Math.max(this.player.spawnProtection, 3);

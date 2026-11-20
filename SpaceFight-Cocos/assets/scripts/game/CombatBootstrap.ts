@@ -472,6 +472,9 @@ export class CombatBootstrap extends Component {
   private hudDispatchElapsed = 0;
   private pendingBrowserCombatEvents: CombatSnapshot['combatEvents'] = [];
   private togglePauseRequested = false;
+  private browserPauseRequested = false;
+  private browserDockRequested = false;
+  private browserDockLoadout: CombatLoadout | undefined;
   private dockedAtOutpost = false;
   private pendingCalibrationShield = 0;
   /** 站内玩法系统：任务板 / 交易 / 设施 / 校准改装，存档与经济端口在此注入。 */
@@ -637,6 +640,8 @@ export class CombatBootstrap extends Component {
       window.addEventListener('spacefight:outpost-exit', this.handleOutpostExit);
       window.addEventListener('spacefight:mechanic-briefing', this.acceptMechanicRecovery);
       window.addEventListener('spacefight:toggle-pause', this.handleTogglePause);
+      window.addEventListener('spacefight:pause', this.handleBrowserPause);
+      window.addEventListener('spacefight:dock-request', this.handleBrowserDock);
       window.addEventListener('spacefight:loadout-change', this.handleLoadoutChange);
       window.addEventListener('spacefight:mission-change', this.handleMissionChange);
       window.addEventListener('spacefight:restart', this.handleRestart);
@@ -655,10 +660,13 @@ export class CombatBootstrap extends Component {
     // 暂停/恢复必须最先处理：任意覆盖面板打开时下面的闸门会直接 return，
     // 旧版把 togglePauseRequested 的消费放在 return 之后，导致暂停后「继续战斗」
     // 永远消费不到、仿真永不推进 —— 游戏彻底冻死。这里绕过闸门直接翻转仿真暂停。
-    if (this.togglePauseRequested) {
+    if (this.togglePauseRequested || this.browserPauseRequested) {
+      const paused = this.browserPauseRequested || !this.snapshot.paused;
       this.togglePauseRequested = false;
+      this.browserPauseRequested = false;
       if (this.initialized) {
-        this.snapshot = this.simulation.setPaused(!this.snapshot.paused);
+        this.inputRouter?.releaseAll();
+        this.snapshot = this.simulation.setPaused(paused);
         this.dispatchCombatState(0, true);
       }
       return;
@@ -694,12 +702,15 @@ export class CombatBootstrap extends Component {
     }
 
     const command = this.inputRouter?.consumeCommand() || neutralFlightCommand();
+    const dockRequested = this.browserDockRequested;
+    this.browserDockRequested = false;
     // 返航闩锁：点一下即持续返航（不必一直按住，松手也不会中断）。
     // 主动开火 / 加速 / 推进下一波视为「不返航了」，取消闩锁，避免误锁死。
     if (command.returnRequested) this.returnLatched = true;
     if (command.primaryFire || command.boost || command.advanceRequested) this.returnLatched = false;
     command.returnRequested = command.returnRequested || this.returnLatched;
-    if (command.returnRequested && this.snapshot.navigation.canDock) {
+    if (!this.snapshot.paused && this.snapshot.mission.status !== 'failed'
+      && (command.returnRequested || dockRequested) && this.snapshot.navigation.canDock) {
       this.enterOutpost();
       return;
     }
@@ -767,6 +778,8 @@ export class CombatBootstrap extends Component {
     window.removeEventListener('spacefight:outpost-exit', this.handleOutpostExit);
     window.removeEventListener('spacefight:mechanic-briefing', this.acceptMechanicRecovery);
     window.removeEventListener('spacefight:toggle-pause', this.handleTogglePause);
+    window.removeEventListener('spacefight:pause', this.handleBrowserPause);
+    window.removeEventListener('spacefight:dock-request', this.handleBrowserDock);
     window.removeEventListener('spacefight:loadout-change', this.handleLoadoutChange);
     window.removeEventListener('spacefight:mission-change', this.handleMissionChange);
     window.removeEventListener('spacefight:restart', this.handleRestart);
@@ -793,6 +806,7 @@ export class CombatBootstrap extends Component {
 
   private readonly handleFullscreenExit = (): void => {
     this.pausedByLaunchGate = true;
+    this.browserDockRequested = false;
     this.inputRouter?.releaseAll();
   };
 
@@ -806,9 +820,20 @@ export class CombatBootstrap extends Component {
     this.togglePauseRequested = true;
   };
 
+  private readonly handleBrowserPause = (): void => {
+    if (!this.dockedAtOutpost) this.browserPauseRequested = true;
+  };
+
+  private readonly handleBrowserDock = (): void => {
+    if (browserDataset()?.playing === 'true' && !this.dockedAtOutpost) this.browserDockRequested = true;
+  };
+
   private readonly handleLoadoutChange = (event: Event): void => {
-    if (browserDataset()?.playing === 'true') return;
     const loadout = (event as CustomEvent<CombatLoadout>).detail || readBrowserLoadout();
+    if (browserDataset()?.playing === 'true') {
+      if (this.dockedAtOutpost) this.browserDockLoadout = loadout;
+      return;
+    }
     // 走 resetSimulation 而不是裸 createSimulation：后者会沿用旧任务预设、
     // 也不会同步各 presenter 的回收/重绘，导致换装配后画面残留上一局的对象。
     this.resetSimulation(loadout, this.currentMissionPreset);
@@ -1076,9 +1101,11 @@ export class CombatBootstrap extends Component {
     this.combatVisuals?.recycleAll();
     this.pendingBrowserCombatEvents = [];
     this.dockedAtOutpost = true;
+    this.browserDockLoadout = undefined;
     this.mechanicRecoveryPending = false;
     this.walkBonusPaid = false;
     this.worldStreamer?.update(new Vec3(PRIMARY_OUTPOST_POSITION.x, PRIMARY_OUTPOST_POSITION.y, PRIMARY_OUTPOST_POSITION.z));
+    const recoveredCargo = this.snapshot.cargo;
     this.snapshot = this.simulation.serviceAtOutpost();
     // 结算必须让玩家「看得见入账」：旧版静默发券且货值 ÷5，玩家只看到买东西在扣钱，
     // 体感就是星港券只出不入。现在按货值 + 击杀发券（含保底），并把 +N 推给 HUD。
@@ -1114,7 +1141,7 @@ export class CombatBootstrap extends Component {
     }
     this.pausedByLaunchGate = true;
     dispatchBrowserEvent('spacefight:outpost-entered', {
-      cargo: { ...this.snapshot.cargo },
+      cargo: recoveredCargo,
       mission: { ...this.snapshot.mission },
       player: { ...this.snapshot.player },
       navigation: { ...this.snapshot.navigation },
@@ -1141,6 +1168,13 @@ export class CombatBootstrap extends Component {
     // 离港必须解除启动闸门，否则战斗主循环会一直停在暂停分支，
     // 玩家"离港"后游戏仍冻结 —— 表现为进哨站后无法离开太空。
     this.pausedByLaunchGate = false;
+    if (this.browserDockLoadout) {
+      const next = resolveLoadout(this.browserDockLoadout);
+      if (JSON.stringify(next) !== JSON.stringify(this.snapshot.loadout)) {
+        this.resetSimulation(next, this.currentMissionPreset);
+      }
+      this.browserDockLoadout = undefined;
+    }
     this.snapshot = this.simulation.departOutpost(this.pendingCalibrationShield, this.mechanicRecoveryPending);
     this.mechanicRecoveryPending = false;
     this.pendingCalibrationShield = 0;

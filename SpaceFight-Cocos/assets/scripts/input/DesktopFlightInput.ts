@@ -48,6 +48,7 @@ export class DesktopFlightInput {
   private secondaryFire = false;
   private cameraTogglePending = false;
   private pausePending = false;
+  private returnPending = false;
   /**
    * 当前战斗阶段快照。仅用于让"空格"在决策阶段兼作"继续深入"，
    * 平时保持射击手感不变。由 GameLoop 每帧同步。
@@ -91,6 +92,7 @@ export class DesktopFlightInput {
     if (event.isComposing || !this.gameplayKeys.has(code)) return false;
     if (!event.repeat && this.bindings.cameraToggle.includes(code)) this.cameraTogglePending = true;
     if (!event.repeat && this.bindings.pause.includes(code)) this.pausePending = true;
+    if (!event.repeat && this.bindings.returnRequested.includes(code)) this.returnPending = true;
     this.keys.add(code);
     return true;
   }
@@ -117,7 +119,7 @@ export class DesktopFlightInput {
       deviceAbility: pressed('deviceAbility'),
       cameraToggle: this.cameraTogglePending,
       pause: this.pausePending,
-      returnRequested: pressed('returnRequested'),
+      returnRequested: this.returnPending || pressed('returnRequested'),
       // 决策阶段主武器键兼作「继续深入」；平时不抢射击手感。
       advanceRequested: pressed('advanceRequested')
         || (this.snapshotPhase === 'decision' && pressed('primaryFire')),
@@ -126,6 +128,7 @@ export class DesktopFlightInput {
     this.mouseY = 0;
     this.cameraTogglePending = false;
     this.pausePending = false;
+    this.returnPending = false;
     return command;
   }
 
@@ -137,6 +140,7 @@ export class DesktopFlightInput {
     this.secondaryFire = false;
     this.cameraTogglePending = false;
     this.pausePending = false;
+    this.returnPending = false;
   }
 
   attach(
@@ -155,6 +159,8 @@ export class DesktopFlightInput {
         return;
       }
       if (!canHandleGameplay()) return;
+      const target = keyboardEvent.target as Element | null;
+      if (target?.closest?.('input, select, textarea, button, [contenteditable="true"]')) return;
       if (keyboardEvent.code === 'Escape') {
         const handled = this.handleKeyDown(keyboardEvent);
         documentRef.exitPointerLock?.();
@@ -168,11 +174,13 @@ export class DesktopFlightInput {
       const keyboardEvent = event as KeyboardEvent;
       if (this.handleKeyUp(keyboardEvent)) keyboardEvent.preventDefault();
     };
-    const mouseMove = (event: Event): void => this.handleMouseMove(event as MouseEvent);
+    const mouseMove = (event: Event): void => {
+      if (canCapturePointer()) this.handleMouseMove(event as MouseEvent);
+    };
     const mouseDown = (event: Event): void => {
       const mouseEvent = event as MouseEvent;
+      if (!canCapturePointer()) return;
       if (!this.pointerLocked) {
-        if (!canCapturePointer()) return;
         try {
           const request = canvas.requestPointerLock() as unknown as Promise<void> | undefined;
           void request?.catch?.(() => {});
@@ -189,20 +197,21 @@ export class DesktopFlightInput {
     const pointerLock = (): void => this.handlePointerLockChange(documentRef.pointerLockElement === canvas);
     const contextMenu = (event: Event): void => event.preventDefault();
 
-    documentRef.addEventListener('keydown', keyDown);
-    documentRef.addEventListener('keyup', keyUp);
-    documentRef.addEventListener('mousemove', mouseMove);
-    documentRef.addEventListener('mouseup', mouseUp);
+    // Cocos stops gameplay events before they bubble out of its canvas.
+    documentRef.addEventListener('keydown', keyDown, true);
+    documentRef.addEventListener('keyup', keyUp, true);
+    documentRef.addEventListener('mousemove', mouseMove, true);
+    documentRef.addEventListener('mouseup', mouseUp, true);
     documentRef.addEventListener('pointerlockchange', pointerLock);
     canvas.addEventListener('mousedown', mouseDown);
     canvas.addEventListener('contextmenu', contextMenu);
     this.handlePointerLockChange(documentRef.pointerLockElement === canvas);
 
     this.detachListeners = () => {
-      documentRef.removeEventListener('keydown', keyDown);
-      documentRef.removeEventListener('keyup', keyUp);
-      documentRef.removeEventListener('mousemove', mouseMove);
-      documentRef.removeEventListener('mouseup', mouseUp);
+      documentRef.removeEventListener('keydown', keyDown, true);
+      documentRef.removeEventListener('keyup', keyUp, true);
+      documentRef.removeEventListener('mousemove', mouseMove, true);
+      documentRef.removeEventListener('mouseup', mouseUp, true);
       documentRef.removeEventListener('pointerlockchange', pointerLock);
       canvas.removeEventListener('mousedown', mouseDown);
       canvas.removeEventListener('contextmenu', contextMenu);

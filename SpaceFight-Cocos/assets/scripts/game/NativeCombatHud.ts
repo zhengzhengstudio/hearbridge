@@ -259,6 +259,10 @@ export class NativeCombatHud implements NativeInputFeedback {
   private sectorLabel: Label | null = null;
   private targetLabel: Label | null = null;
   private cargoLabel: Label | null = null;
+  /** 左上舰况面板底板：机体/护盾/能量/货舱/装配合成一块玻璃卡，不再散在星空上。 */
+  private statusPlate: Graphics | null = null;
+  /** 左下飞行数据底板：前哨距离/武器/技能三行读数共用一张卡。 */
+  private navPlate: Graphics | null = null;
   private hullStatusBar: Graphics | null = null;
   private shieldStatusBar: Graphics | null = null;
   private energyStatusBar: Graphics | null = null;
@@ -1062,6 +1066,9 @@ export class NativeCombatHud implements NativeInputFeedback {
   }
 
   private createStatus(): void {
+    // 底板先创建：Cocos 按 sibling 顺序绘制，先建的在下，才压得住后面的文字与条。
+    this.statusPlate = attachGraphics(this.createNode('StatusPlate'));
+    this.navPlate = attachGraphics(this.createNode('NavPlate'));
     this.statusLabel = this.createLabel('FlightStatus', 16, HUD_WHITE);
     this.statusLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
     // 顶部信息区底板：必须在这三行文字**之前**创建 —— Cocos 按 sibling 顺序绘制，
@@ -1105,137 +1112,163 @@ export class NativeCombatHud implements NativeInputFeedback {
 
   private layoutStatus(): void {
     const usableWidth = Math.max(240, this.width - this.safeInsets.left - this.safeInsets.right);
-    const statusWidth = Math.min(300, usableWidth - 24);
-    const statusCenterX = this.leftHanded
-      ? this.width - this.safeInsets.right - 12 - (statusWidth / 2)
-      : this.safeInsets.left + 12 + (statusWidth / 2);
-    this.statusLabel?.node.setPosition(this.canvasPosition(
-      statusCenterX,
-      this.safeInsets.top + 20,
-    ));
-    this.statusLabel?.getComponent(UITransform)?.setContentSize(
-      statusWidth,
-      32,
-    );
-    const statusBarX = this.leftHanded
-      ? this.width - this.safeInsets.right - 12 - statusWidth
+    const cardWidth = Math.min(316, usableWidth - 24);
+    const cardLeft = this.leftHanded
+      ? this.width - this.safeInsets.right - 12 - cardWidth
       : this.safeInsets.left + 12;
-    // 三条资源条拉开到 12px 间距，避免首尾相接糊成一条双色格带。
-    this.hullStatusBar?.node.setPosition(this.canvasPosition(statusBarX, this.safeInsets.top + 41, 2));
-    this.shieldStatusBar?.node.setPosition(this.canvasPosition(statusBarX, this.safeInsets.top + 53, 2));
-    this.energyStatusBar?.node.setPosition(this.canvasPosition(statusBarX, this.safeInsets.top + 65, 2));
+    const cardCenterX = cardLeft + cardWidth / 2;
+    const cardTop = this.safeInsets.top + 8;
+    const cardHeight = 126;
+
+    // ── 左上舰况卡：一块深色玻璃卡收拢三数值 / 三条简约亮条 / 货舱 ──
+    const innerPad = 14;
+    const barWidth = cardWidth - innerPad * 2;
+    this.statusLabel?.node.setPosition(this.canvasPosition(cardCenterX, cardTop + 18, 3));
+    this.statusLabel?.getComponent(UITransform)?.setContentSize(cardWidth - innerPad, 26);
+    if (this.statusLabel) {
+      this.statusLabel.horizontalAlign = HorizontalTextAlignment.CENTER;
+      this.statusLabel.fontSize = 14;
+      this.statusLabel.overflow = Label.Overflow.SHRINK;
+    }
+    // 三条资源条：垂直等距排在卡片中段，不再首尾相接成彩色格带。
+    this.hullStatusBar?.node.setPosition(this.canvasPosition(cardLeft + innerPad, cardTop + 48, 3));
+    this.shieldStatusBar?.node.setPosition(this.canvasPosition(cardLeft + innerPad, cardTop + 70, 3));
+    this.energyStatusBar?.node.setPosition(this.canvasPosition(cardLeft + innerPad, cardTop + 92, 3));
+    // 货舱读数贴在卡片底边，与资源条同宽居中。
+    this.cargoLabel?.node.setPosition(this.canvasPosition(cardCenterX, cardTop + 112, 3));
+    this.cargoLabel?.getComponent(UITransform)?.setContentSize(cardWidth - innerPad, 22);
+    if (this.cargoLabel) this.cargoLabel.horizontalAlign = HorizontalTextAlignment.CENTER;
+
+    if (this.statusPlate) {
+      this.statusPlate.node.setPosition(this.canvasPosition(
+        cardCenterX,
+        cardTop + cardHeight / 2,
+        2,
+      ));
+      this.drawStatusCard(this.statusPlate, cardWidth, cardHeight);
+    }
+
     this.debugTelemetryLabel?.node.setPosition(this.canvasPosition(
       this.safeInsets.left + 12,
-      this.safeInsets.top + 82,
+      this.safeInsets.top + 140,
     ));
-    this.objectiveLabel?.node.setPosition(this.canvasPosition(
-      this.width / 2,
-      this.safeInsets.top + 44,
-    ));
+
+    // ── 顶部目标板：收紧成紧凑仪表，三行文字垂直均分，不再上挤下空 ──
+    const objectiveY = this.safeInsets.top + 20;
+    const objectiveH = 110;
+    this.objectiveLabel?.node.setPosition(this.canvasPosition(this.width / 2, objectiveY + 28, 3));
     this.objectiveLabel?.getComponent(UITransform)?.setContentSize(
-      Math.min(536, usableWidth * 0.46),
+      Math.min(600, usableWidth * 0.54),
       30,
     );
-    // 航区/波次：紧贴目标条下方居中，玩家一眼可见当前位置与进度
-    this.sectorLabel?.node.setPosition(this.canvasPosition(
-      this.width / 2,
-      this.safeInsets.top + 72,
-    ));
+    this.sectorLabel?.node.setPosition(this.canvasPosition(this.width / 2, objectiveY + 57, 3));
     this.sectorLabel?.getComponent(UITransform)?.setContentSize(
-      Math.min(536, usableWidth * 0.46),
+      Math.min(600, usableWidth * 0.54),
       22,
     );
-    // 目标锁定读数下移到航区行下方，避免「无目标」压在「当前区域…」上。
-    this.targetLabel?.node.setPosition(this.canvasPosition(
-      this.width / 2,
-      this.safeInsets.top + 100,
-    ));
+    this.targetLabel?.node.setPosition(this.canvasPosition(this.width / 2, objectiveY + 79, 3));
     this.targetLabel?.getComponent(UITransform)?.setContentSize(
-      Math.min(560, usableWidth * 0.5),
+      Math.min(600, usableWidth * 0.54),
       24,
     );
-    // 目标血条紧贴在目标名下方，两者之间留出净空，不再与「当前区域…」那行挤在一起。
-    this.targetHealthBar?.node.setPosition(this.canvasPosition(this.width / 2, this.safeInsets.top + 118, 2));
-    // 顶部信息区统一底板：三行读数合成一块，而不是三串浮在星空上的散字。
+    // 目标血条并入目标板底部内缘，去掉悬浮血条造成的第四行杂乱。
+    this.targetHealthBar?.node.setPosition(this.canvasPosition(this.width / 2, objectiveY + 96, 3));
+
     if (this.objectivePlate) {
-      // 顶部目标区做成一块完整战术仪表：比原来 340×96 放大到 580×124，
-      // 三行读数各有明显基线，不再挤成一小撮看不清的浅蓝小字。
-      const plateWidth = Math.min(580, usableWidth * 0.52);
-      const plateHeight = 124;
+      const plateWidth = Math.min(640, usableWidth * 0.56);
       this.objectivePlate.node.setPosition(this.canvasPosition(
         this.width / 2,
-        this.safeInsets.top + 70,
-        1,
+        objectiveY + objectiveH / 2,
+        2,
       ));
-      this.safeClear(this.objectivePlate);
-      this.objectivePlate.fillColor = new Color(3, 11, 16, 182);
-      this.safeRoundRect(
-        this.objectivePlate,
-        -(plateWidth / 2),
-        -(plateHeight / 2),
-        plateWidth,
-        plateHeight,
-        12,
-      );
-      this.safeFill(this.objectivePlate);
-      this.objectivePlate.strokeColor = new Color(79, 214, 224, 88);
-      this.objectivePlate.lineWidth = 1.5;
-      this.safeRoundRect(
-        this.objectivePlate,
-        -(plateWidth / 2),
-        -(plateHeight / 2),
-        plateWidth,
-        plateHeight,
-        12,
-      );
-      this.safeStroke(this.objectivePlate);
-      this.objectivePlate.strokeColor = HUD_ACTIVE;
-      this.objectivePlate.lineWidth = 2;
-      this.safeMoveTo(this.objectivePlate, -(plateWidth / 2) + 12, -(plateHeight / 2) + 12);
-      this.safeLineTo(this.objectivePlate, -(plateWidth / 2) + 12, -(plateHeight / 2) + 30);
-      this.safeMoveTo(this.objectivePlate, (plateWidth / 2) - 12, (plateHeight / 2) - 12);
-      this.safeLineTo(this.objectivePlate, (plateWidth / 2) - 12, (plateHeight / 2) - 30);
-      this.safeMoveTo(this.objectivePlate, -(plateWidth / 2) + 32, (plateHeight / 2) - 2);
-      this.safeLineTo(this.objectivePlate, (plateWidth / 2) - 32, (plateHeight / 2) - 2);
-      this.safeStroke(this.objectivePlate);
+      this.drawTacticalPlate(this.objectivePlate, plateWidth, objectiveH, 'objective');
     }
+
     this.hitMarker?.node.setPosition(this.canvasPosition(this.width / 2, this.height / 2, 4));
     this.combatFeedLabel?.node.setPosition(this.canvasPosition(this.width / 2, (this.height / 2) + 48, 5));
     this.combatFeedLabel?.getComponent(UITransform)?.setContentSize(Math.min(420, usableWidth - 32), 34);
-    // 导航读数（前哨距离 / 可停靠提示）改挂左下信息列：
-    // 底部中央是「停靠 / 返航」动作片的地盘，两者同位会整行叠字（真机截图实锤）。
-    // 2026-11-19 修正：摇杆圆盘中心 y（距顶部）约 height-bottom-radius-edgeGap，半径 radius；
-    // 原先距底 34/60/88 的三行读数正好压在圆盘/白色拇指上（真机截图：距离/火控/主副武器
-    // 被拇指盖住）。统一上移到摇杆圆盘上沿之外，竖排三行，仍留在左下安全区。
-    // touch 坐标 y 自顶部向下：圆盘上沿 = stick.y - stick.radius。
+
+    // ── 左下飞行数据卡：三行读数共用一张底板，不再贴在星空上裸读 ──
     const stick = this.touchLayout().movement;
     const stickUpperY = stick.y - stick.radius;
+    const navWidth = 244;
     const readoutX = this.leftHanded
-      ? this.width - this.safeInsets.right - 12 - 140
-      : this.safeInsets.left + 12 + 140;
+      ? this.width - this.safeInsets.right - 12 - (navWidth / 2 + 10)
+      : this.safeInsets.left + 12 + (navWidth / 2 + 10);
     // 三行自上而下：前哨距离 / 副武器 / 技能；整组底边留在圆盘上沿之上 18px。
-    const readoutTopY = Math.max(this.safeInsets.top + 150, stickUpperY - 70);
-    this.navigationLabel?.node.setPosition(this.canvasPosition(readoutX, readoutTopY, 4));
-    this.navigationLabel?.getComponent(UITransform)?.setContentSize(280, 24);
+    const readoutTopY = Math.max(this.safeInsets.top + 150, stickUpperY - 72);
+    this.navigationLabel?.node.setPosition(this.canvasPosition(readoutX - navWidth / 2 + 10, readoutTopY + 12, 4));
+    this.navigationLabel?.getComponent(UITransform)?.setContentSize(navWidth - 20, 22);
     if (this.navigationLabel) this.navigationLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
-    this.weaponLabel?.node.setPosition(this.canvasPosition(readoutX, readoutTopY + 26, 4));
-    this.weaponLabel?.getComponent(UITransform)?.setContentSize(280, 28);
+    this.weaponLabel?.node.setPosition(this.canvasPosition(readoutX - navWidth / 2 + 10, readoutTopY + 38, 4));
+    this.weaponLabel?.getComponent(UITransform)?.setContentSize(navWidth - 20, 24);
     if (this.weaponLabel) this.weaponLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
-    this.abilityLabel?.node.setPosition(this.canvasPosition(readoutX, readoutTopY + 52, 4));
-    this.abilityLabel?.getComponent(UITransform)?.setContentSize(280, 24);
+    this.abilityLabel?.node.setPosition(this.canvasPosition(readoutX - navWidth / 2 + 10, readoutTopY + 64, 4));
+    this.abilityLabel?.getComponent(UITransform)?.setContentSize(navWidth - 20, 22);
     if (this.abilityLabel) this.abilityLabel.horizontalAlign = HorizontalTextAlignment.LEFT;
-    this.comboLabel?.node.setPosition(this.canvasPosition(this.width / 2, this.safeInsets.top + 144, 6));
+
+    if (this.navPlate) {
+      this.navPlate.node.setPosition(this.canvasPosition(readoutX, readoutTopY + 44, 3));
+      this.drawTacticalPlate(this.navPlate, navWidth, 88, 'nav');
+    }
+
+    this.comboLabel?.node.setPosition(this.canvasPosition(this.width / 2, this.safeInsets.top + 140, 6));
     this.comboLabel?.getComponent(UITransform)?.setContentSize(Math.min(340, usableWidth - 40), 30);
-    // 强化读数再往上挪一格，避开返航动作片的顶部。
     this.upgradeLabel?.node.setPosition(this.canvasPosition(this.width / 2, this.height - this.safeInsets.bottom - 124, 5));
     this.upgradeLabel?.getComponent(UITransform)?.setContentSize(Math.min(440, usableWidth - 32), 28);
-    // 货舱读数并入左上状态列（原来放在右上角，正好被暂停/视角按钮压住）。
-    this.cargoLabel?.node.setPosition(this.canvasPosition(
-      statusBarX + (statusWidth / 2),
-      this.safeInsets.top + 90,
-      3,
-    ));
-    this.cargoLabel?.getComponent(UITransform)?.setContentSize(statusWidth, 24);
+  }
+
+  /** 左上舰况卡底板：深色玻璃 + 单色细描边 + 左侧强调竖条，彻底去掉彩色格带感。 */
+  private drawStatusCard(graphics: Graphics, width: number, height: number): void {
+    const x = -width / 2;
+    const y = -height / 2;
+    this.safeClear(graphics);
+    graphics.fillColor = new Color(4, 12, 17, 208);
+    this.safeRoundRect(graphics, x, y, width, height, 14);
+    this.safeFill(graphics);
+    graphics.strokeColor = new Color(79, 214, 224, 120);
+    graphics.lineWidth = 1.5;
+    this.safeRoundRect(graphics, x + 1, y + 1, width - 2, height - 2, 14);
+    this.safeStroke(graphics);
+    // 左侧一道青色强调竖条：给整块卡一个稳定的视觉锚点。
+    graphics.fillColor = new Color(79, 214, 224, 190);
+    this.safeRoundRect(graphics, x + 6, y + 14, 3, height - 28, 1.5);
+    this.safeFill(graphics);
+  }
+
+  /** 统一战术底板：objective 横向仪表 / nav 竖向数据卡共用一套玻璃材质。 */
+  private drawTacticalPlate(
+    graphics: Graphics,
+    width: number,
+    height: number,
+    kind: 'objective' | 'nav',
+  ): void {
+    const x = -width / 2;
+    const y = -height / 2;
+    this.safeClear(graphics);
+    graphics.fillColor = new Color(4, 12, 17, 196);
+    this.safeRoundRect(graphics, x, y, width, height, 12);
+    this.safeFill(graphics);
+    graphics.strokeColor = new Color(79, 214, 224, 104);
+    graphics.lineWidth = 1.5;
+    this.safeRoundRect(graphics, x + 1, y + 1, width - 2, height - 2, 12);
+    this.safeStroke(graphics);
+    // 顶部一道冷光高光，拉开层次、去平涂感。
+    graphics.strokeColor = new Color(226, 245, 255, 46);
+    graphics.lineWidth = 1;
+    this.safeMoveTo(graphics, x + 14, y + height - 8);
+    this.safeLineTo(graphics, x + width - 14, y + height - 8);
+    this.safeStroke(graphics);
+    if (kind === 'objective') {
+      // 目标卡：只保留左右一对克制角标，去掉压在文字上的第三条横线。
+      graphics.strokeColor = HUD_ACTIVE;
+      graphics.lineWidth = 2;
+      this.safeMoveTo(graphics, x + 12, y + height - 12);
+      this.safeLineTo(graphics, x + 12, y + height - 26);
+      this.safeMoveTo(graphics, x + width - 12, y + 12);
+      this.safeLineTo(graphics, x + width - 12, y + 26);
+      this.safeStroke(graphics);
+    }
   }
 
   /**
@@ -1413,26 +1446,32 @@ export class NativeCombatHud implements NativeInputFeedback {
     critical = false,
   ): void {
     if (!graphics) return;
-    const width = Math.min(278, Math.max(156, this.width * 0.2));
+    const width = Math.min(288, Math.max(150, this.width * 0.21));
     const ratio = Math.max(0, Math.min(1, maximum > 0 ? value / maximum : 0));
+    const barHeight = 10;
     this.safeClear(graphics);
-    // 战术分段条：平滑填充 + 等距刻度，与网页端 HUD 的分段状态条保持同一视觉语言。
-    graphics.fillColor = new Color(3, 10, 14, 196);
-    this.safeRect(graphics, 0, -4, width, 8);
+    // 简约能量条：暗槽 + 单色亮条 + 少量分节刻度，不再用密集彩色格墙的廉价观感。
+    graphics.fillColor = new Color(2, 9, 13, 220);
+    this.safeRoundRect(graphics, 0, -barHeight / 2, width, barHeight, 5);
     this.safeFill(graphics);
-    graphics.fillColor = critical ? HUD_RED : accent;
-    this.safeRect(graphics, 0, -4, width * ratio, 8);
-    this.safeFill(graphics);
-    graphics.fillColor = new Color(3, 10, 14, 235);
-    const segments = 18;
-    const step = width / segments;
-    for (let index = 1; index < segments; index += 1) {
-      this.safeRect(graphics, index * step - 1, -4, 2, 8);
+    const fillWidth = width * ratio;
+    if (fillWidth > 0.5) {
+      graphics.fillColor = critical ? HUD_RED : accent;
+      this.safeRoundRect(graphics, 0, -barHeight / 2, fillWidth, barHeight, 5);
+      this.safeFill(graphics);
     }
-    this.safeFill(graphics);
-    graphics.strokeColor = new Color(96, 160, 172, 120);
+    // 只保留 4 个弱刻度（25/50/75%），起辅助读数作用但不喧宾夺主。
+    graphics.strokeColor = new Color(226, 245, 255, 70);
     graphics.lineWidth = 1;
-    this.safeRect(graphics, 0, -5, width, 10);
+    for (let index = 1; index < 4; index += 1) {
+      const tickX = (width / 4) * index;
+      this.safeMoveTo(graphics, tickX, -barHeight / 2 + 2);
+      this.safeLineTo(graphics, tickX, barHeight / 2 - 2);
+    }
+    this.safeStroke(graphics);
+    graphics.strokeColor = new Color(96, 160, 172, 100);
+    graphics.lineWidth = 1;
+    this.safeRoundRect(graphics, 0.5, -barHeight / 2 + 0.5, width - 1, barHeight - 1, 5);
     this.safeStroke(graphics);
   }
 
@@ -4685,7 +4724,7 @@ export class NativeCombatHud implements NativeInputFeedback {
 
     this.stickThumb = this.createNode('FixedMoveStickThumb');
     const thumb = attachGraphics(this.stickThumb);
-    this.drawDisc(thumb, layout.movement.radius * 0.34, HUD_WHITE);
+    this.drawDisc(thumb, layout.movement.radius * 0.26, HUD_CYAN);
 
     const labels: Readonly<Record<string, CombatMessageKey>> = {
       primaryFire: 'touch.fire',
@@ -4850,7 +4889,7 @@ export class NativeCombatHud implements NativeInputFeedback {
     stick?.node.setPosition(this.canvasPosition(center.x, center.y, 1));
     this.stickThumb?.setPosition(this.canvasPosition(center.x, center.y, 2));
     const thumb = graphicsOf(this.stickThumb);
-    if (thumb) this.drawDisc(thumb, layout.movement.radius * 0.34, HUD_WHITE);
+    if (thumb) this.drawDisc(thumb, layout.movement.radius * 0.26, HUD_CYAN);
     for (const control of layout.actions) {
       const visual = this.actionVisuals.get(control.role);
       if (!visual) continue;
@@ -4933,20 +4972,20 @@ export class NativeCombatHud implements NativeInputFeedback {
     return editBox;
   }
 
-  /** 摇杆拇指：亮盘 + 暗描边，任何背景下都能看清手指落在哪。 */
+  /** 摇杆拇指：深色小核 + 青色描边，取代原先占满圆盘的大白饼（截图里像一块白斑）。 */
   private drawDisc(graphics: Graphics, radius: number, accent: Color): void {
     this.safeClear(graphics);
-    graphics.fillColor = new Color(226, 245, 255, 235);
+    graphics.fillColor = new Color(8, 30, 40, 220);
     this.safeCircle(graphics, 0, 0, radius);
     this.safeFill(graphics);
-    graphics.strokeColor = new Color(4, 18, 26, 225);
-    graphics.lineWidth = 2;
-    this.safeCircle(graphics, 0, 0, radius - 1);
-    this.safeStroke(graphics);
     graphics.strokeColor = accent;
-    graphics.lineWidth = 1;
-    this.safeCircle(graphics, 0, 0, Math.max(1, radius - 5));
+    graphics.lineWidth = 2.5;
+    this.safeCircle(graphics, 0, 0, radius - 1.5);
     this.safeStroke(graphics);
+    // 中心一枚亮点，指示手指落点，同时让小核在深色底盘上依旧醒目。
+    graphics.fillColor = new Color(226, 245, 255, 235);
+    this.safeCircle(graphics, 0, 0, Math.max(2, radius * 0.3));
+    this.safeFill(graphics);
   }
 
   /**
@@ -4964,21 +5003,18 @@ export class NativeCombatHud implements NativeInputFeedback {
     active: boolean,
   ): void {
     const primary = role === 'primaryFire';
-    // 低饱和描边色：青/橙只做点缀，绝不铺满按钮。深色玻璃底 + 细边 + 顶部高光，
-    // 替换此前 active/primary 整块填橙青的大色块（真机截图"蓝色底突兀/低级"的根因）。
-    const accent = primary ? new Color(232, 174, 85, 220) : new Color(95, 200, 208, 205);
+    // 全端同一套克制材质：深色玻璃 + 统一青色细边；开火键只用暖铜色描边区分，
+    // 不再用整块暖底 + 粗橙框，去掉截图里"孤零零一块橙砖"的突兀感。
+    const accent = primary ? new Color(214, 168, 96, 205) : new Color(95, 200, 208, 195);
     const half = radius;
     const corner = Math.min(radius * 0.32, 16);
     this.safeClear(graphics);
-    // 玻璃底：primary 略带暖调，其余深墨绿半透明，透出太空背景。
-    graphics.fillColor = primary
-      ? new Color(28, 20, 12, 198)
-      : new Color(7, 22, 29, 198);
+    graphics.fillColor = new Color(7, 22, 29, 200);
     this.safeRoundRect(graphics, -half, -half, half * 2, half * 2, corner);
     this.safeFill(graphics);
-    // 细描边：1.5px，pressed/primary 稍微加粗，但仍只是线，不是色块。
+    // 统一 1.6px 细描边：所有动作片一个粗细，只有颜色区分功能。
     graphics.strokeColor = accent;
-    graphics.lineWidth = primary ? 2.2 : 1.5;
+    graphics.lineWidth = 1.6;
     this.safeRoundRect(graphics, -half + 1.5, -half + 1.5, (half - 1.5) * 2, (half - 1.5) * 2, corner);
     this.safeStroke(graphics);
     // 顶部一道高光：模拟玻璃反光，拉开层次、去"低级"平涂感。
@@ -5100,24 +5136,29 @@ export class NativeCombatHud implements NativeInputFeedback {
   private drawStickDeadzone(graphics: Graphics, radius: number): void {
     this.safeClear(graphics);
     // 底盘：半透明深色，让摇杆区域在任何太空背景上都能被一眼认出
-    graphics.fillColor = new Color(4, 18, 26, 150);
+    graphics.fillColor = new Color(4, 16, 22, 168);
     this.safeCircle(graphics, 0, 0, radius);
     this.safeFill(graphics);
-    // 外环：摇杆的主视觉锚点
-    graphics.strokeColor = new Color(120, 214, 224, 235);
-    graphics.lineWidth = 2;
-    this.safeCircle(graphics, 0, 0, radius - 1);
+    // 外环：柔化后的青色细环，取代刺眼亮圈
+    graphics.strokeColor = new Color(96, 178, 190, 205);
+    graphics.lineWidth = 1.8;
+    this.safeCircle(graphics, 0, 0, radius - 2);
+    this.safeStroke(graphics);
+    // 内圈一道弱环，拉开层次
+    graphics.strokeColor = new Color(96, 178, 190, 90);
+    graphics.lineWidth = 1;
+    this.safeCircle(graphics, 0, 0, radius * 0.62);
     this.safeStroke(graphics);
     // 内死区细环
-    graphics.strokeColor = new Color(226, 245, 255, 92);
+    graphics.strokeColor = new Color(226, 245, 255, 70);
     graphics.lineWidth = 1;
     this.safeCircle(graphics, 0, 0, Math.max(4, radius * 0.3));
     this.safeStroke(graphics);
-    // 四向刻度：提示推杆方向
-    graphics.strokeColor = new Color(59, 211, 255, 175);
+    // 四向刻度：缩短成贴边的短刻，提示推杆方向但不抢镜
+    graphics.strokeColor = new Color(96, 190, 205, 150);
     graphics.lineWidth = 2;
-    const tickStart = radius * 0.8;
-    const tickEnd = radius * 0.96;
+    const tickStart = radius * 0.88;
+    const tickEnd = radius * 0.97;
     for (let index = 0; index < 4; index += 1) {
       const angle = index * Math.PI / 2;
       this.safeMoveTo(graphics, Math.cos(angle) * tickStart, Math.sin(angle) * tickStart);

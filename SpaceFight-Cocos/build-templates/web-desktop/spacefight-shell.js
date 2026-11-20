@@ -198,8 +198,12 @@
     setOutpostOpen(false);
   }
   loadoutOpen.addEventListener('click', () => { setSettingsOpen(false); setLoadoutOpen(true); });
-  loadoutClose.addEventListener('click', () => { setLoadoutOpen(false); });
-  loadoutApply.addEventListener('click', () => { publishLoadout(); setLoadoutOpen(false); });
+  function leaveLoadout() {
+    setLoadoutOpen(false);
+    if (document.body.dataset.docked === 'true') setOutpostOpen(true);
+  }
+  loadoutClose.addEventListener('click', leaveLoadout);
+  loadoutApply.addEventListener('click', () => { publishLoadout(); leaveLoadout(); });
 
   function updateStick(event) {
     if (!moveStick) return;
@@ -301,9 +305,10 @@
     element.style.width = `${percent}%`;
   }
 
-  async function requestFlightSurface() {
+  async function requestFlightSurface(fullscreen = false) {
+    canvas.focus();
     try {
-      if (!document.fullscreenElement && root.requestFullscreen) {
+      if (fullscreen && !document.fullscreenElement && root.requestFullscreen) {
         await root.requestFullscreen({ navigationUI: 'hide' });
       }
     } catch (_) {
@@ -334,10 +339,10 @@
     }
     closePanels();
     publishLoadout();
-    await requestFlightSurface();
     document.body.dataset.playing = 'true';
     document.body.dataset.paused = 'false';
     window.dispatchEvent(new CustomEvent('spacefight:fullscreen-enter'));
+    await requestFlightSurface(true);
   }
 
   async function resumeCombat() {
@@ -348,6 +353,14 @@
 
   launch.addEventListener('click', enterCombat);
   resume.addEventListener('click', resumeCombat);
+  document.getElementById('LeaveBattle')?.addEventListener('click', () => {
+    document.body.dataset.playing = 'false';
+    document.body.dataset.paused = 'false';
+    closePanels();
+    if (document.pointerLockElement === canvas) document.exitPointerLock?.();
+    if (document.fullscreenElement) void document.exitFullscreen?.()?.catch(() => {});
+    window.dispatchEvent(new CustomEvent('spacefight:fullscreen-exit'));
+  });
   restart.addEventListener('click', async () => {
     closePanels();
     window.dispatchEvent(new CustomEvent('spacefight:restart'));
@@ -356,11 +369,9 @@
   });
 
   document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement && document.body.dataset.playing === 'true') {
-      document.body.dataset.playing = 'false';
-      document.body.dataset.paused = 'false';
-      closePanels();
-      window.dispatchEvent(new CustomEvent('spacefight:fullscreen-exit'));
+    if (!document.fullscreenElement && document.body.dataset.playing === 'true'
+      && document.body.dataset.docked !== 'true') {
+      window.dispatchEvent(new CustomEvent('spacefight:pause'));
     }
   });
 
@@ -396,6 +407,12 @@
     setBar('EnergyBar', state.energy || 0, state.maxEnergy || 100);
     document.body.dataset.paused = state.paused ? 'true' : 'false';
     document.body.dataset.mission = state.missionStatus || 'active';
+    if (state.paused && document.pointerLockElement === canvas) document.exitPointerLock?.();
+    const nav = state.navigation;
+    if (Number.isFinite(nav?.outpostRange)) {
+      setText('OutpostRange', `前哨 · ${Math.round(nav.outpostRange)} 米`);
+    }
+    if (dockAction) dockAction.hidden = !nav?.canDock || state.missionStatus !== 'active';
     const ability = state.deviceAbility;
     if (ability) {
       setText('AbilityName', deviceAbilities[ability.id] || ability.id);
@@ -651,6 +668,8 @@
   const outpostCargoList = document.getElementById('OutpostCargoList');
   const outpostSettlement = document.getElementById('OutpostSettlement');
   const outpostVitals = document.getElementById('OutpostVitals');
+  const dockAction = document.getElementById('DockAction');
+  dockAction?.addEventListener('click', () => window.dispatchEvent(new CustomEvent('spacefight:dock-request')));
   const CARGO_LABELS = { equipment: '装备', material: '材料', currency: '通货', intel: '情报', cosmetic: '外观' };
   const RARITY_LABELS = { common: '普通', uncommon: '优良', rare: '稀有', epic: '史诗' };
 
@@ -703,7 +722,6 @@
     outpostSettlement.hidden = false;
     outpostSettlement.textContent = `本趟结算  +${state.amount || 0} 星港券　·　货值 ${state.cargoValue || 0}　·　击落 ${state.kills || 0}`;
   });
-  document.getElementById('OutpostClose')?.addEventListener('click', () => { setOutpostOpen(false); });
   document.getElementById('OutpostMechanic')?.addEventListener('click', () => {
     window.dispatchEvent(new CustomEvent('spacefight:mechanic-briefing'));
   });

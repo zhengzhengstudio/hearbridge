@@ -232,9 +232,11 @@ export class BrowserInputBridge {
       canvas,
       documentRef,
       () => documentRef.body.dataset.playing === 'true'
+        && documentRef.body.dataset.docked !== 'true'
         && documentRef.body.dataset.paused !== 'true'
         && documentRef.body.dataset.orientationBlocked !== 'true',
       () => documentRef.body.dataset.playing === 'true'
+        && documentRef.body.dataset.docked !== 'true'
         && documentRef.body.dataset.orientationBlocked !== 'true',
     );
     this.explicitMode = inputModeOverride(documentRef);
@@ -308,12 +310,10 @@ export class BrowserInputBridge {
           radius: Math.min(rect.width, rect.height) / 2,
         }];
       });
-      // 修复：只有全部必需控件都测量成功才采用测量布局；否则回退完整默认布局，
-      // 不因某个控件不存在就丢掉默认布局里的其它动作（如 swapWeapons）。
-      visibleActionLayout = measured.length === controls.length ? measured : undefined;
+      // A real HUD must not activate actions at fallback positions for absent controls.
+      visibleActionLayout = documentRef.getElementById('TouchHud') ? measured : undefined;
     };
     const pointerDown = (event: PointerEvent): void => {
-      resize();
       // 修复：模式在 attach 时确定；仅当当前没有任何活动指针时才允许按指针类型切换，
       // 有活动指针时忽略新指针的类型切换，避免多设备混用互相 releaseAll。
       // 运行时读取 body.dataset.inputModeOverride 作为显式覆盖（若存在）。
@@ -329,6 +329,7 @@ export class BrowserInputBridge {
       if (mode === 'desktop') {
         return;
       }
+      resize();
       const role = pointerRoleAt(
         event.clientX,
         event.clientY,
