@@ -155,7 +155,7 @@ test('WsCoopTransport：onOpen 单 handler、意外断线有回调', () => {
     'onclose 未通知上层，断线状态永远不复位');
 });
 
-test('ShipPresenter：三艘新舰按「竖立平板」放平，缩放与包围盒量级匹配', () => {
+test('ShipPresenter：战机 GLB 已内建 +90° 旋转，配置层不再叠加 X 旋转（否则机型竖成横条）', () => {
   const presenter = script('game/ShipPresenter.ts');
   const block = presenter.slice(
     presenter.indexOf('  bomber: {'),
@@ -164,7 +164,10 @@ test('ShipPresenter：三艘新舰按「竖立平板」放平，缩放与包围�
   for (const ship of ['bomber', 'gunship', 'boss']) {
     const body = block.slice(block.indexOf(`  ${ship}: {`));
     const segment = body.slice(0, body.indexOf('  },') + 4);
-    assert.match(segment, /orientationX: -90/, `${ship} 未放平`);
+    // 2026-11-21 修正：这批 Hunyuan3D GLB 节点自带 rotation=[0.707,0,0,0.707]
+    // （绕 X +90°），机身长轴已在 Z。旧契约错误地要求 orientationX:-90 再放平，
+    // 实际把机身重新竖成扁平横条（真机截图实锤）。正确值必须是 0。
+    assert.match(segment, /orientationX: 0\b/, `${ship} 不应再叠加 X 旋转`);
     const scale = Number((segment.match(/scale: ([\d.]+)/) || [])[1]);
     assert.ok(scale >= 3 && scale <= 8, `${ship} scale=${scale} 不在新模型量级`);
   }

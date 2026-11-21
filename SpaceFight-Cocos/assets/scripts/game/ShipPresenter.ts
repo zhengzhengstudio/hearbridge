@@ -116,11 +116,18 @@ export const MODEL_NORMALIZATION: Readonly<Record<ShipKind, ModelNormalization>>
     colliderRadius: 0.72,
     colliderHeight: 3.2,
   },
+  /**
+   * 2026-11-21 朝向修正：这批 Hunyuan3D 战机的 GLB 根节点已内建 +90° X 旋转
+   * （节点 rotation=[0.707,0,0,0.707]），机身长轴已落在 Z 轴（水平朝前）。
+   * 旧配置误以为「源模型竖着」而再叠加 orientationX:-90，把机身重新竖成
+   * 一条扁横条——真机截图就是几根白色/黄色细杠。正确做法：orientationX 一律 0，
+   * 只靠 orientationY 调机头方向。若某机型机头反向，只改它的 Y（+180/-180），不要再动 X。
+   */
   scout: {
     lowPath: 'models-low/ships/scout',
     highPath: 'models/ships/scout',
     scale: 2.35,
-    orientationX: -90,
+    orientationX: 0,
     orientationY: 0,
     colliderRadius: 0.7,
     colliderHeight: 2.8,
@@ -134,17 +141,11 @@ export const MODEL_NORMALIZATION: Readonly<Record<ShipKind, ModelNormalization>>
     colliderRadius: 0.78,
     colliderHeight: 3.5,
   },
-  /**
-   * 后三艘为 Hunyuan3D 重做件：源模型是「竖着的平板」（长轴 +Y、厚度 -Z），
-   * 必须先绕 X 转 -90 度放平，机头才会落到 -Z；旧的 0.32~0.72 缩放是给
-   * 包围盒 10~20 单位的旧基础体用的，新模型包围盒约 1 单位，故统一改到 4~6。
-   * 若实机发现机头反向，把对应 orientationY 从 0 改成 180 即可，不要改 X。
-   */
   bomber: {
     lowPath: 'models-low/ships/bomber',
     highPath: 'models/ships/bomber',
     scale: 4.2,
-    orientationX: -90,
+    orientationX: 0,
     orientationY: 0,
     colliderRadius: 0.9,
     colliderHeight: 4.1,
@@ -153,7 +154,7 @@ export const MODEL_NORMALIZATION: Readonly<Record<ShipKind, ModelNormalization>>
     lowPath: 'models-low/ships/gunship',
     highPath: 'models/ships/gunship',
     scale: 4.8,
-    orientationX: -90,
+    orientationX: 0,
     orientationY: 0,
     colliderRadius: 1.05,
     colliderHeight: 4.8,
@@ -162,7 +163,7 @@ export const MODEL_NORMALIZATION: Readonly<Record<ShipKind, ModelNormalization>>
     lowPath: 'models-low/ships/boss',
     highPath: 'models/ships/boss',
     scale: 5.6,
-    orientationX: -90,
+    orientationX: 0,
     orientationY: 0,
     colliderRadius: 1.5,
     colliderHeight: 6.2,
